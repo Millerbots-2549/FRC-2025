@@ -5,10 +5,12 @@
 package frc.robot.subsystems.drive;
 
 import java.util.Queue;
+import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -23,7 +25,9 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.MathConstants;
 
 import static frc.robot.util.MotorUtils.*;
 
@@ -35,6 +39,8 @@ public class ModuleIOSpark implements ModuleIO {
     private final SparkBase turnMotor;
     private final RelativeEncoder driveEncoder;
     private final RelativeEncoder turnEncoder;
+
+    private SwerveModuleState targetState;
 
     private final CANcoder canCoder;
 
@@ -49,6 +55,8 @@ public class ModuleIOSpark implements ModuleIO {
     private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
 
     public ModuleIOSpark(int module) {
+        targetState = new SwerveModuleState();
+
         zeroRotation =
             switch (module) {
                 case 0 -> DriveConstants.FRONT_LEFT_ZERO_ROTATION;
@@ -137,10 +145,10 @@ public class ModuleIOSpark implements ModuleIO {
             .pidf(DriveConstants.TURN_P, 0.0, DriveConstants.TURN_D, 0.0);
         turnConfig
             .signals
-            .absoluteEncoderPositionAlwaysOn(true)
-            .absoluteEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
-            .absoluteEncoderVelocityAlwaysOn(true)
-            .absoluteEncoderVelocityPeriodMs(20)
+            .primaryEncoderPositionAlwaysOn(true)
+            .primaryEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+            .primaryEncoderVelocityAlwaysOn(true)
+            .primaryEncoderVelocityPeriodMs(20)
             .appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20)
             .outputCurrentPeriodMs(20);
@@ -174,56 +182,114 @@ public class ModuleIOSpark implements ModuleIO {
 
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateInputs'");
+        sparkStickyFault = false;
+        ifOk(driveMotor, driveEncoder::getPosition, (value) -> inputs.drivePositionRadians = value);
+        ifOk(driveMotor, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = value);
+        ifOk(
+            driveMotor, 
+            new DoubleSupplier[] {driveMotor::getAppliedOutput, driveMotor::getBusVoltage},
+            (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
+        ifOk(driveMotor, driveMotor::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
+        inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
+
+        sparkStickyFault = false;
+        ifOk(
+            turnMotor,
+            turnEncoder::getPosition,
+            (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
+        ifOk(turnMotor, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
+        ifOk(
+            turnMotor, 
+            new DoubleSupplier[] {turnMotor::getAppliedOutput, turnMotor::getBusVoltage},
+            (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
+        ifOk(turnMotor, turnMotor::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
+        inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
+
+        inputs.odometryTimestamps =
+            timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryDrivePositionsRad =
+            drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryTurnPositions =
+            turnPositionQueue.stream()
+                .map((Double value) -> new Rotation2d(value).minus(zeroRotation))
+                .toArray(Rotation2d[]::new);
+        timestampQueue.clear();
+        drivePositionQueue.clear();
+        turnPositionQueue.clear();
     }
 
     @Override
     public void apply(SwerveModuleState state) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'apply'");
+        targetState = state;
+
+        SwerveModuleState corrected = new SwerveModuleState(
+            state.speedMetersPerSecond, state.angle.plus(zeroRotation));
+        corrected.optimize(Rotation2d.fromRadians(turnEncoder.getPosition()));
+
+        double turnMotorError = corrected.angle.getRotations() - turnEncoder.getPosition();
+        double cosineScalar = Math.cos(Units.rotationsToRadians(turnMotorError));
+
+        if (cosineScalar < 0.0) {
+            cosineScalar = 0.0;
+        }
+
+        double velocityToSet = corrected.speedMetersPerSecond * cosineScalar;
+
+        driveController.setReference(velocityToSet, ControlType.kVelocity);
+        turnController.setReference(corrected.angle.getRadians(), ControlType.kPosition);
     }
 
     @Override
     public void applyCharacterization(Rotation2d turn, double driveVolts) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'applyCharacterization'");
+        Rotation2d correctedAngle = turn.plus(zeroRotation);
+
+        driveController.setReference(driveVolts, ControlType.kVoltage);
+        turnController.setReference(correctedAngle.getRadians(), ControlType.kPosition);
     }
 
     @Override
     public void setIdleMode(IdleMode driveIdleMode) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setIdleMode'");
+        driveMotor.configure(
+            new SparkMaxConfig().idleMode(driveIdleMode),
+            ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     @Override
     public void setIdleMode(IdleMode driveIdleMode, IdleMode turnIdleMode) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setIdleMode'");
+        driveMotor.configure(
+            new SparkMaxConfig().idleMode(driveIdleMode),
+            ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        turnMotor.configure(
+            new SparkMaxConfig().idleMode(turnIdleMode),
+            ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     @Override
     public SwerveModulePosition getPosition() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPosition'");
+        double drive_rot = driveEncoder.getPosition();
+        double turn_rot = turnEncoder.getPosition();
+
+        SwerveModulePosition pos = new SwerveModulePosition();
+        pos.distanceMeters = drive_rot / (DriveConstants.WHEEL_RAIDUS_METERS * MathConstants.TAU);
+        pos.angle = Rotation2d.fromRotations(turn_rot);
+        return pos;
     }
 
     @Override
     public SwerveModuleState getState() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getState'");
+        // TODO: check this
+        return new SwerveModuleState(
+            driveEncoder.getVelocity(), Rotation2d.fromRotations(turnEncoder.getPosition()));
     }
 
     @Override
     public SwerveModuleState getTargetState() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTargetState'");
+        return targetState;
     }
 
     @Override
     public void resetPosition() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'resetPosition'");
+        driveEncoder.setPosition(0);
     }
     
 }
