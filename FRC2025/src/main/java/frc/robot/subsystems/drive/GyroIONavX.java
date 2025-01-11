@@ -9,6 +9,7 @@ import java.util.Queue;
 import com.studica.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 
 /** Add your docs here. */
 public class GyroIONavX implements GyroIO {
@@ -16,9 +17,24 @@ public class GyroIONavX implements GyroIO {
     public Queue<Rotation2d> yawPositionQueue;
     public Queue<Double> yawTimestampQueue;
     
+    public GyroIONavX() {
+        yawTimestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
+        yawPositionQueue = SparkOdometryThread.getInstance().registerSignal(navX::getAngle);
+    }
+
     @Override
     public void updateInputs(GyroIOInputs inputs) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateInputs'");
+        inputs.connected = gyro.isConnected();
+        inputs.yaw = Rotation2d.fromDegrees(-gyro.getAngle());
+        inputs.yawVelocityRadPerSec = Units.degreesToRadians(-gyro.getRawGyroZ());
+
+        inputs.odometryTimestamps =
+            yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryYaw =
+            yawPositionQueue.stream()
+            .map((Double value) -> Rotation2d.fromDegrees(-value))
+            .toArray(Rotation2d[]::new);
+        yawTimestampQueue.clear();
+        yawPositionQueue.clear();
     }
 }
