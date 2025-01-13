@@ -9,6 +9,7 @@ import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.StatusCode;
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 
@@ -32,11 +33,11 @@ public class MotorUtils {
         SparkBase spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
         double[] values = new double[suppliers.length];
         for (int i = 0; i < suppliers.length; i++) {
-        values[i] = suppliers[i].getAsDouble();
-        if (spark.getLastError() != REVLibError.kOk) {
-            sparkStickyFault = true;
-            return;
-        }
+            values[i] = suppliers[i].getAsDouble();
+            if (spark.getLastError() != REVLibError.kOk) {
+                sparkStickyFault = true;
+                return;
+            }
         }
         consumer.accept(values);
     }
@@ -44,12 +45,19 @@ public class MotorUtils {
     /** Attempts to run the command until no error is produced. */
     public static void tryUntilOk(SparkBase spark, int maxAttempts, Supplier<REVLibError> command) {
         for (int i = 0; i < maxAttempts; i++) {
-        var error = command.get();
-        if (error == REVLibError.kOk) {
-            break;
-        } else {
-            sparkStickyFault = true;
+            var error = command.get();
+            if (error == REVLibError.kOk) {
+                break;
+            } else {
+                sparkStickyFault = true;
+            }
         }
+    }
+
+    public static void tryUntilOk(int maxAttempts, Supplier<StatusCode> command) {
+        for (int i = 0; i < maxAttempts; i++) {
+            var error = command.get();
+            if (error.isOK()) break;
         }
     }
 }

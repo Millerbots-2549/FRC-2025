@@ -7,42 +7,46 @@ package frc.robot.subsystems.drive;
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkBaseConfig;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.MathConstants;
+import edu.wpi.first.units.measure.Angle;
+import frc.robot.SparkModuleConstants;
+import frc.robot.SparkModuleConstants.ModuleSpecConfig;
 
 import static frc.robot.util.MotorUtils.*;
 
 /** Add your docs here. */
 public class ModuleIOSpark implements ModuleIO {
-    private final Rotation2d zeroRotation;
-
     private final SparkBase driveMotor;
     private final SparkBase turnMotor;
     private final RelativeEncoder driveEncoder;
     private final RelativeEncoder turnEncoder;
 
-    private SwerveModuleState targetState;
+    private final SparkBaseConfig driveConfig;
+    private final SparkBaseConfig turnConfig;
+
+    private ModuleGains gains;
 
     private final CANcoder canCoder;
+    private final StatusSignal<Angle> turnAbsolutePosition;
 
     private final SparkClosedLoopController driveController;
     private final SparkClosedLoopController turnController;
@@ -54,130 +58,47 @@ public class ModuleIOSpark implements ModuleIO {
     private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
     private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
 
-    public ModuleIOSpark(int module) {
-        targetState = new SwerveModuleState();
+    public ModuleIOSpark(ModuleSpecConfig config) {
+        driveMotor = new SparkMax(config.driveCanID(), MotorType.kBrushless);
+        turnMotor = new SparkMax(config.turnCanID(), MotorType.kBrushless);
 
-        zeroRotation =
-            switch (module) {
-                case 0 -> DriveConstants.FRONT_LEFT_ZERO_ROTATION;
-                case 1 -> DriveConstants.FRONT_RIGHT_ZERO_ROTATION;
-                case 2 -> DriveConstants.BACK_LEFT_ZERO_ROTATION;
-                case 3 -> DriveConstants.BACK_RIGHT_ZERO_ROTATION;
-                default -> new Rotation2d();
-            };
-        driveMotor =
-            new SparkMax(
-                switch (module) {
-                    case 0 -> DriveConstants.FRONT_LEFT_DRIVE_ID;
-                    case 1 -> DriveConstants.FRONT_RIGHT_DRIVE_ID;
-                    case 2 -> DriveConstants.BACK_LEFT_DRIVE_ID;
-                    case 3 -> DriveConstants.BACK_RIGHT_DRIVE_ID;
-                    default -> 0;
-                },
-                MotorType.kBrushless);
-        turnMotor =
-            new SparkMax(
-                switch (module) {
-                    case 0 -> DriveConstants.FRONT_LEFT_TURN_ID;
-                    case 1 -> DriveConstants.FRONT_RIGHT_TURN_ID;
-                    case 2 -> DriveConstants.BACK_LEFT_TURN_ID;
-                    case 3 -> DriveConstants.BACK_RIGHT_TURN_ID;
-                    default -> 0;
-                },
-                MotorType.kBrushless);
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
+        canCoder = new CANcoder(config.CANcoderID());
+
         driveController = driveMotor.getClosedLoopController();
         turnController = turnMotor.getClosedLoopController();
 
-        // Configure drive motor
-        var driveConfig = new SparkFlexConfig();
-        driveConfig
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(DriveConstants.DRIVE_CURRENT_LIMIT)
-            .voltageCompensation(12.0);
-        driveConfig
-            .encoder
-            .positionConversionFactor(DriveConstants.DRIVE_ENCODER_POSITION_FACTOR)
-            .velocityConversionFactor(DriveConstants.DRIVE_ENCODER_VELOCITY_FACTOR)
-            .uvwMeasurementPeriod(10)
-            .uvwAverageDepth(2);
-        driveConfig
-            .closedLoop
-            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pidf(
-                DriveConstants.DRIVE_P, 0.0,
-                DriveConstants.DRIVE_D, 0.0);
-        driveConfig
-            .signals
-            .primaryEncoderPositionAlwaysOn(true)
-            .primaryEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
-            .primaryEncoderVelocityAlwaysOn(true)
-            .primaryEncoderVelocityPeriodMs(20)
-            .appliedOutputPeriodMs(20)
-            .busVoltagePeriodMs(20)
-            .outputCurrentPeriodMs(20);
-        tryUntilOk(
-            driveMotor,
-            5,
-            () ->
-                driveMotor.configure(
-                    driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        driveConfig = SparkModuleConstants.driveConfig;
+        driveConfig.inverted(config.invertDrive());
+        tryUntilOk(driveMotor, 5, () ->
+            driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(driveMotor, 5, () -> driveEncoder.setPosition(0.0));
 
-        // Configure turn motor
-        var turnConfig = new SparkMaxConfig();
-        turnConfig
-            .inverted(DriveConstants.TURN_INVERTED)
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(DriveConstants.TURN_CURRENT_LIMIT)
-            .voltageCompensation(12.0);
-        turnConfig
-            .encoder
-            .inverted(DriveConstants.TURN_ENCODER_INVERTED)
-            .positionConversionFactor(DriveConstants.TURN_ENCODER_POSITION_FACTOR)
-            .velocityConversionFactor(DriveConstants.TURN_ENCODER_VELOCITY_FACTOR);
-        turnConfig
-            .closedLoop
-            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-            .positionWrappingEnabled(true)
-            .positionWrappingInputRange(DriveConstants.TURN_PID_MIN_INPUT, DriveConstants.TURN_PID_MAX_INPUT)
-            .pidf(DriveConstants.TURN_P, 0.0, DriveConstants.TURN_D, 0.0);
-        turnConfig
-            .signals
-            .primaryEncoderPositionAlwaysOn(true)
-            .primaryEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
-            .primaryEncoderVelocityAlwaysOn(true)
-            .primaryEncoderVelocityPeriodMs(20)
-            .appliedOutputPeriodMs(20)
-            .busVoltagePeriodMs(20)
-            .outputCurrentPeriodMs(20);
-        tryUntilOk(
-            turnMotor,
-            5,
-            () ->
-                turnMotor.configure(
-                    turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        CANcoderConfiguration canCoderConfig = SparkModuleConstants.canCoderConfig;
+        canCoderConfig.MagnetSensor.withMagnetOffset(config.CANcoderOffset());
+        tryUntilOk(5, () -> canCoder.getConfigurator().apply(canCoderConfig, 0.25));
 
-        // Create odometry queues
+        turnConfig = SparkModuleConstants.turnConfig;
+        turnConfig.inverted(config.invertTurn());
+        tryUntilOk(turnMotor, 5, ()->
+            turnEncoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble()));
+
         timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
-        drivePositionQueue =
-            OdometryThread.getInstance().registerSignal(driveMotor, driveEncoder::getPosition);
-        turnPositionQueue =
-            OdometryThread.getInstance().registerSignal(turnMotor, turnEncoder::getPosition);
+        drivePositionQueue = OdometryThread.getInstance().registerSignal(driveMotor, driveEncoder::getPosition);
+        turnPositionQueue = OdometryThread.getInstance().registerSignal(turnMotor, turnEncoder::getPosition);
 
-        int ccid = switch (module) {
-            case 0 -> DriveConstants.FRONT_LEFT_CANCODER_ID;
-            case 1 -> DriveConstants.FRONT_RIGHT_CANCODER_ID;
-            case 2 -> DriveConstants.BACK_LEFT_CANCODER_ID;
-            case 3 -> DriveConstants.BACK_RIGHT_CANCODER_ID;
-            default -> 0;
-        };
-        canCoder = new CANcoder(
-            ccid
-        );
+        turnAbsolutePosition = canCoder.getAbsolutePosition();
 
-        // TODO: configure CANcoder
+        BaseStatusSignal.setUpdateFrequencyForAll(50.0, turnAbsolutePosition);
+
+        gains = new ModuleGains(
+            SparkModuleConstants.driveKp,
+            0.0,
+            SparkModuleConstants.driveKd,
+            SparkModuleConstants.driveKs,
+            SparkModuleConstants.driveKv,
+            0.0);
     }
 
     @Override
@@ -196,7 +117,7 @@ public class ModuleIOSpark implements ModuleIO {
         ifOk(
             turnMotor,
             turnEncoder::getPosition,
-            (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
+            (value) -> inputs.turnPosition = new Rotation2d(value));
         ifOk(turnMotor, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
         ifOk(
             turnMotor, 
@@ -211,7 +132,7 @@ public class ModuleIOSpark implements ModuleIO {
             drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryTurnPositions =
             turnPositionQueue.stream()
-                .map((Double value) -> new Rotation2d(value).minus(zeroRotation))
+                .map((Double value) -> new Rotation2d(value))
                 .toArray(Rotation2d[]::new);
         timestampQueue.clear();
         drivePositionQueue.clear();
@@ -219,77 +140,55 @@ public class ModuleIOSpark implements ModuleIO {
     }
 
     @Override
-    public void apply(SwerveModuleState state) {
-        targetState = state;
-
-        SwerveModuleState corrected = new SwerveModuleState(
-            state.speedMetersPerSecond, state.angle.plus(zeroRotation));
-        corrected.optimize(Rotation2d.fromRadians(turnEncoder.getPosition()));
-
-        double turnMotorError = corrected.angle.getRotations() - turnEncoder.getPosition();
-        double cosineScalar = Math.cos(Units.rotationsToRadians(turnMotorError));
-
-        if (cosineScalar < 0.0) {
-            cosineScalar = 0.0;
-        }
-
-        double velocityToSet = corrected.speedMetersPerSecond * cosineScalar;
-
-        driveController.setReference(velocityToSet, ControlType.kVelocity);
-        turnController.setReference(corrected.angle.getRadians(), ControlType.kPosition);
+    public void setDriveOpenLoop(double output) {
+        driveMotor.setVoltage(output);
     }
 
     @Override
-    public void applyCharacterization(Rotation2d turn, double driveVolts) {
-        Rotation2d correctedAngle = turn.plus(zeroRotation);
-
-        driveController.setReference(driveVolts, ControlType.kVoltage);
-        turnController.setReference(correctedAngle.getRadians(), ControlType.kPosition);
+    public void setTurnOpenLoop(double output) {
+        turnMotor.setVoltage(output);
     }
 
     @Override
-    public void setIdleMode(IdleMode driveIdleMode) {
-        driveMotor.configure(
-            new SparkMaxConfig().idleMode(driveIdleMode),
-            ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+    public void setDriveVelocity(double velocity) {
+        double ffVolts =
+            SparkModuleConstants.driveKs * Math.signum(velocity)
+            + SparkModuleConstants.driveKv * velocity;
+        driveController.setReference(
+            velocity,
+            ControlType.kVelocity,
+            ClosedLoopSlot.kSlot0,
+            ffVolts,
+            ArbFFUnits.kVoltage);
     }
 
     @Override
-    public void setIdleMode(IdleMode driveIdleMode, IdleMode turnIdleMode) {
-        driveMotor.configure(
-            new SparkMaxConfig().idleMode(driveIdleMode),
-            ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-        turnMotor.configure(
-            new SparkMaxConfig().idleMode(turnIdleMode),
-            ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+    public void setTurnPosition(Rotation2d rotation) {
+        double setPoint =
+            MathUtil.inputModulus(
+                rotation.getRadians(),
+                SparkModuleConstants.turnPIDMinInput,
+                SparkModuleConstants.turnPIDMaxInput);
+        turnController.setReference(setPoint, ControlType.kPosition);
     }
 
     @Override
-    public SwerveModulePosition getPosition() {
-        double drive_rot = driveEncoder.getPosition();
-        double turn_rot = turnEncoder.getPosition();
-
-        SwerveModulePosition pos = new SwerveModulePosition();
-        pos.distanceMeters = drive_rot / (DriveConstants.WHEEL_RAIDUS_METERS * MathConstants.TAU);
-        pos.angle = Rotation2d.fromRotations(turn_rot);
-        return pos;
+    public ModuleGains getGains() {
+        return gains;
     }
 
     @Override
-    public SwerveModuleState getState() {
-        // TODO: check this
-        return new SwerveModuleState(
-            driveEncoder.getVelocity(), Rotation2d.fromRotations(turnEncoder.getPosition()));
-    }
+    public void setGains(ModuleGains gains) {
+        this.gains = gains;
 
-    @Override
-    public SwerveModuleState getTargetState() {
-        return targetState;
-    }
-
-    @Override
-    public void resetPosition() {
-        driveEncoder.setPosition(0);
+        tryUntilOk(
+            driveMotor,
+            5,
+            () -> driveMotor.configure(
+                driveConfig.apply(
+                    new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), gains.kV())),
+                    ResetMode.kNoResetSafeParameters,
+                    PersistMode.kNoPersistParameters));
     }
     
 }

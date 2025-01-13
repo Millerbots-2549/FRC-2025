@@ -6,11 +6,7 @@ package frc.robot.subsystems.drive;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 /** Add your docs here. */
 public interface ModuleIO {
@@ -23,10 +19,13 @@ public interface ModuleIO {
         public double driveCurrentAmps = 0.0;
 
         public boolean turnConnected = false;
+        public Rotation2d turnAbsolutePosition = new Rotation2d();
         public Rotation2d turnPosition = new Rotation2d();
         public double turnVelocityRadPerSec;
         public double turnAppliedVolts = 0.0;
         public double turnCurrentAmps = 0.0;
+
+        public boolean canCoderConnected = true;
 
         public double[] odometryTimestamps = new double[] {};
         public double[] odometryDrivePositionsRad = new double[] {};
@@ -35,19 +34,17 @@ public interface ModuleIO {
 
     public void updateInputs(ModuleIOInputs inputs);
 
-    public void apply(SwerveModuleState state);
+    public void setDriveOpenLoop(double output);
 
-    public void applyCharacterization(Rotation2d turn, double driveVolts);
+    public void setTurnOpenLoop(double output);
 
-    public void setIdleMode(IdleMode driveIdleMode);
+    public void setDriveVelocity(double velocity);
 
-    public void setIdleMode(IdleMode driveIdleMode, IdleMode turnIdleMode);
+    public void setTurnPosition (Rotation2d rotation);
 
-    public SwerveModulePosition getPosition();
+    public ModuleGains getGains();
 
-    public SwerveModuleState getState();
+    public void setGains(ModuleGains gains);
 
-    public SwerveModuleState getTargetState();
-
-    public void resetPosition();
+    public record ModuleGains(double kP, double kI, double kD, double kS, double kV, double kA) {}
 }

@@ -72,13 +72,15 @@ public final class Constants {
     public static final int BACK_LEFT_CANCODER_ID = 0;
     public static final int BACK_RIGHT_CANCODER_ID = 0;
 
-    public static final double DRIVE_MOTOR_REDUCTION = 0; // TODO: this
+    // TODO: forgot which swerve modules we have lol, make these correct later.
+    public static final double DRIVE_GEAR_RATIO = 1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
+    public static final double TURN_GEAR_RATIO = 150.0 / 7.0;
 
-    public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU / DRIVE_MOTOR_REDUCTION;
-    public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / DRIVE_MOTOR_REDUCTION;
+    public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU / DRIVE_GEAR_RATIO;
+    public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / DRIVE_GEAR_RATIO;
 
-    public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU;
-    public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
+    public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU / TURN_GEAR_RATIO;
+    public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / TURN_GEAR_RATIO;
 
     // TODO: tune these
     public static final double DRIVE_P = 0;
@@ -106,7 +108,7 @@ public final class Constants {
                 WHEEL_RAIDUS_METERS,
                 MAX_SPEED_METERS_PER_SECOND,
                 WHEEL_COF,
-                DRIVE_GEARBOX.withReduction(DRIVE_MOTOR_REDUCTION),
+                DRIVE_GEARBOX.withReduction(DRIVE_GEAR_RATIO),
                 DRIVE_CURRENT_LIMIT,
                 1),
             MODULE_OFFSETS);
