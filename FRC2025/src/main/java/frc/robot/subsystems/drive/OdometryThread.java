@@ -37,40 +37,40 @@ public class OdometryThread {
     }
 
     private OdometryThread() {
-    notifier.setName("OdometryThread");
+        notifier.setName("OdometryThread");
     }
 
     public void start() {
-    if (timestampQueues.size() > 0) {
-        notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQUENCY);
-    }
+        if (timestampQueues.size() > 0) {
+            notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQUENCY);
+        }
     }
 
     /** Registers a Spark signal to be read from the thread. */
     public Queue<Double> registerSignal(SparkBase spark, DoubleSupplier signal) {
-    Queue<Double> queue = new ArrayBlockingQueue<>(20);
-    DriveSubsystem.odometryLock.lock();
-    try {
-        sparks.add(spark);
-        sparkSignals.add(signal);
-        sparkQueues.add(queue);
-    } finally {
-        DriveSubsystem.odometryLock.unlock();
-    }
-    return queue;
+        Queue<Double> queue = new ArrayBlockingQueue<>(20);
+        DriveSubsystem.odometryLock.lock();
+        try {
+            sparks.add(spark);
+            sparkSignals.add(signal);
+            sparkQueues.add(queue);
+        } finally {
+            DriveSubsystem.odometryLock.unlock();
+        }
+        return queue;
     }
 
     /** Registers a generic signal to be read from the thread. */
     public Queue<Double> registerSignal(DoubleSupplier signal) {
-    Queue<Double> queue = new ArrayBlockingQueue<>(20);
-    DriveSubsystem.odometryLock.lock();
-    try {
-        genericSignals.add(signal);
-        genericQueues.add(queue);
-    } finally {
-        DriveSubsystem.odometryLock.unlock();
-    }
-    return queue;
+        Queue<Double> queue = new ArrayBlockingQueue<>(20);
+        DriveSubsystem.odometryLock.lock();
+        try {
+            genericSignals.add(signal);
+            genericQueues.add(queue);
+        } finally {
+            DriveSubsystem.odometryLock.unlock();
+        }
+        return queue;
     }
 
     /** Returns a new queue that returns timestamp values for each sample. */
@@ -83,9 +83,9 @@ public class OdometryThread {
             DriveSubsystem.odometryLock.unlock();
         }
         return queue;
-        }
+    }
 
-        private void run() {
+    private void run() {
         // Save new data to queues
         DriveSubsystem.odometryLock.lock();
         try {
@@ -96,23 +96,23 @@ public class OdometryThread {
             double[] sparkValues = new double[sparkSignals.size()];
             boolean isValid = true;
             for (int i = 0; i < sparkSignals.size(); i++) {
-            sparkValues[i] = sparkSignals.get(i).getAsDouble();
-            if (sparks.get(i).getLastError() != REVLibError.kOk) {
-                isValid = false;
-            }
+                sparkValues[i] = sparkSignals.get(i).getAsDouble();
+                if (sparks.get(i).getLastError() != REVLibError.kOk) {
+                    isValid = false;
+                }
             }
 
             // If valid, add values to queues
             if (isValid) {
-            for (int i = 0; i < sparkSignals.size(); i++) {
-                sparkQueues.get(i).offer(sparkValues[i]);
-            }
-            for (int i = 0; i < genericSignals.size(); i++) {
-                genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());
-            }
-            for (int i = 0; i < timestampQueues.size(); i++) {
-                timestampQueues.get(i).offer(timestamp);
-            }
+                for (int i = 0; i < sparkSignals.size(); i++) {
+                    sparkQueues.get(i).offer(sparkValues[i]);
+                }
+                for (int i = 0; i < genericSignals.size(); i++) {
+                    genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());
+                }
+                for (int i = 0; i < timestampQueues.size(); i++) {
+                    timestampQueues.get(i).offer(timestamp);
+                }
             }
         } finally {
             DriveSubsystem.odometryLock.unlock();
