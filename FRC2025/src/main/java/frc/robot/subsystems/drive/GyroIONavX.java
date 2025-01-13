@@ -13,13 +13,13 @@ import edu.wpi.first.math.util.Units;
 
 /** Add your docs here. */
 public class GyroIONavX implements GyroIO {
-    public AHRS gyro;
-    public Queue<Rotation2d> yawPositionQueue;
+    public AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
+    public Queue<Double> yawPositionQueue;
     public Queue<Double> yawTimestampQueue;
     
     public GyroIONavX() {
-        yawTimestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
-        yawPositionQueue = SparkOdometryThread.getInstance().registerSignal(navX::getAngle);
+        yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
+        yawPositionQueue = OdometryThread.getInstance().registerSignal(gyro::getAngle);
     }
 
     @Override
