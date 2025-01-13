@@ -28,6 +28,8 @@ public final class Constants {
     REPLAY
   }
 
+  public static final boolean TUNING_MODE = true;
+
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
