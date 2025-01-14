@@ -4,13 +4,35 @@
 
 package frc.robot;
 
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.Mode;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.TeleopDrive;
+import frc.robot.subsystems.drive.DriveSubsystem;
+import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIONavX;
+import frc.robot.subsystems.drive.GyroIOSim;
+import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.drive.ModuleIOSparkSim;
+import frc.robot.subsystems.drive.OdometryThread;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -19,15 +41,69 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final DriveSubsystem driveSubsystem;
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
+  private SwerveDriveSimulation driveSimulation = null;
+
+  private final CommandXboxController driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
+
+  private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    switch (Constants.currentMode) {
+      case REAL:
+        driveSubsystem = new DriveSubsystem(
+          new GyroIONavX(),
+          new ModuleIOSpark(SparkModuleConstants.frontLeft),
+          new ModuleIOSpark(SparkModuleConstants.frontRight),
+          new ModuleIOSpark(SparkModuleConstants.backLeft),
+          new ModuleIOSpark(SparkModuleConstants.backRight),
+          OdometryThread.getInstance());
+        break;
+
+      case SIM:
+        driveSimulation = new SwerveDriveSimulation(
+          DriveConstants.MAPLE_SIM_CONFIG,
+          new Pose2d(3, 3, new Rotation2d()));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
+
+        driveSubsystem = new DriveSubsystem(
+          new GyroIOSim(driveSimulation.getGyroSimulation()),
+          new ModuleIOSparkSim(driveSimulation.getModules()[0]),
+          new ModuleIOSparkSim(driveSimulation.getModules()[1]),
+          new ModuleIOSparkSim(driveSimulation.getModules()[2]),
+          new ModuleIOSparkSim(driveSimulation.getModules()[3]),
+          null);
+        break;
+    
+      default:
+        driveSubsystem = new DriveSubsystem(
+          new GyroIO() {},
+          new ModuleIO() {},
+          new ModuleIO() {},
+          new ModuleIO() {},
+          new ModuleIO() {},
+          null);
+        break;
+    }
+
+    autoChooser = new LoggedDashboardChooser<>("Auto", AutoBuilder.buildAutoChooser());
+
+    autoChooser.addOption(
+      "Drive Wheel Radius Characterization", CharacterizationCommands.wheelRadiusCharacterization(driveSubsystem));
+    autoChooser.addOption(
+      "Drive Feed Forward Characterization", CharacterizationCommands.feedforwardCharacterization(driveSubsystem));
+    autoChooser.addOption(
+      "Forward Drive SysId (Quasistatic)", driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    autoChooser.addOption(
+      "Reverse Drive SysId (Quasistatic)", driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption(
+      "Forward Drive SysId (Dynamic)", driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    autoChooser.addOption(
+      "Reverse Drive SysId (Dynamic)", driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
     // Configure the trigger bindings
     configureBindings();
   }
@@ -42,13 +118,31 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    driveSubsystem.setDefaultCommand(
+      new TeleopDrive(driveSubsystem,
+        () -> -driverController.getLeftY(),
+        () -> -driverController.getLeftX(),
+        () -> -driverController.getRightX()));
+    
+    final Runnable resetGyro =
+        Constants.currentMode == Constants.Mode.SIM
+            ? () -> driveSubsystem.setPose(driveSimulation
+                        .getSimulatedDriveTrainPose())
+            : () -> driveSubsystem.setPose(new Pose2d(
+                        driveSubsystem.getPose().getTranslation(),
+                        DriverStation.getAlliance().isPresent()
+                            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
+                                ? new Rotation2d(Math.PI)
+                                : new Rotation2d())
+                            : new Rotation2d()));
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+    driverController
+        .y()
+        .onTrue(
+            Commands.runOnce(
+                        resetGyro,
+                    driveSubsystem)
+                .ignoringDisable(true));
   }
 
   /**
@@ -58,6 +152,28 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    return autoChooser.get();
+  }
+
+  public void resetSimulatedField() {
+    if (Constants.currentMode != Mode.SIM) {
+      return;
+    }
+
+    driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
+  }
+
+  public void sendSimulatedFieldToAdvantageScope() {
+    if (Constants.currentMode != Mode.SIM) {
+      return;
+    }
+
+    Logger.recordOutput(
+      "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+      Logger.recordOutput(
+        "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesByType("Algae").toArray(new Pose3d[0]));
+        Logger.recordOutput(
+          "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesByType("Coral").toArray(new Pose3d[0]));
   }
 }

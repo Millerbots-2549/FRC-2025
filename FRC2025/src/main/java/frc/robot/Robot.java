@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -11,6 +12,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -20,9 +22,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * this project, you must also update the Main.java file in the project.
  */
 public class Robot extends LoggedRobot {
-  private Command m_autonomousCommand;
+  private Command autonomousCommand;
 
-  private final RobotContainer m_robotContainer;
+  private final RobotContainer robotContainer;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -55,6 +57,8 @@ public class Robot extends LoggedRobot {
 
       case SIM:
         Logger.addDataReceiver(new NT4Publisher());
+        Logger.addDataReceiver(new WPILOGWriter());
+        break;
 
       case REPLAY:
         setUseTiming(false);
@@ -68,7 +72,7 @@ public class Robot extends LoggedRobot {
 
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
+    robotContainer = new RobotContainer();
   }
 
   /**
@@ -80,11 +84,15 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
+    Threads.setCurrentThreadPriority(true, 99);
+
     // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
+    Threads.setCurrentThreadPriority(false, 10);
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -97,12 +105,13 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    autonomousCommand = robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
+    if (autonomousCommand != null) {
+      autonomousCommand.schedule();
     }
+    robotContainer.resetSimulatedField();
   }
 
   /** This function is called periodically during autonomous. */
@@ -115,8 +124,8 @@ public class Robot extends LoggedRobot {
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
     // this line or comment it out.
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
+    if (autonomousCommand != null) {
+      autonomousCommand.cancel();
     }
   }
 
@@ -140,5 +149,8 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+    SimulatedArena.getInstance().simulationPeriodic();
+    robotContainer.sendSimulatedFieldToAdvantageScope();
+  }
 }
