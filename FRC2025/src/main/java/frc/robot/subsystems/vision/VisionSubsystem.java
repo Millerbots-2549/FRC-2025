@@ -27,7 +27,7 @@ import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 public class VisionSubsystem extends SubsystemBase {
     @FunctionalInterface
     public interface VisionConsumer {
-        void accept(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs);
+        void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs);
     }
 
     private final VisionConsumer consumer;
@@ -135,7 +135,7 @@ public class VisionSubsystem extends SubsystemBase {
                 }
 
                 // Send vision observation
-                consumer.accept(
+                consumer.addVisionMeasurement(
                         observation.pose().toPose2d(),
                         observation.timestamp(),
                         VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));

@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.TeleopDrive;
 import frc.robot.subsystems.drive.DriveSubsystem;
@@ -33,6 +34,10 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.drive.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.OdometryThread;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.VisionSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -42,6 +47,7 @@ import frc.robot.subsystems.drive.OdometryThread;
  */
 public class RobotContainer {
   private final DriveSubsystem driveSubsystem;
+  private final VisionSubsystem visionSubsystem;
 
   private SwerveDriveSimulation driveSimulation = null;
 
@@ -61,6 +67,10 @@ public class RobotContainer {
           new ModuleIOSpark(SparkModuleConstants.backLeft),
           new ModuleIOSpark(SparkModuleConstants.backRight),
           OdometryThread.getInstance());
+
+        visionSubsystem = new VisionSubsystem(
+          driveSubsystem,
+          new VisionIOLimelight(VisionConstants.CAMERA_0_NAME, driveSubsystem::getRotation));
         break;
 
       case SIM:
@@ -76,6 +86,13 @@ public class RobotContainer {
           new ModuleIOSparkSim(driveSimulation.getModules()[2]),
           new ModuleIOSparkSim(driveSimulation.getModules()[3]),
           null);
+
+        visionSubsystem = new VisionSubsystem(
+          driveSubsystem,
+          new VisionIOPhotonVisionSim(
+            VisionConstants.CAMERA_0_NAME, VisionConstants.ROBOT_TO_CAMERA_0, driveSimulation::getSimulatedDriveTrainPose),
+          new VisionIOPhotonVisionSim(
+            VisionConstants.CAMERA_1_NAME, VisionConstants.ROBOT_TO_CAMERA_1, driveSimulation::getSimulatedDriveTrainPose));
         break;
     
       default:
@@ -86,6 +103,8 @@ public class RobotContainer {
           new ModuleIO() {},
           new ModuleIO() {},
           null);
+
+        visionSubsystem = new VisionSubsystem(driveSubsystem, new VisionIO() {}, new VisionIO() {});
         break;
     }
 
