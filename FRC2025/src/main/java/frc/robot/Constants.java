@@ -10,6 +10,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -38,6 +39,9 @@ public final class Constants {
     public static final double ODOMETRY_FREQUENCY = 0.02;
 
     // TODO: this
+    public static final double TRACK_WIDTH = Units.inchesToMeters(0);
+    public static final double WHEEL_BASE = Units.inchesToMeters(0);
+    public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final double WHEEL_RAIDUS_METERS = 0;
     public static final double MAX_SPEED_METERS_PER_SECOND = 0;
 
