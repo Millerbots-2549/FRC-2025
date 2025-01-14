@@ -4,6 +4,16 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Kilogram;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Volts;
+
+import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
+
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
@@ -117,6 +127,24 @@ public final class Constants {
 
     public static final double DRIVE_INERTIA = 0.025;
     public static final double TURN_INERTIA = 0.004;
+
+    public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG =
+      DriveTrainSimulationConfig.Default()
+        .withCustomModuleTranslations(MODULE_OFFSETS)
+        .withRobotMass(Kilogram.of(ROBOT_MASS_KG))
+        .withGyro(COTS.ofPigeon2())
+        .withSwerveModule(
+          () -> new SwerveModuleSimulation(
+            new SwerveModuleSimulationConfig(
+              DCMotor.getNEO(1),
+              DCMotor.getNEO(1),
+              DRIVE_GEAR_RATIO,
+              18.0,
+              Volts.of(0.1),
+              Volts.of(0.1),
+              Meters.of(WHEEL_RAIDUS_METERS),
+              KilogramSquareMeters.of(0.02),
+              WHEEL_COF)));
   }
 
   public static class MathConstants {

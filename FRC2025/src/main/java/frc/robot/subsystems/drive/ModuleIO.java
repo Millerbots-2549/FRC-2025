@@ -32,19 +32,19 @@ public interface ModuleIO {
         public Rotation2d[] odometryTurnPositions = new Rotation2d[] {};
     }
 
-    public void updateInputs(ModuleIOInputs inputs);
+    public default void updateInputs(ModuleIOInputs inputs) {}
 
-    public void setDriveOpenLoop(double output);
+    public default void setDriveOpenLoop(double output) {}
 
-    public void setTurnOpenLoop(double output);
+    public default void setTurnOpenLoop(double output) {}
 
-    public void setDriveVelocity(double velocity);
+    public default void setDriveVelocity(double velocity) {}
 
-    public void setTurnPosition (Rotation2d rotation);
+    public default void setTurnPosition (Rotation2d rotation) {}
 
-    public ModuleGains getGains();
+    public default ModuleGains getGains() { return new ModuleGains(0, 0, 0, 0, 0, 0); }
 
-    public void setGains(ModuleGains gains);
+    public default void setGains(ModuleGains gains) {}
 
     public record ModuleGains(double kP, double kI, double kD, double kS, double kV, double kA) {}
 }

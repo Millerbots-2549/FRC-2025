@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants.DriveConstants;
 
 /** Add your docs here. */
-public class OdometryThread {
+public class OdometryThread extends Thread {
     private final List<SparkBase> sparks = new ArrayList<>();
     private final List<DoubleSupplier> sparkSignals = new ArrayList<>();
     private final List<DoubleSupplier> genericSignals = new ArrayList<>();
@@ -85,7 +85,8 @@ public class OdometryThread {
         return queue;
     }
 
-    private void run() {
+    @Override
+    public void run() {
         // Save new data to queues
         DriveSubsystem.odometryLock.lock();
         try {
