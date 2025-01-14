@@ -48,8 +48,6 @@ public final class Constants {
     // TODO: this
     public static final Translation2d[] MODULE_OFFSETS = {};
 
-    public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);
-
     public static final int DRIVE_CURRENT_LIMIT = 35;
     public static final int TURN_CURRENT_LIMIT = 25;
 
@@ -112,10 +110,13 @@ public final class Constants {
                 WHEEL_RAIDUS_METERS,
                 MAX_SPEED_METERS_PER_SECOND,
                 WHEEL_COF,
-                DRIVE_GEARBOX.withReduction(DRIVE_GEAR_RATIO),
+                DCMotor.getNEO(1).withReduction(DRIVE_GEAR_RATIO),
                 DRIVE_CURRENT_LIMIT,
                 1),
             MODULE_OFFSETS);
+
+    public static final double DRIVE_INERTIA = 0.025;
+    public static final double TURN_INERTIA = 0.004;
   }
 
   public static class MathConstants {
