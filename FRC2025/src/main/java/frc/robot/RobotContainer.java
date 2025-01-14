@@ -6,11 +6,13 @@ package frc.robot;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.TeleopDrive;
@@ -149,6 +152,26 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return Commands.none();
+    return autoChooser.get();
+  }
+
+  public void resetSimulatedField() {
+    if (Constants.currentMode != Mode.SIM) {
+      return;
+    }
+
+    driveSimulation.setSimulationWorldPose(driveSubsystem.getPose());
+    SimulatedArena.getInstance().resetFieldForAuto();
+  }
+
+  public void sendSimulatedFieldToAdvantageScope() {
+    if (Constants.currentMode != Mode.SIM) {
+      return;
+    }
+
+    Logger.recordOutput(
+      "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+      "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesByType("Coral").toArray(new Pose3d[0]));
   }
 }
