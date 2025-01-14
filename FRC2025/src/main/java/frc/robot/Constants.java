@@ -50,14 +50,19 @@ public final class Constants {
     public static final double ODOMETRY_FREQUENCY = 0.02;
 
     // TODO: this
-    public static final double TRACK_WIDTH = Units.inchesToMeters(0);
-    public static final double WHEEL_BASE = Units.inchesToMeters(0);
+    public static final double TRACK_WIDTH = Units.inchesToMeters(19.5);
+    public static final double WHEEL_BASE = Units.inchesToMeters(19.5);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
-    public static final double WHEEL_RAIDUS_METERS = 0;
-    public static final double MAX_SPEED_METERS_PER_SECOND = 0;
+    public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
+    public static final double MAX_SPEED_METERS_PER_SECOND = 2.0;
 
     // TODO: this
-    public static final Translation2d[] MODULE_OFFSETS = {};
+    public static final Translation2d[] MODULE_OFFSETS = {
+      new Translation2d(WHEEL_BASE / 2.0, TRACK_WIDTH / 2.0),
+      new Translation2d(WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0),
+      new Translation2d(-WHEEL_BASE / 2.0, TRACK_WIDTH / 2.0),
+      new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0)
+    };
 
     public static final int DRIVE_CURRENT_LIMIT = 35;
     public static final int TURN_CURRENT_LIMIT = 25;
@@ -85,9 +90,8 @@ public final class Constants {
     public static final int BACK_LEFT_CANCODER_ID = 0;
     public static final int BACK_RIGHT_CANCODER_ID = 0;
 
-    // TODO: forgot which swerve modules we have lol, make these correct later.
-    public static final double DRIVE_GEAR_RATIO = 1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
-    public static final double TURN_GEAR_RATIO = 150.0 / 7.0;
+    public static final double DRIVE_GEAR_RATIO = 6.75;
+    public static final double TURN_GEAR_RATIO = 12.8;
 
     public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU / DRIVE_GEAR_RATIO;
     public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / DRIVE_GEAR_RATIO;
@@ -96,12 +100,12 @@ public final class Constants {
     public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / TURN_GEAR_RATIO;
 
     // TODO: tune these
-    public static final double DRIVE_P = 0;
-    public static final double DRIVE_D = 0;
+    public static final double DRIVE_P = 0.05;
+    public static final double DRIVE_D = 0.4;
 
     // TODO: tune these
-    public static final double TURN_P = 0;
-    public static final double TURN_D = 0;
+    public static final double TURN_P = 1.8;
+    public static final double TURN_D = 0.055;
 
     // TODO: this
     public static final boolean TURN_INVERTED = false;
@@ -110,9 +114,9 @@ public final class Constants {
     public static final double TURN_PID_MIN_INPUT = 0;
     public static final double TURN_PID_MAX_INPUT = MathConstants.TAU;
 
-    public static final double ROBOT_MASS_KG = 0.0; // TODO: this
-    public static final double ROBOT_MOI = 0.0; // TODO: this
-    public static final double WHEEL_COF = 0.0; // TODO: this
+    public static final double ROBOT_MASS_KG = 74.0; // TODO: this
+    public static final double ROBOT_MOI = 6.883; // TODO: this
+    public static final double WHEEL_COF = 1.2; // TODO: this
     public static final RobotConfig PATH_PLANNER_CONFIG =
         new RobotConfig(
             ROBOT_MASS_KG,
