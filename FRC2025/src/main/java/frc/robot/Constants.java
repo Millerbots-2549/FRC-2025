@@ -152,6 +152,10 @@ public final class Constants {
               WHEEL_COF)));
   }
 
+  public static class VisionConstants {
+    
+  }
+
   public static class MathConstants {
     public static final double PI = Math.PI;
     public static final double TAU = 2 * Math.PI;
