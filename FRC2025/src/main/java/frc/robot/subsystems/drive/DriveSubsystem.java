@@ -43,6 +43,7 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
 import frc.robot.util.pathplanner.AdvancedSwerveDriveController;
+import frc.robot.util.pathplanner.LocalADStarAK;
 
 /** Add your docs here. */
 public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
@@ -89,7 +90,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             DriveConstants.PATH_PLANNER_CONFIG,
             () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
             this);
-        // TODO: Pathfinder
+        Pathfinding.setPathfinder(new LocalADStarAK());
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
                 Logger.recordOutput(
@@ -199,7 +200,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     @AutoLogOutput(key = "SwerveStates/Measured")
-    private SwerveModuleState[] getModuleStates() {
+    public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             states[i] = modules[i].getState();
@@ -207,7 +208,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         return states;
     }
 
-    private SwerveModulePosition[] getModulePositions() {
+    public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] states = new SwerveModulePosition[4];
         for (int i = 0; i < 4; i++) {
             states[i] = modules[i].getPosition();
@@ -216,7 +217,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
-    private ChassisSpeeds getChassisSpeeds() {
+    public ChassisSpeeds getChassisSpeeds() {
         return kinematics.toChassisSpeeds(getModuleStates());
     }
 
