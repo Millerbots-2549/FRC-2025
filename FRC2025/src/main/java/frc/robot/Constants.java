@@ -17,7 +17,11 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
@@ -150,6 +154,30 @@ public final class Constants {
               Meters.of(WHEEL_RAIDUS_METERS),
               KilogramSquareMeters.of(0.02),
               WHEEL_COF)));
+  }
+
+  public static class VisionConstants {
+    public static AprilTagFieldLayout APRIL_TAG_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+
+    public static String CAMERA_0_NAME = "camera_0";
+    public static String CAMERA_1_NAME = "camera_1";
+
+    public static Transform3d ROBOT_TO_CAMERA_0 = new Transform3d(0.2, 0.0, 0.2, new Rotation3d(0.0, -0.4, 0.0));
+    public static Transform3d ROBOT_TO_CAMERA_1 = new Transform3d(-0.2, 0.0, 0.2, new Rotation3d(0.0, -0.4, Math.PI));
+
+    public static double MAX_AMBIGUITY = 0.3;
+    public static double MAX_Z_ERROR = 0.75;
+
+    public static double LINEAR_STD_DEV_BASELINE = 0.02; 
+    public static double ANGULAR_STD_DEV_BASELINE = 0.06;
+
+    public static double[] CAMERA_STD_DEV_FACTORS = new double[] {
+        1.0,
+        1.0
+    };
+
+    public static double LINEAR_STD_DEV_MEGATAG2_FACTOR = 0.5;
+    public static double ANGULAR_STD_DEV_MEGATAG2_FACTOR = Double.POSITIVE_INFINITY;
   }
 
   public static class MathConstants {
