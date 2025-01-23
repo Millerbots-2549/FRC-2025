@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import com.pathplanner.lib.path.GoalEndState;

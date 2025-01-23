@@ -7,7 +7,9 @@ package frc.robot.util;
 import static edu.wpi.first.units.Units.Seconds;
 
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralAlgaeStack;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 
 /** Add your docs here. */
@@ -20,5 +22,9 @@ public class SimulationUtils {
         }
 
         return odometryTimeStamps;
+    }
+
+    public void addStartGamePieces() {
+        
     }
 }
