@@ -58,7 +58,10 @@ public final class Constants {
     public static final double WHEEL_BASE = Units.inchesToMeters(19.5);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 5.0;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 5.45;
+    public static final double MAX_ACCELERATION = 4.5;
+    public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
+    public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
 
     // TODO: this
     public static final Translation2d[] MODULE_OFFSETS = {
@@ -77,22 +80,22 @@ public final class Constants {
     public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromDegrees(0);
 
     // TODO: this
-    public static final int FRONT_LEFT_DRIVE_ID = 0;
-    public static final int FRONT_RIGHT_DRIVE_ID = 0;
-    public static final int BACK_LEFT_DRIVE_ID = 0;
-    public static final int BACK_RIGHT_DRIVE_ID = 0;
+    public static final int FRONT_LEFT_DRIVE_ID = 7;
+    public static final int FRONT_RIGHT_DRIVE_ID = 11;
+    public static final int BACK_LEFT_DRIVE_ID = 6;
+    public static final int BACK_RIGHT_DRIVE_ID = 2;
 
     // TODO: this
-    public static final int FRONT_LEFT_TURN_ID = 0;
-    public static final int FRONT_RIGHT_TURN_ID = 0;
-    public static final int BACK_LEFT_TURN_ID = 0;
-    public static final int BACK_RIGHT_TURN_ID = 0;
+    public static final int FRONT_LEFT_TURN_ID = 8;
+    public static final int FRONT_RIGHT_TURN_ID = 10;
+    public static final int BACK_LEFT_TURN_ID = 4;
+    public static final int BACK_RIGHT_TURN_ID = 3;
 
     //TODO: this
-    public static final int FRONT_LEFT_CANCODER_ID = 0;
-    public static final int FRONT_RIGHT_CANCODER_ID = 0;
-    public static final int BACK_LEFT_CANCODER_ID = 0;
-    public static final int BACK_RIGHT_CANCODER_ID = 0;
+    public static final int FRONT_LEFT_CANCODER_ID = 9;
+    public static final int FRONT_RIGHT_CANCODER_ID = 12;
+    public static final int BACK_LEFT_CANCODER_ID = 5;
+    public static final int BACK_RIGHT_CANCODER_ID = 1;
 
     public static final double DRIVE_GEAR_RATIO = 6.75;
     public static final double TURN_GEAR_RATIO = 12.8;
@@ -154,12 +157,6 @@ public final class Constants {
               Meters.of(WHEEL_RAIDUS_METERS),
               KilogramSquareMeters.of(0.02),
               WHEEL_COF)));
-
-    public static final double MAX_ACCELERATION = 0;
-
-    public static final int MAX_ANGULAR_VELOCITY = 0;
-
-    public static final double MAX_ANGULAR_ACCELERATION = 0;
   }
 
   public static class VisionConstants {

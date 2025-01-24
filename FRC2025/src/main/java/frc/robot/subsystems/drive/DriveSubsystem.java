@@ -4,22 +4,27 @@
 
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Volts;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPoint;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
-import edu.wpi.first.hal.HAL;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -33,8 +38,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -43,7 +48,6 @@ import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
-import frc.robot.util.pathplanner.AdvancedSwerveDriveController;
 import frc.robot.util.pathplanner.LocalADStarAK;
 
 /** Add your docs here. */
@@ -67,6 +71,18 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         };
     private SwerveDrivePoseEstimator poseEstimator =
         new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+
+    private Consumer<List<PathPoint>> pathConsumer = path -> {
+        currentPath.clear();
+        currentPathPoses.clear();
+        for(PathPoint point : path) {
+            currentPathPoses.add(
+                new Pose2d(point.position, Rotation2d.kZero));
+            currentPath.add(point);
+        }
+    };
+    private static List<Pose2d> currentPathPoses = new ArrayList<>();
+    private static List<PathPoint> currentPath = new ArrayList<>();
         
     public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO, Thread odometryThread) {
         this.gyroIO = gyroIO;
@@ -86,12 +102,15 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             this::setPose,
             this::getChassisSpeeds,
             this::runVelocity,
-            new AdvancedSwerveDriveController(
-                new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
+            new PPHolonomicDriveController(
+                new PIDConstants(5.0, 0.0, 0.0),
+                new PIDConstants(5.0, 0.0, 0.0)),
             DriveConstants.PATH_PLANNER_CONFIG,
             () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
             this);
-        Pathfinding.setPathfinder(new LocalADStarAK());
+        LocalADStarAK pathfinder = new LocalADStarAK();
+        pathfinder.setPathConsumer(pathConsumer);
+        Pathfinding.setPathfinder(pathfinder);
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
                 Logger.recordOutput(
@@ -153,6 +172,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         }
 
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+
+        Logger.recordOutput("Pathfinding/CurrentPath", currentPathPoses.toArray(new Pose2d[currentPath.size()]));
     }
 
     public void runVelocity(ChassisSpeeds speeds) {
@@ -269,5 +290,12 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
     public static Translation2d[] getModuleTranslations() {
         return DriveConstants.MODULE_OFFSETS;
+    }
+
+    public List<PathPoint> getCurrentPath() {
+        if (currentPath.size() == 0) {
+            return null;
+        }
+        return currentPath;
     }
 }
