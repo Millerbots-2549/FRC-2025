@@ -145,12 +145,14 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    /*
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
-    
+    */
+
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
             ? () -> driveSubsystem.setPose(driveSimulation
