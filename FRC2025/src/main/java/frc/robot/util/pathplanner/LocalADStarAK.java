@@ -20,6 +20,8 @@ import com.pathplanner.lib.pathfinding.LocalADStar;
 import com.pathplanner.lib.pathfinding.Pathfinder;
 
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
 /** Add your docs here. */
@@ -124,6 +126,13 @@ public class LocalADStarAK implements Pathfinder {
       }
 
       table.put("CurrentPathPoints", pointsLogged);
+
+      List<Pose2d> poses = new ArrayList<>();
+      for (PathPoint point : currentPathPoints) {
+        poses.add(new Pose2d(point.position, Rotation2d.kZero));
+      }
+
+      table.put("CurrentPathPoses", poses.toArray(new Pose2d[poses.size()]));
     }
 
     @Override

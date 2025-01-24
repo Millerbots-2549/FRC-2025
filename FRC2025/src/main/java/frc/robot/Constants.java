@@ -58,7 +58,7 @@ public final class Constants {
     public static final double WHEEL_BASE = Units.inchesToMeters(19.5);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 4.0;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 5.0;
 
     // TODO: this
     public static final Translation2d[] MODULE_OFFSETS = {
@@ -154,6 +154,12 @@ public final class Constants {
               Meters.of(WHEEL_RAIDUS_METERS),
               KilogramSquareMeters.of(0.02),
               WHEEL_COF)));
+
+    public static final double MAX_ACCELERATION = 0;
+
+    public static final int MAX_ANGULAR_VELOCITY = 0;
+
+    public static final double MAX_ANGULAR_ACCELERATION = 0;
   }
 
   public static class VisionConstants {

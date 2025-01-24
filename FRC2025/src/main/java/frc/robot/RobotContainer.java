@@ -27,6 +27,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.PathfindToPose;
 import frc.robot.commands.TeleopDrive;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.drive.GyroIO;
@@ -165,6 +166,8 @@ public class RobotContainer {
                         resetGyro,
                     driveSubsystem)
                 .ignoringDisable(true));
+    
+    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 2));
   }
 
   /**
