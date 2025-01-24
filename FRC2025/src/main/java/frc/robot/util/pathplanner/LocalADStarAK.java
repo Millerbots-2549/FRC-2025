@@ -7,6 +7,7 @@ package frc.robot.util.pathplanner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
@@ -26,7 +27,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 /** Add your docs here. */
 public class LocalADStarAK implements Pathfinder {
-    private final ADStarIO io = new ADStarIO();
+  private final ADStarIO io = new ADStarIO();
 
   /**
    * Get if a new path has been calculated since the last time a path was retrieved
@@ -92,6 +93,10 @@ public class LocalADStarAK implements Pathfinder {
     }
   }
 
+  public void setPathConsumer(Consumer<List<PathPoint>> consumer) {
+    io.startTelemetry(consumer);
+  }
+
   /**
    * Set the dynamic obstacles that should be avoided while pathfinding.
    *
@@ -112,6 +117,7 @@ public class LocalADStarAK implements Pathfinder {
     public LocalADStar adStar = new LocalADStar();
     public boolean isNewPathAvailable = false;
     public List<PathPoint> currentPathPoints = Collections.emptyList();
+    public Consumer<List<PathPoint>> pathConsumer;
 
     @Override
     public void toLog(LogTable table) {
@@ -133,6 +139,8 @@ public class LocalADStarAK implements Pathfinder {
       }
 
       table.put("CurrentPathPoses", poses.toArray(new Pose2d[poses.size()]));
+
+      pathConsumer.accept(currentPathPoints);
     }
 
     @Override
@@ -147,6 +155,8 @@ public class LocalADStarAK implements Pathfinder {
       }
 
       currentPathPoints = pathPoints;
+
+      pathConsumer.accept(currentPathPoints);
     }
 
     public void updateIsNewPathAvailable() {
@@ -161,6 +171,12 @@ public class LocalADStarAK implements Pathfinder {
       } else {
         currentPathPoints = Collections.emptyList();
       }
+
+      pathConsumer.accept(currentPathPoints);
+    }
+
+    public void startTelemetry(Consumer<List<PathPoint>> consumer) {
+      this.pathConsumer = consumer;
     }
   }
 }
