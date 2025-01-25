@@ -4,23 +4,22 @@
 
 package frc.robot;
 
-import java.util.List;
-import java.util.function.Supplier;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralAlgaeStack;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathPoint;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -145,13 +144,11 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    /*
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
-    */
 
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
@@ -202,6 +199,13 @@ public class RobotContainer {
 
     Logger.recordOutput(
       "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+      "FieldSimulation/ZeroedComponentPoses", new Pose3d[] { new Pose3d(0.3, -0.35, 0.04, new Rotation3d(Units.degreesToRadians(180), 0, Units.degreesToRadians(90))) });
+    Logger.recordOutput(
+      "FieldSimulation/FinalComponentPoses", 
+      new Pose3d[] {
+        SimulationUtils.getAlgaeIntakePose(Math.sin(Timer.getTimestamp()) * Math.PI / 4)
+      });
     Logger.recordOutput(
       "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesByType("Algae").toArray(new Pose3d[0]));
     Logger.recordOutput(

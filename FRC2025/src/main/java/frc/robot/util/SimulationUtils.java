@@ -7,9 +7,11 @@ package frc.robot.util;
 import static edu.wpi.first.units.Units.Seconds;
 
 import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralAlgaeStack;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 
 /** Add your docs here. */
@@ -26,5 +28,19 @@ public class SimulationUtils {
 
     public void addStartGamePieces() {
         
+    }
+
+    public static Pose3d getAlgaeIntakePose(double intakeRotationRadians) {
+        Pose3d algaeIntakePose = new Pose3d(
+            new Translation3d(
+                0.13 + (Math.cos(intakeRotationRadians + Units.degreesToRadians(118)) * 0.28),
+                0,
+                0.235 + (Math.sin(intakeRotationRadians + Units.degreesToRadians(116)) * -0.26)
+            ),
+            new Rotation3d(
+                Units.degreesToRadians(0),
+                intakeRotationRadians,
+                Units.degreesToRadians(0)));
+        return algaeIntakePose;
     }
 }
