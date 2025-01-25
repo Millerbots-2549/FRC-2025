@@ -202,18 +202,18 @@ public final class Constants {
     public static final double ANGLE_ENCODER_POSITION_FACTOR = 0.0;
     public static final double ANGLE_ENCODER_VELOCITY_FACTOR = 0.0;
 
-    public static final double ROLLER_KP = 0.0;
-    public static final double ROLLER_KD = 0.0;
+    public static final double ROLLER_KP = 0.05;
+    public static final double ROLLER_KD = 0.4;
     public static final double ROLLER_KS = 0.0;
     public static final double ROLLER_KV = 0.0;
-    public static final double ROLLER_SIM_KP = 0.0;
+    public static final double ROLLER_SIM_KP = 1.0;
     public static final double ROLLER_SIM_KD = 0.0;
     public static final double ROLLER_SIM_KS = 0.0;
     public static final double ROLLER_SIM_KV = 0.0;
 
-    public static final double ANGLE_KP = 0.0;
+    public static final double ANGLE_KP = 0.2;
     public static final double ANGLE_KD = 0.0;
-    public static final double ANGLE_SIM_KP = 0.0;
+    public static final double ANGLE_SIM_KP = 2.0;
     public static final double ANGLE_SIM_KD = 0.0;
     public static final double ANGLE_PID_MIN_INPUT = 0.0;
     public static final double ANGLE_PID_MAX_INPUT = MathConstants.TAU;
@@ -284,9 +284,11 @@ public final class Constants {
 
     public static final Rotation2d ANGLE_OFFSET = new Rotation2d(0);
     public static final double ROLLER_MAX_SPEED = 1;
-    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(PI / 2);
+    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(Units.degreesToRadians(45));
     public static final Rotation2d INTAKE_ANGLE_UP = new Rotation2d(0);
     public static final double INTAKE_ANGLE_TOLERANCE = 10;
+
+    public static final double ROLLER_GEAR_RATIO = 1;
   }
 
   public static class MathConstants {
