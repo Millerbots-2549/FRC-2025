@@ -1,0 +1,73 @@
+{
+    "name": "Mbot",
+    "disableSimplification": false,
+    "rotations": [
+        {
+            "axis": "x",
+            "degrees": 180
+        },
+        {
+            "axis": "z",
+            "degrees": 90
+        }
+    ],
+    "position": [
+        0.3,
+        -0.35,
+        0.04
+    ],
+    "cameras": [],
+    "components": [
+        {
+            "zeroedRotations": [
+                {
+                    "axis":"x",
+                    "degrees":180
+                },
+                {
+                    "axis":"z",
+                    "degrees":90
+                }
+            ],
+            "zeroedPosition": [
+                0.3,
+                -0.35,
+                0.04
+            ]
+        },
+        {
+            "zeroedRotations": [
+                {
+                    "axis":"x",
+                    "degrees":180
+                },
+                {
+                    "axis":"z",
+                    "degrees":90
+                }
+            ],
+            "zeroedPosition": [
+                0.3,
+                -0.35,
+                0.04
+            ]
+        },
+        {
+            "zeroedRotations": [
+                {
+                    "axis":"x",
+                    "degrees":180
+                },
+                {
+                    "axis":"z",
+                    "degrees":90
+                }
+            ],
+            "zeroedPosition": [
+                0.3,
+                -0.35,
+                0.04
+            ]
+        }
+    ]
+}
