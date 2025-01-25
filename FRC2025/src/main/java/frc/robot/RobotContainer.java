@@ -4,8 +4,13 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+
+import org.ironmaple.simulation.IntakeSimulation;
+import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnFly;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -16,22 +21,31 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.PathfindToPose;
+import frc.robot.commands.RunAlgaeIntake;
+import frc.robot.commands.StopAlgaeIntake;
 import frc.robot.commands.TeleopDrive;
+import frc.robot.subsystems.algae.AlgaeIntakeIO;
+import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
+import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
+import frc.robot.subsystems.algae.AlgaeIntakeSubsystem;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
@@ -55,8 +69,10 @@ import frc.robot.util.SimulationUtils;
 public class RobotContainer {
   private final DriveSubsystem driveSubsystem;
   private final VisionSubsystem visionSubsystem;
+  private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
 
   private SwerveDriveSimulation driveSimulation = null;
+  private IntakeSimulation intakeSimulation = null;
 
   private final CommandXboxController driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -78,12 +94,24 @@ public class RobotContainer {
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
           new VisionIOLimelight(VisionConstants.CAMERA_0_NAME, driveSubsystem::getRotation));
+
+        algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
+          new AlgaeIntakeIOHardware(
+            AlgaeIntakeConstants.ROLLER_CONFIG,
+            AlgaeIntakeConstants.ANGLE_CONFIG));
         break;
 
       case SIM:
         driveSimulation = new SwerveDriveSimulation(
           DriveConstants.MAPLE_SIM_CONFIG,
           new Pose2d(3, 3, new Rotation2d()));
+        intakeSimulation = IntakeSimulation.OverTheBumperIntake(
+          "Algae",
+          driveSimulation,
+          Meters.of(0.7),
+          Meters.of(0.2),
+          IntakeSide.FRONT,
+          1);
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
 
         driveSubsystem = new DriveSubsystem(
@@ -100,6 +128,9 @@ public class RobotContainer {
             VisionConstants.CAMERA_0_NAME, VisionConstants.ROBOT_TO_CAMERA_0, driveSimulation::getSimulatedDriveTrainPose),
           new VisionIOPhotonVisionSim(
             VisionConstants.CAMERA_1_NAME, VisionConstants.ROBOT_TO_CAMERA_1, driveSimulation::getSimulatedDriveTrainPose));
+        
+        algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
+          new AlgaeIntakeIOSim());
         break;
     
       default:
@@ -112,6 +143,8 @@ public class RobotContainer {
           null);
 
         visionSubsystem = new VisionSubsystem(driveSubsystem, new VisionIO() {}, new VisionIO() {});
+
+        algaeIntakeSubsystem = new AlgaeIntakeSubsystem(new AlgaeIntakeIO() {});
         break;
     }
 
@@ -207,6 +240,23 @@ public class RobotContainer {
     return autoChooser.get();
   }
 
+  public void launchAlgae() {
+    if (intakeSimulation.obtainGamePieceFromIntake()) {
+      SimulatedArena.getInstance()
+        .addGamePieceProjectile(new ReefscapeAlgaeOnFly(
+          driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
+          new Translation2d(),
+          driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+          driveSimulation.getSimulatedDriveTrainPose().getRotation(),
+          0.4,
+          0.9,
+          Math.toRadians(70))
+          .withProjectileTrajectoryDisplayCallBack(
+            (poses) -> Logger.recordOutput("SuccessfulShotsTrajectory", poses.toArray(Pose3d[]::new)),
+            (poses) -> Logger.recordOutput("MissedShotsTrajectory", poses.toArray(Pose3d[]::new))));
+    }
+  }
+
   public void resetSimulatedField() {
     if (Constants.currentMode != Mode.SIM) {
       return;
@@ -228,7 +278,9 @@ public class RobotContainer {
     Logger.recordOutput(
       "FieldSimulation/FinalComponentPoses", 
       new Pose3d[] {
-        SimulationUtils.getAlgaeIntakePose(Math.sin(Timer.getTimestamp()) * Math.PI / 4)
+        SimulationUtils.getAlgaeIntakePose(algaeIntakeSubsystem.getArmPosition().getRadians()),
+        SimulationUtils.getElevatorMiddlePose((Math.sin(Timer.getTimestamp()) + 1) / 2),
+        SimulationUtils.getElevatorInnerPose((Math.sin(Timer.getTimestamp()) + 1) / 2)
       });
     Logger.recordOutput(
       "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesByType("Algae").toArray(new Pose3d[0]));

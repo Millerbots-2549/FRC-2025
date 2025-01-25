@@ -16,6 +16,13 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.EncoderConfig;
+import com.revrobotics.spark.config.SignalsConfig;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -188,6 +195,106 @@ public final class Constants {
 
     public static double LINEAR_STD_DEV_MEGATAG2_FACTOR = 0.5;
     public static double ANGULAR_STD_DEV_MEGATAG2_FACTOR = Double.POSITIVE_INFINITY;
+  }
+
+  public static class AlgaeIntakeConstants {
+    public static final int ROLLER_MOTOR_ID = 17;
+    public static final int ROLLER_CURRENT_LIMIT = 30;
+    public static final double ROLLER_ENCODER_POSITION_FACTOR = 0.0;
+    public static final double ROLLER_ENCODER_VELOCITY_FACTOR = 0.0;
+
+    public static final int ANGLE_MOTOR_ID = 18;
+    public static final int ANGLE_CURRENT_LIMIT = 30;
+    public static final double ANGLE_ENCODER_POSITION_FACTOR = 0.0;
+    public static final double ANGLE_ENCODER_VELOCITY_FACTOR = 0.0;
+
+    public static final double ROLLER_KP = 0.05;
+    public static final double ROLLER_KD = 0.4;
+    public static final double ROLLER_KS = 0.0;
+    public static final double ROLLER_KV = 0.0;
+    public static final double ROLLER_SIM_KP = 1.0;
+    public static final double ROLLER_SIM_KD = 0.0;
+    public static final double ROLLER_SIM_KS = 0.0;
+    public static final double ROLLER_SIM_KV = 0.0;
+
+    public static final double ANGLE_KP = 0.2;
+    public static final double ANGLE_KD = 0.0;
+    public static final double ANGLE_SIM_KP = 2.0;
+    public static final double ANGLE_SIM_KD = 0.0;
+    public static final double ANGLE_PID_MIN_INPUT = 0.0;
+    public static final double ANGLE_PID_MAX_INPUT = MathConstants.TAU;
+
+    public static final SparkBaseConfig ROLLER_BASE_CONFIG = new SparkMaxConfig()
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(ROLLER_CURRENT_LIMIT)
+        .voltageCompensation(12.0)
+        .apply(
+            new EncoderConfig()
+                .positionConversionFactor(ROLLER_ENCODER_POSITION_FACTOR)
+                .velocityConversionFactor(ROLLER_ENCODER_VELOCITY_FACTOR)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2))
+        .apply(
+            new ClosedLoopConfig()
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .pidf(ROLLER_KP, 0.0, ROLLER_KD, 0.0))
+        .apply(
+            new SignalsConfig()
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs((int)(1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20));
+
+    public static final SparkBaseConfig ANGLE_BASE_CONFIG = new SparkMaxConfig()
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(ANGLE_CURRENT_LIMIT)
+        .voltageCompensation(12.0)
+        .apply(
+            new EncoderConfig()
+                .positionConversionFactor(ANGLE_ENCODER_POSITION_FACTOR)
+                .velocityConversionFactor(ANGLE_ENCODER_VELOCITY_FACTOR)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2))
+        .apply(
+            new ClosedLoopConfig()
+                .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+                .positionWrappingEnabled(true)
+                .positionWrappingInputRange(ANGLE_PID_MIN_INPUT, ANGLE_PID_MAX_INPUT)
+                .pidf(ANGLE_KP, 0.0, ANGLE_KD, 0.0))
+        .apply(
+            new SignalsConfig()
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs((int)(1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20));
+
+    public record RollerConfig(
+      int ID,
+      boolean invert) {};
+    public record AngleConfig(
+      int ID,
+      boolean invert) {};
+
+    public static final RollerConfig ROLLER_CONFIG = 
+      new RollerConfig(ROLLER_MOTOR_ID, false);
+    public static final AngleConfig ANGLE_CONFIG = 
+      new AngleConfig(ANGLE_MOTOR_ID, false);
+    
+    public static final double ANGLE_GEAR_RATIO = 1;
+
+    public static final Rotation2d ANGLE_OFFSET = new Rotation2d(0);
+    public static final double ROLLER_MAX_SPEED = 1;
+    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(Units.degreesToRadians(45));
+    public static final Rotation2d INTAKE_ANGLE_UP = new Rotation2d(0);
+    public static final double INTAKE_ANGLE_TOLERANCE = 10;
+
+    public static final double ROLLER_GEAR_RATIO = 1;
   }
 
   public static class MathConstants {
