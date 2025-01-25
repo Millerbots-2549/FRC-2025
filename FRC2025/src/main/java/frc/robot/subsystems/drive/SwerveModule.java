@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.drive.ModuleIO.ModuleGains;
 import frc.robot.util.LoggedTunableNumber;
@@ -62,6 +63,9 @@ public class SwerveModule {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+        //Logger.recordOutput("Drive/Module" + Integer.toString(index) + "/CalculatedTurnAngleRadians", getAngle().getRadians());
+
+        SmartDashboard.putNumber("Module " + Integer.toString(index), inputs.turnAbsolutePosition.getRotations());
 
         // Calculate positions for odometry
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
