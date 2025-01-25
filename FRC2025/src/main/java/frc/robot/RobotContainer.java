@@ -57,8 +57,10 @@ import frc.robot.subsystems.drive.OdometryThread;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.SimulationUtils;
+import frc.robot.util.vision.QuestNav;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -67,6 +69,8 @@ import frc.robot.util.SimulationUtils;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  private final QuestNav questNav;
+
   private final DriveSubsystem driveSubsystem;
   private final VisionSubsystem visionSubsystem;
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
@@ -81,6 +85,8 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    questNav = new QuestNav();
+
     switch (Constants.currentMode) {
       case REAL:
         driveSubsystem = new DriveSubsystem(
@@ -93,7 +99,8 @@ public class RobotContainer {
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
-          new VisionIOLimelight(VisionConstants.CAMERA_0_NAME, driveSubsystem::getRotation));
+          new VisionIOLimelight(VisionConstants.CAMERA_0_NAME, driveSubsystem::getRotation),
+          new VisionIOQuestNav(questNav, VisionConstants.ROBOT_TO_CAMERA_1));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(
@@ -248,9 +255,9 @@ public class RobotContainer {
           new Translation2d(),
           driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
           driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-          0.4,
-          0.9,
-          Math.toRadians(70))
+          0.3,
+          3.5,
+          Math.toRadians(50))
           .withProjectileTrajectoryDisplayCallBack(
             (poses) -> Logger.recordOutput("SuccessfulShotsTrajectory", poses.toArray(Pose3d[]::new)),
             (poses) -> Logger.recordOutput("MissedShotsTrajectory", poses.toArray(Pose3d[]::new))));
