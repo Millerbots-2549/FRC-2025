@@ -43,4 +43,26 @@ public class SimulationUtils {
                 Units.degreesToRadians(0)));
         return algaeIntakePose;
     }
+
+    public static Pose3d getElevatorMiddlePose(double height) {
+        Pose3d algaeIntakePose = new Pose3d(
+            new Translation3d(
+                0,
+                0,
+                height / 1.22
+            ),
+            new Rotation3d());
+        return algaeIntakePose;
+    }
+
+    public static Pose3d getElevatorInnerPose(double height) {
+        Pose3d algaeIntakePose = new Pose3d(
+            new Translation3d(
+                0,
+                0,
+                height * 1.47
+            ),
+            new Rotation3d());
+        return algaeIntakePose;
+    }
 }
