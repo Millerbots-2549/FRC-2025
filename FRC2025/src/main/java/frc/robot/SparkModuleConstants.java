@@ -15,8 +15,7 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.MathConstants;
 
@@ -97,7 +96,7 @@ public class SparkModuleConstants {
         int driveCanID,
         int turnCanID,
         int CANcoderID,
-        Angle CANcoderOffset,
+        Rotation2d CANcoderOffset,
         boolean invertDrive,
         boolean invertTurn
     ) {}
@@ -107,35 +106,27 @@ public class SparkModuleConstants {
             DriveConstants.FRONT_LEFT_DRIVE_ID,
             DriveConstants.FRONT_LEFT_TURN_ID,
             DriveConstants.FRONT_LEFT_CANCODER_ID,
-            Angle.ofBaseUnits(
-                DriveConstants.FRONT_LEFT_ZERO_ROTATION.getRotations(),
-                Units.Rotations),
+            DriveConstants.FRONT_LEFT_ZERO_ROTATION,
             false, false);
     public static final ModuleSpecConfig frontRight =
         new ModuleSpecConfig(
             DriveConstants.FRONT_RIGHT_DRIVE_ID,
             DriveConstants.FRONT_RIGHT_TURN_ID,
             DriveConstants.FRONT_RIGHT_CANCODER_ID,
-            Angle.ofBaseUnits(
-                DriveConstants.FRONT_RIGHT_ZERO_ROTATION.getRotations(),
-                Units.Rotations),
+            DriveConstants.FRONT_RIGHT_ZERO_ROTATION,
             false, false);
     public static final ModuleSpecConfig backLeft =
         new ModuleSpecConfig(
             DriveConstants.BACK_LEFT_DRIVE_ID,
             DriveConstants.BACK_LEFT_TURN_ID,
             DriveConstants.BACK_LEFT_CANCODER_ID,
-            Angle.ofBaseUnits(
-                DriveConstants.BACK_LEFT_ZERO_ROTATION.getRotations(),
-                Units.Rotations),
+            DriveConstants.BACK_LEFT_ZERO_ROTATION,
             false, false);
     public static final ModuleSpecConfig backRight =
-    new ModuleSpecConfig(
-        DriveConstants.BACK_RIGHT_DRIVE_ID,
-        DriveConstants.BACK_RIGHT_TURN_ID,
-        DriveConstants.BACK_RIGHT_CANCODER_ID,
-        Angle.ofBaseUnits(
-            DriveConstants.BACK_RIGHT_ZERO_ROTATION.getRotations(),
-            Units.Rotations),
-        false, false);
+        new ModuleSpecConfig(
+            DriveConstants.BACK_RIGHT_DRIVE_ID,
+            DriveConstants.BACK_RIGHT_TURN_ID,
+            DriveConstants.BACK_RIGHT_CANCODER_ID,
+            DriveConstants.BACK_RIGHT_ZERO_ROTATION,
+            false, false);
 }

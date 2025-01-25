@@ -42,7 +42,7 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static Mode currentMode = Mode.REAL;
+  public static Mode currentMode = Mode.SIM;
 
   public static enum Mode {
     REAL,
@@ -114,11 +114,11 @@ public final class Constants {
     public static final double DRIVE_GEAR_RATIO = 6.12;
     public static final double TURN_GEAR_RATIO = 12.8;
 
-    public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU / DRIVE_GEAR_RATIO;
-    public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / DRIVE_GEAR_RATIO;
+    public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU;
+    public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
-    public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU / TURN_GEAR_RATIO;
-    public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0 / TURN_GEAR_RATIO;
+    public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU;
+    public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
     // TODO: tune these
     public static final double DRIVE_P = 0.05;

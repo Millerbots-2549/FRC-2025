@@ -13,7 +13,6 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -29,15 +28,20 @@ import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.SparkModuleConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.MathConstants;
 import frc.robot.SparkModuleConstants.ModuleSpecConfig;
 
 /** Add your docs here. */
 public class ModuleIOSpark implements ModuleIO {
+    private final Rotation2d zeroRotation;
+
     private final SparkBase driveMotor;
     private final SparkBase turnMotor;
     private final RelativeEncoder driveEncoder;
@@ -51,6 +55,7 @@ public class ModuleIOSpark implements ModuleIO {
     private final CANcoder canCoder;
     private final StatusSignal<Angle> turnAbsolutePosition;
 
+    private final PIDController turnPID;
     private final SparkClosedLoopController driveController;
     private final SparkClosedLoopController turnController;
 
@@ -62,6 +67,8 @@ public class ModuleIOSpark implements ModuleIO {
     private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
 
     public ModuleIOSpark(ModuleSpecConfig config) {
+        zeroRotation = config.CANcoderOffset();
+
         driveMotor = new SparkMax(config.driveCanID(), MotorType.kBrushless);
         turnMotor = new SparkMax(config.turnCanID(), MotorType.kBrushless);
 
@@ -69,6 +76,9 @@ public class ModuleIOSpark implements ModuleIO {
         turnEncoder = turnMotor.getEncoder();
         canCoder = new CANcoder(config.CANcoderID());
 
+        turnPID = new PIDController(SparkModuleConstants.turnKp, 0, SparkModuleConstants.turnKd);
+        turnPID.enableContinuousInput(SparkModuleConstants.turnPIDMinInput, SparkModuleConstants.turnPIDMaxInput);
+        turnPID.setTolerance(10);
         driveController = driveMotor.getClosedLoopController();
         turnController = turnMotor.getClosedLoopController();
 
@@ -78,22 +88,24 @@ public class ModuleIOSpark implements ModuleIO {
             driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(driveMotor, 5, () -> driveEncoder.setPosition(0.0));
 
-        CANcoderConfiguration canCoderConfig = SparkModuleConstants.canCoderConfig;
-        canCoderConfig.MagnetSensor.withMagnetOffset(config.CANcoderOffset());
-        tryUntilOk(5, () -> canCoder.getConfigurator().apply(canCoderConfig, 0.25));
-
         turnConfig = SparkModuleConstants.turnConfig;
         turnConfig.inverted(config.invertTurn());
         tryUntilOk(turnMotor, 5, () ->
             turnMotor.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-        tryUntilOk(turnMotor, 5, () ->
-            turnEncoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble()));
+        turnEncoder.setPosition(0.0);
+
+        canCoder.getConfigurator().apply(SparkModuleConstants.canCoderConfig, 0.25);
+        turnAbsolutePosition = canCoder.getAbsolutePosition();
+
+        turnMotor.getEncoder().setPosition(
+            canCoder.getPosition().getValueAsDouble() * DriveConstants.TURN_ENCODER_POSITION_FACTOR);
 
         timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
         drivePositionQueue = OdometryThread.getInstance().registerSignal(driveMotor, driveEncoder::getPosition);
         turnPositionQueue = OdometryThread.getInstance().registerSignal(turnMotor, turnEncoder::getPosition);
 
-        turnAbsolutePosition = canCoder.getAbsolutePosition();
+        driveController.setReference(0, ControlType.kDutyCycle);
+        turnController.setReference(0, ControlType.kPosition);
 
         BaseStatusSignal.setUpdateFrequencyForAll(50.0, turnAbsolutePosition);
 
@@ -121,9 +133,9 @@ public class ModuleIOSpark implements ModuleIO {
         sparkStickyFault = false;
         ifOk(
             turnMotor,
-            turnEncoder::getPosition,
-            (value) -> inputs.turnPosition = new Rotation2d(value));
-        ifOk(turnMotor, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
+            this::getTurnPosition,
+            (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
+        ifOk(turnMotor, canCoder.getVelocity()::getValueAsDouble, (value) -> inputs.turnVelocityRadPerSec = value);
         ifOk(
             turnMotor, 
             new DoubleSupplier[] {turnMotor::getAppliedOutput, turnMotor::getBusVoltage},
@@ -131,7 +143,11 @@ public class ModuleIOSpark implements ModuleIO {
         ifOk(turnMotor, turnMotor::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
 
-        inputs.turnAbsolutePosition = Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValueAsDouble());
+        turnAbsolutePosition.refresh();
+        inputs.turnVelocityRadPerSec =
+            Units.rotationsPerMinuteToRadiansPerSecond(turnEncoder.getVelocity()) / DriveConstants.TURN_ENCODER_VELOCITY_FACTOR;
+        inputs.turnAppliedVolts = turnMotor.getAppliedOutput() * turnMotor.getBusVoltage();
+        inputs.turnCurrentAmps = turnMotor.getOutputCurrent();
 
         inputs.odometryTimestamps =
             timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
@@ -139,7 +155,7 @@ public class ModuleIOSpark implements ModuleIO {
             drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryTurnPositions =
             turnPositionQueue.stream()
-                .map((Double value) -> new Rotation2d(value))
+                .map((Double value) -> new Rotation2d(value).minus(zeroRotation))
                 .toArray(Rotation2d[]::new);
         timestampQueue.clear();
         drivePositionQueue.clear();
@@ -171,12 +187,23 @@ public class ModuleIOSpark implements ModuleIO {
 
     @Override
     public void setTurnPosition(Rotation2d rotation) {
-        double setPoint =
+        double absolutePosition =
             MathUtil.inputModulus(
-                rotation.getRadians(),
+                canCoder.getAbsolutePosition().getValueAsDouble() * MathConstants.TAU,
                 SparkModuleConstants.turnPIDMinInput,
                 SparkModuleConstants.turnPIDMaxInput);
-        turnController.setReference(setPoint, ControlType.kPosition);
+        double setPoint =
+            MathUtil.inputModulus(
+                rotation.plus(zeroRotation).getRadians(),
+                SparkModuleConstants.turnPIDMinInput,
+                SparkModuleConstants.turnPIDMaxInput);
+        turnPID.setP(SparkModuleConstants.turnKp);
+        turnPID.setI(0.0);
+        turnPID.setD(SparkModuleConstants.turnKd);
+        turnPID.setTolerance(0.1, 0.1);
+        double output = turnPID.calculate(setPoint, absolutePosition);
+        output = MathUtil.clamp(output, -1.0, 1.0);
+        turnMotor.set(output);
     }
 
     @Override
@@ -198,4 +225,18 @@ public class ModuleIOSpark implements ModuleIO {
                     PersistMode.kNoPersistParameters));
     }
     
+    public double getTurnPosition() {
+        double turnPosition =
+            MathUtil.inputModulus(
+                canCoder.getPosition().getValueAsDouble() * DriveConstants.TURN_ENCODER_POSITION_FACTOR,
+                SparkModuleConstants.turnPIDMinInput,
+                SparkModuleConstants.turnPIDMaxInput);
+        turnPosition %= MathConstants.TAU;
+        return turnPosition;
+    }
+
+    public double getTurnVelocity() {
+        double turnVelocity = turnMotor.getEncoder().getVelocity() / DriveConstants.TURN_ENCODER_VELOCITY_FACTOR;
+        return turnVelocity;
+    }
 }
