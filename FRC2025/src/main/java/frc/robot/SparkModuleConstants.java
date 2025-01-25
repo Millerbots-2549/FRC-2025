@@ -4,31 +4,28 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Rotations;
-
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.SignalsConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
-
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.MathConstants;
 
 /** Add your docs here. */
 public class SparkModuleConstants {
-    public static final double driveKp = 0.0;
+    public static final double driveKp = 0.005;
     public static final double driveKd = 0.0;
     public static final double driveKs = 0.0;
-    public static final double driveKv = 0.1;
+    public static final double driveKv = 0.0789;
     public static final double driveSimP = 0.05;
     public static final double driveSimD = 0.0;
     public static final double driveSimKs = 0.0;
@@ -106,11 +103,39 @@ public class SparkModuleConstants {
     ) {}
 
     public static final ModuleSpecConfig frontLeft =
-        new ModuleSpecConfig(0, 0, 0, Rotations.of(0), false, false);
+        new ModuleSpecConfig(
+            DriveConstants.FRONT_LEFT_DRIVE_ID,
+            DriveConstants.FRONT_LEFT_TURN_ID,
+            DriveConstants.FRONT_LEFT_CANCODER_ID,
+            Angle.ofBaseUnits(
+                DriveConstants.FRONT_LEFT_ZERO_ROTATION.getRotations(),
+                Units.Rotations),
+            false, false);
     public static final ModuleSpecConfig frontRight =
-        new ModuleSpecConfig(0, 0, 0, Rotations.of(0), false, false);
+        new ModuleSpecConfig(
+            DriveConstants.FRONT_RIGHT_DRIVE_ID,
+            DriveConstants.FRONT_RIGHT_TURN_ID,
+            DriveConstants.FRONT_RIGHT_CANCODER_ID,
+            Angle.ofBaseUnits(
+                DriveConstants.FRONT_RIGHT_ZERO_ROTATION.getRotations(),
+                Units.Rotations),
+            false, false);
     public static final ModuleSpecConfig backLeft =
-        new ModuleSpecConfig(0, 0, 0, Rotations.of(0), false, false);
+        new ModuleSpecConfig(
+            DriveConstants.BACK_LEFT_DRIVE_ID,
+            DriveConstants.BACK_LEFT_TURN_ID,
+            DriveConstants.BACK_LEFT_CANCODER_ID,
+            Angle.ofBaseUnits(
+                DriveConstants.BACK_LEFT_ZERO_ROTATION.getRotations(),
+                Units.Rotations),
+            false, false);
     public static final ModuleSpecConfig backRight =
-        new ModuleSpecConfig(0, 0, 0, Rotations.of(0), false, false);
+    new ModuleSpecConfig(
+        DriveConstants.BACK_RIGHT_DRIVE_ID,
+        DriveConstants.BACK_RIGHT_TURN_ID,
+        DriveConstants.BACK_RIGHT_CANCODER_ID,
+        Angle.ofBaseUnits(
+            DriveConstants.BACK_RIGHT_ZERO_ROTATION.getRotations(),
+            Units.Rotations),
+        false, false);
 }

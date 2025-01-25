@@ -4,6 +4,10 @@
 
 package frc.robot.subsystems.drive;
 
+import static frc.robot.util.MotorUtils.ifOk;
+import static frc.robot.util.MotorUtils.sparkStickyFault;
+import static frc.robot.util.MotorUtils.tryUntilOk;
+
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
 
@@ -17,8 +21,8 @@ import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -28,10 +32,9 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.SparkModuleConstants;
 import frc.robot.SparkModuleConstants.ModuleSpecConfig;
-
-import static frc.robot.util.MotorUtils.*;
 
 /** Add your docs here. */
 public class ModuleIOSpark implements ModuleIO {
@@ -81,7 +84,9 @@ public class ModuleIOSpark implements ModuleIO {
 
         turnConfig = SparkModuleConstants.turnConfig;
         turnConfig.inverted(config.invertTurn());
-        tryUntilOk(turnMotor, 5, ()->
+        tryUntilOk(turnMotor, 5, () ->
+            turnMotor.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        tryUntilOk(turnMotor, 5, () ->
             turnEncoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble()));
 
         timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
@@ -125,6 +130,8 @@ public class ModuleIOSpark implements ModuleIO {
             (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
         ifOk(turnMotor, turnMotor::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
+
+        inputs.turnAbsolutePosition = Rotation2d.fromRadians(canCoder.getAbsolutePosition().getValueAsDouble());
 
         inputs.odometryTimestamps =
             timestampQueue.stream().mapToDouble((Double value) -> value).toArray();

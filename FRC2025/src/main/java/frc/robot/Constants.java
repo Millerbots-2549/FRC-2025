@@ -35,7 +35,7 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static Mode currentMode = Mode.SIM;
+  public static Mode currentMode = Mode.REAL;
 
   public static enum Mode {
     REAL,
@@ -74,21 +74,28 @@ public final class Constants {
     public static final int DRIVE_CURRENT_LIMIT = 35;
     public static final int TURN_CURRENT_LIMIT = 25;
 
-    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromDegrees(0);
-    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromDegrees(0);
-    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromDegrees(0);
-    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromDegrees(0);
+    /*
+    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0.191);
+    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.427);
+    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0.681);
+    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.041);
+    */
+
+    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0);
+    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.25);
+    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0);
+    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0);
 
     // TODO: this
     public static final int FRONT_LEFT_DRIVE_ID = 7;
     public static final int FRONT_RIGHT_DRIVE_ID = 11;
-    public static final int BACK_LEFT_DRIVE_ID = 6;
+    public static final int BACK_LEFT_DRIVE_ID = 4;
     public static final int BACK_RIGHT_DRIVE_ID = 2;
 
     // TODO: this
     public static final int FRONT_LEFT_TURN_ID = 8;
     public static final int FRONT_RIGHT_TURN_ID = 10;
-    public static final int BACK_LEFT_TURN_ID = 4;
+    public static final int BACK_LEFT_TURN_ID = 6;
     public static final int BACK_RIGHT_TURN_ID = 3;
 
     //TODO: this
@@ -97,7 +104,7 @@ public final class Constants {
     public static final int BACK_LEFT_CANCODER_ID = 5;
     public static final int BACK_RIGHT_CANCODER_ID = 1;
 
-    public static final double DRIVE_GEAR_RATIO = 6.75;
+    public static final double DRIVE_GEAR_RATIO = 6.12;
     public static final double TURN_GEAR_RATIO = 12.8;
 
     public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU / DRIVE_GEAR_RATIO;

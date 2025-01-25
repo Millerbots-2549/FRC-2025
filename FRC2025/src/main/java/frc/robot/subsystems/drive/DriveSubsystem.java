@@ -192,6 +192,13 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
     }
 
+    public void runModule(Rotation2d angle, double velocity, int moduleNum) {
+        modules[moduleNum].apply(new SwerveModuleState(
+            velocity,
+            angle
+        ));
+    }
+
     public void runCharacterization(double output) {
         for (int i = 0; i < 4; i++) {
             modules[i].runCharacterization(output);

@@ -144,6 +144,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
@@ -171,6 +172,29 @@ public class RobotContainer {
                 .ignoringDisable(true));
     
     driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 2.0, () -> driveSubsystem.getCurrentPath()));
+    driverController.leftBumper().onTrue(
+      new ParallelCommandGroup(
+        new RunCommand(() -> intakeSimulation.startIntake(), visionSubsystem),
+        new RunAlgaeIntake(algaeIntakeSubsystem)));
+    driverController.leftBumper().onFalse(
+      new ParallelCommandGroup(
+        new RunCommand(() -> intakeSimulation.stopIntake(), visionSubsystem),
+        new StopAlgaeIntake(algaeIntakeSubsystem)));
+    driverController.rightBumper().onTrue(
+      new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
+    
+    driverController.povUp().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5, 0), driveSubsystem));
+    driverController.povRight().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5, 1), driveSubsystem));
+    driverController.povLeft().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5,2), driveSubsystem));
+    driverController.povDown().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5,3), driveSubsystem));
   }
 
   /**
