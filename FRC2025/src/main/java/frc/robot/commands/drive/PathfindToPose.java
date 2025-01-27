@@ -2,16 +2,16 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
+package frc.robot.commands.drive;
 
-import java.util.List;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.PathPoint;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -29,7 +29,6 @@ public class PathfindToPose extends SequentialCommandGroup {
 
   Command pathCommand;
   Supplier<Pose2d> targetSupplier;
-  Supplier<List<PathPoint>> pathSupplier;
 
   PathConstraints constraints = new PathConstraints(
         DriveConstants.MAX_SPEED_METERS_PER_SECOND / 1.5,
@@ -38,13 +37,12 @@ public class PathfindToPose extends SequentialCommandGroup {
         DriveConstants.MAX_ANGULAR_ACCELERATION);
 
   /** Creates a new PathfindToPose. */
-  public PathfindToPose(DriveSubsystem driveSubsystem, Supplier<Pose2d> targetSupplier, double speed, Supplier<List<PathPoint>> pathSupplier) {
+  public PathfindToPose(DriveSubsystem driveSubsystem, Supplier<Pose2d> targetSupplier, double speed) {
     this.driveSubsystem = driveSubsystem;
     this.targetSupplier = targetSupplier;
-    this.pathSupplier = pathSupplier;
 
     Command initPathCommand = AutoBuilder.pathfindToPose(targetSupplier.get(), constraints);
-    pathCommand = AutoBuilder.pathfindToPose(targetSupplier.get(), constraints);
+    pathCommand = AutoBuilder.pathfindToPose(targetSupplier.get(), constraints, MetersPerSecond.of(speed));
     Pathfinding.ensureInitialized();
     pathCommand.initialize();
     
@@ -65,7 +63,7 @@ public class PathfindToPose extends SequentialCommandGroup {
 
         ChassisSpeeds speeds = new ChassisSpeeds(-Math.cos(rotRtoP1.getRadians()) * DriveConstants.MAX_ACCELERATION, -Math.sin(rotRtoP1.getRadians()) * DriveConstants.MAX_ACCELERATION, 0);
         if(findRotationError(currentPath) < 45) {
-          driveSubsystem.runVelocity(speeds);
+          driveSubsystem.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, driveSubsystem.getRotation()));
         }
       }
     }, driveSubsystem).until(() -> {

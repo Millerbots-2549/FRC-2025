@@ -26,6 +26,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -171,6 +172,11 @@ public final class Constants {
               Meters.of(WHEEL_RAIDUS_METERS),
               KilogramSquareMeters.of(0.02),
               WHEEL_COF)));
+
+    public static final double ALIGNMENT_MIN_DISTANCE = 0.5;
+
+    public static final double ALIGNMENT_MIN_TRANSLATION_ERROR = 0.02;
+    public static final double ALIGNMENT_MIN_THETA_ERROR = Units.degreesToRadians(5);
   }
 
   public static class VisionConstants {

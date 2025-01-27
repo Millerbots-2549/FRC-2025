@@ -34,14 +34,16 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
-import frc.robot.commands.PathfindToPose;
 import frc.robot.commands.RunAlgaeIntake;
 import frc.robot.commands.StopAlgaeIntake;
-import frc.robot.commands.TeleopDrive;
+import frc.robot.commands.drive.AlignToPose;
+import frc.robot.commands.drive.PathfindToPose;
+import frc.robot.commands.drive.TeleopDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
@@ -204,7 +206,7 @@ public class RobotContainer {
                     driveSubsystem)
                 .ignoringDisable(true));
     
-    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 2.0, () -> driveSubsystem.getCurrentPath()));
+    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
     driverController.leftBumper().onTrue(
       new ParallelCommandGroup(
         new RunCommand(() -> intakeSimulation.startIntake(), visionSubsystem),
