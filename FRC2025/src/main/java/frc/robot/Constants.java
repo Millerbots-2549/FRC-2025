@@ -303,6 +303,15 @@ public final class Constants {
     public static final double ROLLER_GEAR_RATIO = 1;
   }
 
+  public static class FieldConstants {
+    public static final Pose2d[][] REEF_POSITIONS = new Pose2d[][] {
+      {
+        new Pose2d(3.2, 4.18, Rotation2d.fromDegrees(90)),
+        new Pose2d(3.2, 4.5, Rotation2d.fromDegrees(90)),
+      }
+    };
+  }
+
   public static class MathConstants {
     public static final double PI = Math.PI;
     public static final double TAU = 2 * Math.PI;

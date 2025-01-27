@@ -42,6 +42,7 @@ import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.RunAlgaeIntake;
 import frc.robot.commands.StopAlgaeIntake;
 import frc.robot.commands.drive.AlignToPose;
+import frc.robot.commands.drive.AlignmentCommands;
 import frc.robot.commands.drive.PathfindToPose;
 import frc.robot.commands.drive.TeleopDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
@@ -218,18 +219,10 @@ public class RobotContainer {
     driverController.rightBumper().onTrue(
       new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
     
-    driverController.povUp().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5, 0), driveSubsystem));
-    driverController.povRight().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5, 1), driveSubsystem));
-    driverController.povLeft().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5,2), driveSubsystem));
-    driverController.povDown().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5,3), driveSubsystem));
+    driverController.povLeft()
+      .onTrue(AlignmentCommands.alignToReefSide(driveSubsystem, 0));
+    driverController.povRight()
+      .onTrue(AlignmentCommands.alignToReefSide(driveSubsystem, 1));
   }
 
   /**
@@ -288,5 +281,7 @@ public class RobotContainer {
       "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesByType("Algae").toArray(new Pose3d[0]));
     Logger.recordOutput(
       "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesByType("Coral").toArray(new Pose3d[0]));
+    
+    Logger.recordOutput("FieldPresets/ReefPositions", FieldConstants.REEF_POSITIONS);
   }
 }
