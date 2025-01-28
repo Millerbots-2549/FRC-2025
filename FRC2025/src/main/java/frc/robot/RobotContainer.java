@@ -41,7 +41,6 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.RunAlgaeIntake;
 import frc.robot.commands.StopAlgaeIntake;
-import frc.robot.commands.drive.AlignToPose;
 import frc.robot.commands.drive.AlignmentCommands;
 import frc.robot.commands.drive.PathfindToPose;
 import frc.robot.commands.drive.TeleopDrive;
@@ -219,10 +218,8 @@ public class RobotContainer {
     driverController.rightBumper().onTrue(
       new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
     
-    driverController.povLeft()
-      .onTrue(AlignmentCommands.alignToReefSide(driveSubsystem, 0));
-    driverController.povRight()
-      .onTrue(AlignmentCommands.alignToReefSide(driveSubsystem, 1));
+    driverController.rightTrigger()
+      .onTrue(AlignmentCommands.alignToReef(driveSubsystem));
   }
 
   /**

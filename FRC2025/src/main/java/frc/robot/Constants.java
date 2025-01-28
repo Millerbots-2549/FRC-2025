@@ -33,6 +33,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import frc.robot.util.SimulationUtils;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -175,7 +176,7 @@ public final class Constants {
 
     public static final double ALIGNMENT_MIN_DISTANCE = 0.5;
 
-    public static final double ALIGNMENT_MIN_TRANSLATION_ERROR = 0.02;
+    public static final double ALIGNMENT_MIN_TRANSLATION_ERROR = 0.05;
     public static final double ALIGNMENT_MIN_THETA_ERROR = Units.degreesToRadians(5);
   }
 
@@ -185,8 +186,8 @@ public final class Constants {
     public static String CAMERA_0_NAME = "camera_0";
     public static String CAMERA_1_NAME = "camera_1";
 
-    public static Transform3d ROBOT_TO_CAMERA_0 = new Transform3d(0.2, 0.0, 0.2, new Rotation3d(0.0, -0.4, 0.0));
-    public static Transform3d ROBOT_TO_CAMERA_1 = new Transform3d(-0.2, 0.0, 0.2, new Rotation3d(0.0, -0.4, Math.PI));
+    public static Transform3d ROBOT_TO_CAMERA_0 = new Transform3d(0.0, 0.2, 0.2, new Rotation3d(0.0, -0.4, Math.PI / 2));
+    public static Transform3d ROBOT_TO_CAMERA_1 = new Transform3d(0.0, -0.2, 0.2, new Rotation3d(0.0, -0.4, Math.PI * 1.5));
 
     public static double MAX_AMBIGUITY = 0.3;
     public static double MAX_Z_ERROR = 0.75;
@@ -304,12 +305,9 @@ public final class Constants {
   }
 
   public static class FieldConstants {
-    public static final Pose2d[][] REEF_POSITIONS = new Pose2d[][] {
-      {
-        new Pose2d(3.2, 4.18, Rotation2d.fromDegrees(90)),
-        new Pose2d(3.2, 4.5, Rotation2d.fromDegrees(90)),
-      }
-    };
+    public static final Translation2d REEF_CENTER = new Translation2d(4.485, 4);
+    public static final double REEF_RADIUS = 2.37 / 2.0;
+    public static final Pose2d[][] REEF_POSITIONS = SimulationUtils.generateReefPoses(REEF_CENTER, REEF_RADIUS, DriveConstants.WHEEL_BASE / 2, new Translation2d(0, 0), Rotation2d.fromDegrees(-90));
   }
 
   public static class MathConstants {
