@@ -9,7 +9,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 
 import edu.wpi.first.math.util.Units;
-import frc.robot.util.SimulationUtils;
+import frc.robot.util.simulation.SimulationUtils;
 
 /** Add your docs here. */
 public class GyroIOSim implements GyroIO {

@@ -17,7 +17,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import frc.robot.SparkModuleConstants;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.util.SimulationUtils;
+import frc.robot.util.simulation.SimulationUtils;
 
 /** Add your docs here. */
 public class ModuleIOSparkSim implements ModuleIO {

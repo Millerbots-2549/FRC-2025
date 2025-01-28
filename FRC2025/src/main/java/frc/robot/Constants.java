@@ -32,6 +32,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import frc.robot.util.motor.TalonFXConfig;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -54,6 +55,7 @@ public final class Constants {
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kManipulatorControllerPort = 1;
     public static final double DEADBAND = 0.1;
   }
 
@@ -295,6 +297,17 @@ public final class Constants {
     public static final double INTAKE_ANGLE_TOLERANCE = 10;
 
     public static final double ROLLER_GEAR_RATIO = 1;
+  }
+
+  public static class ElevatorConstants {
+    public static final int LEFT_MOTOR_ID = 19;
+    public static final int RIGHT_MOTOR_ID = 20;
+
+    public static final int CURRENT_LIMIT = 30;
+
+    public static final double MOTOR_ROTATION_TO_HEIGHT_METERS = 0.1;
+    public static final TalonFXConfig LEFT_MOTOR_CONFIG = null;
+    public static final TalonFXConfig RIGHT_MOTOR_CONFIG = null;
   }
 
   public static class MathConstants {

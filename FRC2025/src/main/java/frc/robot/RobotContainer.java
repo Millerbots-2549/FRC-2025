@@ -4,13 +4,16 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import org.ironmaple.simulation.IntakeSimulation;
 import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnFly;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -23,7 +26,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -34,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
@@ -54,11 +57,15 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.drive.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.OdometryThread;
+import frc.robot.subsystems.elevator.ElevatorIO;
+import frc.robot.subsystems.elevator.ElevatorIOHardware;
+import frc.robot.subsystems.elevator.ElevatorIOSim;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionSubsystem;
-import frc.robot.util.SimulationUtils;
+import frc.robot.util.simulation.SimulationUtils;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -70,12 +77,16 @@ public class RobotContainer {
   private final DriveSubsystem driveSubsystem;
   private final VisionSubsystem visionSubsystem;
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
+  private final ElevatorSubsystem elevatorSubsystem;
 
   private SwerveDriveSimulation driveSimulation = null;
-  private IntakeSimulation intakeSimulation = null;
+  private IntakeSimulation algaeIntakeSimulation = null;
+  private IntakeSimulation coralIntakeSimulation = null;
 
   private final CommandXboxController driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController manipulatorController =
+      new CommandXboxController(OperatorConstants.kManipulatorControllerPort);
 
   private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -99,17 +110,28 @@ public class RobotContainer {
           new AlgaeIntakeIOHardware(
             AlgaeIntakeConstants.ROLLER_CONFIG,
             AlgaeIntakeConstants.ANGLE_CONFIG));
+
+        elevatorSubsystem = new ElevatorSubsystem(
+          new ElevatorIOHardware(
+            ElevatorConstants.LEFT_MOTOR_CONFIG,
+            ElevatorConstants.RIGHT_MOTOR_CONFIG));
         break;
 
       case SIM:
         driveSimulation = new SwerveDriveSimulation(
           DriveConstants.MAPLE_SIM_CONFIG,
           new Pose2d(3, 3, new Rotation2d()));
-        intakeSimulation = IntakeSimulation.OverTheBumperIntake(
+        algaeIntakeSimulation = IntakeSimulation.OverTheBumperIntake(
           "Algae",
           driveSimulation,
           Meters.of(0.7),
-          Meters.of(0.2),
+          Meters.of(0.08),
+          IntakeSide.FRONT,
+          1);
+        coralIntakeSimulation = IntakeSimulation.InTheFrameIntake(
+          "Coral",
+          driveSimulation,
+          Meters.of(0.7),
           IntakeSide.FRONT,
           1);
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
@@ -131,6 +153,9 @@ public class RobotContainer {
         
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOSim());
+
+        elevatorSubsystem = new ElevatorSubsystem(
+          new ElevatorIOSim());
         break;
     
       default:
@@ -145,6 +170,8 @@ public class RobotContainer {
         visionSubsystem = new VisionSubsystem(driveSubsystem, new VisionIO() {}, new VisionIO() {});
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(new AlgaeIntakeIO() {});
+
+        elevatorSubsystem = new ElevatorSubsystem(new ElevatorIO() {});
         break;
     }
 
@@ -205,17 +232,8 @@ public class RobotContainer {
                 .ignoringDisable(true));
     
     driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 2.0, () -> driveSubsystem.getCurrentPath()));
-    driverController.leftBumper().onTrue(
-      new ParallelCommandGroup(
-        new RunCommand(() -> intakeSimulation.startIntake(), visionSubsystem),
-        new RunAlgaeIntake(algaeIntakeSubsystem)));
-    driverController.leftBumper().onFalse(
-      new ParallelCommandGroup(
-        new RunCommand(() -> intakeSimulation.stopIntake(), visionSubsystem),
-        new StopAlgaeIntake(algaeIntakeSubsystem)));
-    driverController.rightBumper().onTrue(
-      new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
     
+    /*
     driverController.povUp().whileTrue(
       new RunCommand(() -> driveSubsystem.runModule(
         Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5, 0), driveSubsystem));
@@ -228,6 +246,23 @@ public class RobotContainer {
     driverController.povDown().whileTrue(
       new RunCommand(() -> driveSubsystem.runModule(
         Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp())), 0.5,3), driveSubsystem));
+        */
+
+    driverController.leftBumper().onTrue(
+      new ParallelCommandGroup(
+        new RunCommand(() -> algaeIntakeSimulation.startIntake(), visionSubsystem),
+        new RunAlgaeIntake(algaeIntakeSubsystem)));
+    driverController.leftBumper().onFalse(
+      new ParallelCommandGroup(
+        new RunCommand(() -> algaeIntakeSimulation.stopIntake(), visionSubsystem),
+        new StopAlgaeIntake(algaeIntakeSubsystem)));
+    driverController.rightBumper().onTrue(
+      new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
+
+    driverController.povUp().onTrue(elevatorSubsystem.raiseElevator());
+    driverController.povDown().onTrue(elevatorSubsystem.lowerElevator());
+    driverController.leftTrigger().onTrue(
+      new InstantCommand(() -> outtakeCoral(), elevatorSubsystem));
   }
 
   /**
@@ -241,20 +276,33 @@ public class RobotContainer {
   }
 
   public void launchAlgae() {
-    if (intakeSimulation.obtainGamePieceFromIntake()) {
+    if (algaeIntakeSimulation.obtainGamePieceFromIntake()) {
       SimulatedArena.getInstance()
         .addGamePieceProjectile(new ReefscapeAlgaeOnFly(
           driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
           new Translation2d(),
           driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
           driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-          0.4,
-          0.9,
-          Math.toRadians(70))
+          Meters.of(0.4),
+          MetersPerSecond.of(0.9),
+          Degrees.of(70))
           .withProjectileTrajectoryDisplayCallBack(
             (poses) -> Logger.recordOutput("SuccessfulShotsTrajectory", poses.toArray(Pose3d[]::new)),
             (poses) -> Logger.recordOutput("MissedShotsTrajectory", poses.toArray(Pose3d[]::new))));
     }
+  }
+
+  public void outtakeCoral() {
+    SimulatedArena.getInstance()
+      .addGamePieceProjectile(new ReefscapeCoralOnFly(
+        driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
+        new Translation2d(0.35, 0.345),
+        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+        driveSimulation.getSimulatedDriveTrainPose().getRotation().plus(Rotation2d.kCCW_90deg),
+        Meters.of(elevatorSubsystem.getHeightMeters() + 0.475),
+        MetersPerSecond.of(2),
+        Degrees.of(-35)
+      ));
   }
 
   public void resetSimulatedField() {
@@ -271,6 +319,13 @@ public class RobotContainer {
       return;
     }
 
+    SimulationUtils.getInstance().update();
+
+    SimulationUtils.getInstance().updateRobotPose(driveSimulation.getSimulatedDriveTrainPose());
+    SimulationUtils.getInstance().updateAlgae(SimulatedArena.getInstance().getGamePiecesByType("Algae"));
+    SimulationUtils.getInstance().updateCoral(SimulatedArena.getInstance().getGamePiecesByType("Coral"));
+    SimulationUtils.getInstance().updateIntakes(algaeIntakeSimulation, coralIntakeSimulation);
+
     Logger.recordOutput(
       "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
     Logger.recordOutput(
@@ -279,11 +334,11 @@ public class RobotContainer {
       "FieldSimulation/FinalComponentPoses", 
       new Pose3d[] {
         SimulationUtils.getAlgaeIntakePose(algaeIntakeSubsystem.getArmPosition().getRadians()),
-        SimulationUtils.getElevatorMiddlePose((Math.sin(Timer.getTimestamp()) + 1) / 2),
-        SimulationUtils.getElevatorInnerPose((Math.sin(Timer.getTimestamp()) + 1) / 2)
+        SimulationUtils.getElevatorMiddlePose(elevatorSubsystem.getHeightMeters()),
+        SimulationUtils.getElevatorInnerPose(elevatorSubsystem.getHeightMeters())
       });
     Logger.recordOutput(
-      "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesByType("Algae").toArray(new Pose3d[0]));
+      "FieldSimulation/Algae", SimulationUtils.getInstance().generateAlgaePoses().toArray(new Pose3d[0]));
     Logger.recordOutput(
       "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesByType("Coral").toArray(new Pose3d[0]));
   }

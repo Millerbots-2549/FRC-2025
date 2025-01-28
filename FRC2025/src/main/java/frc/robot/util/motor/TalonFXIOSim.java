@@ -12,6 +12,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
@@ -57,5 +58,20 @@ public class TalonFXIOSim extends TalonFXIO {
 
         motorSim.setInput(simVolts);
         Logger.recordOutput(config.name + "/Sim/SimVolts", simVolts);
+
+        double timestamp = Logger.getTimestamp() * 1.0E-6;
+        motorSim.update(timestamp - lastUpdateTime);
+        lastUpdateTime = timestamp;
+
+        double simPositionRads = motorSim.getAngularPositionRad();
+        Logger.recordOutput(config.name + "/Sim/PositionRads", simPositionRads);
+
+        double rotorPosition = Units.radiansToRotations(simPositionRads) / config.rotorRatio;
+        simState.setRawRotorPosition(rotorPosition);
+        Logger.recordOutput(config.name + "/Sim/RotorPosition", rotorPosition);
+
+        double rotorVel = Units.radiansToRotations(motorSim.getAngularVelocityRadPerSec()) / config.rotorRatio;
+        simState.setRotorVelocity(rotorVel);
+        Logger.recordOutput(config.name + "/Sim/RotorVelocity", motorSim.getAngularVelocityRadPerSec());
     }
 }
