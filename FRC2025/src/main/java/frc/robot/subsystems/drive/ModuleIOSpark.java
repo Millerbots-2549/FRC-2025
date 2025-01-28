@@ -4,9 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
-import static frc.robot.util.MotorUtils.ifOk;
-import static frc.robot.util.MotorUtils.sparkStickyFault;
-import static frc.robot.util.MotorUtils.tryUntilOk;
+import static frc.robot.util.MotorUtils.*;
 
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
@@ -33,13 +31,16 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
-import frc.robot.SparkModuleConstants;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.MathConstants;
+import frc.robot.SparkModuleConstants;
 import frc.robot.SparkModuleConstants.ModuleSpecConfig;
 
 /** Add your docs here. */
 public class ModuleIOSpark implements ModuleIO {
+    /** The offset of the CANCoder */
     private final Rotation2d zeroRotation;
 
     private final SparkBase driveMotor;
@@ -55,9 +56,8 @@ public class ModuleIOSpark implements ModuleIO {
     private final CANcoder canCoder;
     private final StatusSignal<Angle> turnAbsolutePosition;
 
-    private final PIDController turnPID;
+    private PIDController turnPID;
     private final SparkClosedLoopController driveController;
-    private final SparkClosedLoopController turnController;
 
     private final Queue<Double> timestampQueue;
     private final Queue<Double> drivePositionQueue;
@@ -66,6 +66,12 @@ public class ModuleIOSpark implements ModuleIO {
     private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
     private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
 
+    /**
+     * Constructs the Swerve Module and initializes all of the hardware using the provided
+     * {@link ModuleSpecConfig}. This implementation of {@link ModuleIO} uses two {@link SparkMax
+     * Spark Max} motor controllers and a {@link CANcoder CAN Coder} as the turn encoder.
+     * @param config The configuration for this module
+     */
     public ModuleIOSpark(ModuleSpecConfig config) {
         zeroRotation = config.CANcoderOffset();
 
@@ -79,8 +85,8 @@ public class ModuleIOSpark implements ModuleIO {
         turnPID = new PIDController(SparkModuleConstants.turnKp, 0, SparkModuleConstants.turnKd);
         turnPID.enableContinuousInput(SparkModuleConstants.turnPIDMinInput, SparkModuleConstants.turnPIDMaxInput);
         turnPID.setTolerance(10);
+        
         driveController = driveMotor.getClosedLoopController();
-        turnController = turnMotor.getClosedLoopController();
 
         driveConfig = SparkModuleConstants.driveConfig;
         driveConfig.inverted(config.invertDrive());
@@ -104,8 +110,7 @@ public class ModuleIOSpark implements ModuleIO {
         drivePositionQueue = OdometryThread.getInstance().registerSignal(driveMotor, driveEncoder::getPosition);
         turnPositionQueue = OdometryThread.getInstance().registerSignal(turnMotor, turnEncoder::getPosition);
 
-        driveController.setReference(0, ControlType.kDutyCycle);
-        turnController.setReference(0, ControlType.kPosition);
+        driveController.setReference(0, ControlType.kVelocity);
 
         BaseStatusSignal.setUpdateFrequencyForAll(50.0, turnAbsolutePosition);
 
@@ -123,9 +128,7 @@ public class ModuleIOSpark implements ModuleIO {
         sparkStickyFault = false;
         ifOk(driveMotor, driveEncoder::getPosition, (value) -> inputs.drivePositionRadians = value);
         ifOk(driveMotor, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = value);
-        ifOk(
-            driveMotor, 
-            new DoubleSupplier[] {driveMotor::getAppliedOutput, driveMotor::getBusVoltage},
+        ifOk(driveMotor, new DoubleSupplier[] {driveMotor::getAppliedOutput, driveMotor::getBusVoltage},
             (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
         ifOk(driveMotor, driveMotor::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
         inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
@@ -136,9 +139,7 @@ public class ModuleIOSpark implements ModuleIO {
             this::getTurnPosition,
             (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
         ifOk(turnMotor, canCoder.getVelocity()::getValueAsDouble, (value) -> inputs.turnVelocityRadPerSec = value);
-        ifOk(
-            turnMotor, 
-            new DoubleSupplier[] {turnMotor::getAppliedOutput, turnMotor::getBusVoltage},
+        ifOk(turnMotor, new DoubleSupplier[] {turnMotor::getAppliedOutput, turnMotor::getBusVoltage},
             (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
         ifOk(turnMotor, turnMotor::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
@@ -160,6 +161,8 @@ public class ModuleIOSpark implements ModuleIO {
         timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();
+
+        SmartDashboard.putNumber("CANCoder" + driveMotor.getDeviceId(), Units.rotationsToRadians(canCoder.getAbsolutePosition().getValueAsDouble()));
     }
 
     @Override
@@ -178,7 +181,7 @@ public class ModuleIOSpark implements ModuleIO {
             SparkModuleConstants.driveKs * Math.signum(velocity)
             + SparkModuleConstants.driveKv * velocity;
         driveController.setReference(
-            velocity,
+            MathUtil.clamp(velocity, -0.1, 0.1),
             ControlType.kVelocity,
             ClosedLoopSlot.kSlot0,
             ffVolts,
@@ -189,7 +192,7 @@ public class ModuleIOSpark implements ModuleIO {
     public void setTurnPosition(Rotation2d rotation) {
         double absolutePosition =
             MathUtil.inputModulus(
-                canCoder.getAbsolutePosition().getValueAsDouble() * MathConstants.TAU,
+                Units.rotationsToRadians(canCoder.getAbsolutePosition().getValueAsDouble()),
                 SparkModuleConstants.turnPIDMinInput,
                 SparkModuleConstants.turnPIDMaxInput);
         double setPoint =
@@ -201,7 +204,8 @@ public class ModuleIOSpark implements ModuleIO {
         turnPID.setI(0.0);
         turnPID.setD(SparkModuleConstants.turnKd);
         turnPID.setTolerance(0.1, 0.1);
-        double output = turnPID.calculate(setPoint, absolutePosition);
+        SmartDashboard.putNumber("Turn Error" + canCoder.getDeviceID(), absolutePosition);
+        double output = turnPID.calculate(absolutePosition, setPoint);
         output = MathUtil.clamp(output, -1.0, 1.0);
         turnMotor.set(output);
     }

@@ -26,26 +26,24 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.PathfindToPose;
+import frc.robot.commands.TeleopDrive;
 import frc.robot.commands.RunAlgaeIntake;
 import frc.robot.commands.StopAlgaeIntake;
 import frc.robot.commands.drive.AlignmentCommands;
 import frc.robot.commands.drive.PathfindToPose;
 import frc.robot.commands.drive.TeleopDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
-import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
 import frc.robot.subsystems.algae.AlgaeIntakeSubsystem;
 import frc.robot.subsystems.drive.DriveSubsystem;
@@ -57,7 +55,6 @@ import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.drive.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.OdometryThread;
 import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.SimulationUtils;
@@ -94,13 +91,10 @@ public class RobotContainer {
           OdometryThread.getInstance());
 
         visionSubsystem = new VisionSubsystem(
-          driveSubsystem,
-          new VisionIOLimelight(VisionConstants.CAMERA_0_NAME, driveSubsystem::getRotation));
+          driveSubsystem, new VisionIO() {});
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
-          new AlgaeIntakeIOHardware(
-            AlgaeIntakeConstants.ROLLER_CONFIG,
-            AlgaeIntakeConstants.ANGLE_CONFIG));
+          new AlgaeIntakeIO() { });
         break;
 
       case SIM:
@@ -180,11 +174,16 @@ public class RobotContainer {
    */
   private void configureBindings() {
     
+    
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
+         
+         
+         
+    
 
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
@@ -206,6 +205,9 @@ public class RobotContainer {
                     driveSubsystem)
                 .ignoringDisable(true));
     
+    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 2.0, () -> driveSubsystem.getCurrentPath()));
+    
+    /*
     driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
     driverController.leftBumper().onTrue(
       new ParallelCommandGroup(
@@ -217,7 +219,21 @@ public class RobotContainer {
         new StopAlgaeIntake(algaeIntakeSubsystem)));
     driverController.rightBumper().onTrue(
       new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
+      */
     
+    
+    driverController.povUp().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(0), 0.8, 0), driveSubsystem));
+    driverController.povRight().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(0), 0.8, 1), driveSubsystem));
+    driverController.povLeft().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(0), 0.8,2), driveSubsystem));
+    driverController.povDown().whileTrue(
+      new RunCommand(() -> driveSubsystem.runModule(
+        Rotation2d.fromDegrees(0), 0.8,3), driveSubsystem));
     driverController.rightTrigger()
       .onTrue(AlignmentCommands.alignToReef(driveSubsystem));
   }

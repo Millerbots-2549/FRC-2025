@@ -49,7 +49,7 @@ public class TeleopDrive extends Command {
 
     double rot = MathUtil.applyDeadband(rotationSupplier.getAsDouble(), OperatorConstants.DEADBAND);
 
-    rot = Math.copySign(rot * rot, rot);
+    //rot = Math.copySign(rot * rot, rot);
 
     ChassisSpeeds speeds = new ChassisSpeeds(
       linearVelocity.getX() * driveSubsystem.getMaxLinearSpeedMetersPerSec(),

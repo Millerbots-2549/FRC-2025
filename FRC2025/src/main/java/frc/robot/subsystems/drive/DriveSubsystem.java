@@ -198,6 +198,9 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             angle
         ));
     }
+    public void runModule(double output, int moduleNum) {
+        modules[moduleNum].runCharacterization(output);
+    }
 
     public void runCharacterization(double output) {
         for (int i = 0; i < 4; i++) {

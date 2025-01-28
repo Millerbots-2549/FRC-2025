@@ -34,12 +34,28 @@ public interface ModuleIO {
 
     public default void updateInputs(ModuleIOInputs inputs) {}
 
+    /**
+     * Runs the drive motor at a specific voltage (not using a PID controller)
+     * @param output The voltage to set the motor at
+     */
     public default void setDriveOpenLoop(double output) {}
 
+    /**
+     * Runs the turn motor at a specific voltage (not using a PID controller)
+     * @param output The voltage to set the motor at.
+     */
     public default void setTurnOpenLoop(double output) {}
 
+    /**
+     * Runs the drive motor to run at a specific velocity in <b>rotations per second</b>
+     * @param velocity The velocity in <b>rotations per second</b>
+     */
     public default void setDriveVelocity(double velocity) {}
 
+    /**
+     * Turns the module to a setpoint.
+     * @param rotation The setpoint as a {@link Rotation2d}
+     */
     public default void setTurnPosition (Rotation2d rotation) {}
 
     public default ModuleGains getGains() { return new ModuleGains(0, 0, 0, 0, 0, 0); }

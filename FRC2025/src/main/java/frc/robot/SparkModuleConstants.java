@@ -21,7 +21,7 @@ import frc.robot.Constants.MathConstants;
 
 /** Add your docs here. */
 public class SparkModuleConstants {
-    public static final double driveKp = 0.005;
+    public static final double driveKp = 0.002;
     public static final double driveKd = 0.0;
     public static final double driveKs = 0.0;
     public static final double driveKv = 0.0789;
@@ -30,7 +30,7 @@ public class SparkModuleConstants {
     public static final double driveSimKs = 0.0;
     public static final double driveSimKv = 0.0789;
 
-    public static final double turnKp = 2.0;
+    public static final double turnKp = 0.2;
     public static final double turnKd = 0.0;
     public static final double turnSimP = 8.0;
     public static final double turnSimD = 0.0;
@@ -114,7 +114,7 @@ public class SparkModuleConstants {
             DriveConstants.FRONT_RIGHT_TURN_ID,
             DriveConstants.FRONT_RIGHT_CANCODER_ID,
             DriveConstants.FRONT_RIGHT_ZERO_ROTATION,
-            false, false);
+            true, false);
     public static final ModuleSpecConfig backLeft =
         new ModuleSpecConfig(
             DriveConstants.BACK_LEFT_DRIVE_ID,

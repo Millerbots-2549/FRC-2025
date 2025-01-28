@@ -44,7 +44,7 @@ import frc.robot.util.SimulationUtils;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static Mode currentMode = Mode.SIM;
+  public static Mode currentMode = Mode.REAL;
 
   public static enum Mode {
     REAL,
@@ -90,10 +90,11 @@ public final class Constants {
     public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.041);
     */
 
-    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0);
-    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.25);
-    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0);
-    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0);
+    private static final double degreesOffsetAll = 0;
+    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-1.77 + Units.degreesToRotations(degreesOffsetAll));
+    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(2.71 + 0.4 + Units.degreesToRotations(degreesOffsetAll));
+    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-2.89 + 0.9 + Units.degreesToRotations(degreesOffsetAll));
+    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(-3.06 + Units.degreesToRotations(degreesOffsetAll));
 
     // TODO: this
     public static final int FRONT_LEFT_DRIVE_ID = 7;
