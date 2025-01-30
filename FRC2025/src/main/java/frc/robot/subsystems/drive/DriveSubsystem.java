@@ -41,6 +41,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -84,7 +85,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     private static List<Pose2d> currentPathPoses = new ArrayList<>();
     private static List<PathPoint> currentPath = new ArrayList<>();
         
-    public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO, Thread odometryThread) {
+    public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO) {
         this.gyroIO = gyroIO;
         this.modules[0] = new SwerveModule(flIO, 0);
         this.modules[1] = new SwerveModule(frIO, 1);
@@ -93,9 +94,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
         HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
-        if (odometryThread != null) {
-            odometryThread.start();
-        }
+        SmartDashboard.putBoolean("Odometry thread started", false);
+        OdometryThread.getInstance().start();
 
         AutoBuilder.configure(
             this::getPose,
@@ -170,6 +170,9 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
             poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
         }
+
+        SmartDashboard.putNumber("NavX Yaw", gyroInputs.yaw.getRadians());
+        SmartDashboard.putBoolean("NavX Connected", gyroInputs.connected);
 
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
 
@@ -275,7 +278,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     public Rotation2d getRotation() {
-        return getPose().getRotation();
+        return gyroInputs.yaw;
     }
 
     public void setPose(Pose2d pose) {

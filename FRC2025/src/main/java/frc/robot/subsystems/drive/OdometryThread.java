@@ -15,10 +15,11 @@ import com.revrobotics.spark.SparkBase;
 
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 
 /** Add your docs here. */
-public class OdometryThread extends Thread {
+public class OdometryThread {
     private final List<SparkBase> sparks = new ArrayList<>();
     private final List<DoubleSupplier> sparkSignals = new ArrayList<>();
     private final List<DoubleSupplier> genericSignals = new ArrayList<>();
@@ -30,10 +31,10 @@ public class OdometryThread extends Thread {
     private Notifier notifier = new Notifier(this::run);
 
     public static OdometryThread getInstance() {
-    if (instance == null) {
-        instance = new OdometryThread();
-    }
-    return instance;
+        if (instance == null) {
+            instance = new OdometryThread();
+        }
+        return instance;
     }
 
     private OdometryThread() {
@@ -41,7 +42,7 @@ public class OdometryThread extends Thread {
     }
 
     public void start() {
-        if (timestampQueues.size() > 0) {
+        if (!timestampQueues.isEmpty()) {
             notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQUENCY);
         }
     }
@@ -85,8 +86,8 @@ public class OdometryThread extends Thread {
         return queue;
     }
 
-    @Override
-    public void run() {
+    private void run() {
+        SmartDashboard.putBoolean("skib", true);
         // Save new data to queues
         DriveSubsystem.odometryLock.lock();
         try {
@@ -102,6 +103,8 @@ public class OdometryThread extends Thread {
                     isValid = false;
                 }
             }
+
+            SmartDashboard.putBoolean("valid", isValid);
 
             // If valid, add values to queues
             if (isValid) {

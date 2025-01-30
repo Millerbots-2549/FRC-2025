@@ -52,7 +52,7 @@ public final class Constants {
     REPLAY
   }
 
-  public static final boolean TUNING_MODE = true;
+  public static final boolean TUNING_MODE = false;
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
@@ -63,8 +63,8 @@ public final class Constants {
     public static final double ODOMETRY_FREQUENCY = 0.02;
 
     // TODO: this
-    public static final double TRACK_WIDTH = Units.inchesToMeters(19.5);
-    public static final double WHEEL_BASE = Units.inchesToMeters(19.5);
+    public static final double TRACK_WIDTH = Units.inchesToMeters(28.0);
+    public static final double WHEEL_BASE = Units.inchesToMeters(28.0);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
     public static final double MAX_SPEED_METERS_PER_SECOND = 5.45;
@@ -72,7 +72,6 @@ public final class Constants {
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
 
-    // TODO: this
     public static final Translation2d[] MODULE_OFFSETS = {
       new Translation2d(WHEEL_BASE / 2.0, TRACK_WIDTH / 2.0),
       new Translation2d(WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0),
@@ -83,33 +82,23 @@ public final class Constants {
     public static final int DRIVE_CURRENT_LIMIT = 35;
     public static final int TURN_CURRENT_LIMIT = 25;
 
-    /*
-    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0.191);
-    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.427);
-    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(0.681);
-    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.041);
-    */
+    private static final double degreesOffsetAll = -60;
+    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-0.19 + 0.15 + Units.degreesToRotations(degreesOffsetAll));
+    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(1.26 + 0.45 + Units.degreesToRotations(degreesOffsetAll));
+    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(1.78 + 0.9 + 0.45 + Units.degreesToRotations(degreesOffsetAll));
+    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(-1.45 + 0.1 + Units.degreesToRotations(degreesOffsetAll));
 
-    private static final double degreesOffsetAll = 0;
-    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-1.77 + Units.degreesToRotations(degreesOffsetAll));
-    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(2.71 + 0.4 + Units.degreesToRotations(degreesOffsetAll));
-    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-2.89 + 0.9 + Units.degreesToRotations(degreesOffsetAll));
-    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(-3.06 + Units.degreesToRotations(degreesOffsetAll));
-
-    // TODO: this
-    public static final int FRONT_LEFT_DRIVE_ID = 7;
+    public static final int FRONT_LEFT_DRIVE_ID = 8;
     public static final int FRONT_RIGHT_DRIVE_ID = 11;
     public static final int BACK_LEFT_DRIVE_ID = 4;
     public static final int BACK_RIGHT_DRIVE_ID = 2;
 
-    // TODO: this
-    public static final int FRONT_LEFT_TURN_ID = 8;
+    public static final int FRONT_LEFT_TURN_ID = 7;
     public static final int FRONT_RIGHT_TURN_ID = 10;
     public static final int BACK_LEFT_TURN_ID = 6;
     public static final int BACK_RIGHT_TURN_ID = 3;
 
-    //TODO: this
-    public static final int FRONT_LEFT_CANCODER_ID = 9;
+    public static final int FRONT_LEFT_CANCODER_ID = 7;
     public static final int FRONT_RIGHT_CANCODER_ID = 12;
     public static final int BACK_LEFT_CANCODER_ID = 5;
     public static final int BACK_RIGHT_CANCODER_ID = 1;
@@ -123,15 +112,12 @@ public final class Constants {
     public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
-    // TODO: tune these
     public static final double DRIVE_P = 0.05;
     public static final double DRIVE_D = 0.4;
 
-    // TODO: tune these
     public static final double TURN_P = 1.8;
     public static final double TURN_D = 0.055;
 
-    // TODO: this
     public static final boolean TURN_INVERTED = false;
     public static final boolean TURN_ENCODER_INVERTED = false;
 

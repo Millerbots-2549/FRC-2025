@@ -43,6 +43,8 @@ public class ModuleIOSpark implements ModuleIO {
     /** The offset of the CANCoder */
     private final Rotation2d zeroRotation;
 
+    private final boolean invert;
+
     private final SparkBase driveMotor;
     private final SparkBase turnMotor;
     private final RelativeEncoder driveEncoder;
@@ -88,6 +90,7 @@ public class ModuleIOSpark implements ModuleIO {
         
         driveController = driveMotor.getClosedLoopController();
 
+        invert = config.invertDrive();
         driveConfig = SparkModuleConstants.driveConfig;
         driveConfig.inverted(config.invertDrive());
         tryUntilOk(driveMotor, 5, () ->
@@ -127,7 +130,7 @@ public class ModuleIOSpark implements ModuleIO {
     public void updateInputs(ModuleIOInputs inputs) {
         sparkStickyFault = false;
         ifOk(driveMotor, driveEncoder::getPosition, (value) -> inputs.drivePositionRadians = value);
-        ifOk(driveMotor, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = value);
+        ifOk(driveMotor, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = invert ? -value : value);
         ifOk(driveMotor, new DoubleSupplier[] {driveMotor::getAppliedOutput, driveMotor::getBusVoltage},
             (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
         ifOk(driveMotor, driveMotor::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
@@ -177,11 +180,12 @@ public class ModuleIOSpark implements ModuleIO {
 
     @Override
     public void setDriveVelocity(double velocity) {
+        double vel = invert ? -velocity : velocity;
         double ffVolts =
-            SparkModuleConstants.driveKs * Math.signum(velocity)
-            + SparkModuleConstants.driveKv * velocity;
+            SparkModuleConstants.driveKs * Math.signum(vel)
+            + SparkModuleConstants.driveKv * vel;
         driveController.setReference(
-            MathUtil.clamp(velocity, -0.1, 0.1),
+            MathUtil.clamp(vel, -0.1, 0.1),
             ControlType.kVelocity,
             ClosedLoopSlot.kSlot0,
             ffVolts,

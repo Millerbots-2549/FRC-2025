@@ -36,13 +36,9 @@ import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
-import frc.robot.commands.PathfindToPose;
-import frc.robot.commands.TeleopDrive;
 import frc.robot.commands.RunAlgaeIntake;
 import frc.robot.commands.StopAlgaeIntake;
-import frc.robot.commands.drive.AlignmentCommands;
-import frc.robot.commands.drive.PathfindToPose;
-import frc.robot.commands.drive.TeleopDrive;
+import frc.robot.commands.drive.*;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
 import frc.robot.subsystems.algae.AlgaeIntakeSubsystem;
@@ -87,8 +83,7 @@ public class RobotContainer {
           new ModuleIOSpark(SparkModuleConstants.frontLeft),
           new ModuleIOSpark(SparkModuleConstants.frontRight),
           new ModuleIOSpark(SparkModuleConstants.backLeft),
-          new ModuleIOSpark(SparkModuleConstants.backRight),
-          OdometryThread.getInstance());
+          new ModuleIOSpark(SparkModuleConstants.backRight));
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem, new VisionIO() {});
@@ -115,8 +110,7 @@ public class RobotContainer {
           new ModuleIOSparkSim(driveSimulation.getModules()[0]),
           new ModuleIOSparkSim(driveSimulation.getModules()[1]),
           new ModuleIOSparkSim(driveSimulation.getModules()[2]),
-          new ModuleIOSparkSim(driveSimulation.getModules()[3]),
-          null);
+          new ModuleIOSparkSim(driveSimulation.getModules()[3]));
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
@@ -135,8 +129,7 @@ public class RobotContainer {
           new ModuleIO() {},
           new ModuleIO() {},
           new ModuleIO() {},
-          new ModuleIO() {},
-          null);
+          new ModuleIO() {});
 
         visionSubsystem = new VisionSubsystem(driveSubsystem, new VisionIO() {}, new VisionIO() {});
 
@@ -205,7 +198,7 @@ public class RobotContainer {
                     driveSubsystem)
                 .ignoringDisable(true));
     
-    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 2.0, () -> driveSubsystem.getCurrentPath()));
+    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
     
     /*
     driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
