@@ -13,7 +13,13 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants.AlgaeIntakeConstants;
 
-/** Add your docs here. */
+/**
+ * This is an implementation of the {@link AlgaeIntakeIO} interface which uses
+ * two {@link DCMotorSim} objects to simulate how the intake <i>should</i>
+ * move. This class uses preset gains in {@link AlgaeIntakeConstants}
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public class AlgaeIntakeIOSim implements AlgaeIntakeIO {
     private final DCMotorSim rollerMotorSim;
     private final DCMotorSim angleMotorSim;
@@ -57,6 +63,7 @@ public class AlgaeIntakeIOSim implements AlgaeIntakeIO {
             angleController.reset();
         }
 
+        // Updates the simulation with time
         rollerMotorSim.setInputVoltage(MathUtil.clamp(rollerAppliedVolts, -12.0, 12.0));
         angleMotorSim.setInputVoltage(MathUtil.clamp(angleAppliedVolts, -12.0, 12.0));
         rollerMotorSim.update(0.02);
@@ -102,7 +109,7 @@ public class AlgaeIntakeIOSim implements AlgaeIntakeIO {
     @Override
     public AlgaeIntakeGains getGains() {
         return new AlgaeIntakeGains(
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
 
     @Override

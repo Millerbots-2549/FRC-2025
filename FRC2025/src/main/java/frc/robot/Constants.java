@@ -194,13 +194,18 @@ public final class Constants {
   public static class AlgaeIntakeConstants {
     public static final int ROLLER_MOTOR_ID = 17;
     public static final int ROLLER_CURRENT_LIMIT = 30;
-    public static final double ROLLER_ENCODER_POSITION_FACTOR = 0.0;
-    public static final double ROLLER_ENCODER_VELOCITY_FACTOR = 0.0;
+    public static final double ROLLER_ENCODER_POSITION_FACTOR = MathConstants.TAU;
+    public static final double ROLLER_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
     public static final int ANGLE_MOTOR_ID = 18;
     public static final int ANGLE_CURRENT_LIMIT = 30;
-    public static final double ANGLE_ENCODER_POSITION_FACTOR = 0.0;
-    public static final double ANGLE_ENCODER_VELOCITY_FACTOR = 0.0;
+    public static final double ANGLE_ENCODER_POSITION_FACTOR = MathConstants.TAU;
+    public static final double ANGLE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
+
+    public static final double ANGLE_GEAR_RATIO = 1;
+    public static final double ROLLER_GEAR_RATIO = 1;
+
+    public static final Rotation2d ANGLE_OFFSET = new Rotation2d(0);
 
     public static final double ROLLER_KP = 0.05;
     public static final double ROLLER_KD = 0.4;
@@ -279,16 +284,12 @@ public final class Constants {
       new RollerConfig(ROLLER_MOTOR_ID, false);
     public static final AngleConfig ANGLE_CONFIG = 
       new AngleConfig(ANGLE_MOTOR_ID, false);
-    
-    public static final double ANGLE_GEAR_RATIO = 1;
 
-    public static final Rotation2d ANGLE_OFFSET = new Rotation2d(0);
     public static final double ROLLER_MAX_SPEED = 1;
     public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(Units.degreesToRadians(45));
     public static final Rotation2d INTAKE_ANGLE_UP = new Rotation2d(0);
-    public static final double INTAKE_ANGLE_TOLERANCE = 10;
 
-    public static final double ROLLER_GEAR_RATIO = 1;
+    public static final double INTAKE_ANGLE_TOLERANCE = 10;
   }
 
   public static class FieldConstants {

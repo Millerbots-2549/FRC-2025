@@ -14,6 +14,16 @@ import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.subsystems.algae.AlgaeIntakeIO.AlgaeIntakeGains;
 import frc.robot.util.LoggedTunableNumber;
 
+import frc.robot.RobotContainer;
+
+/**
+ * This is the subsystem for the algae intake. Can be simulated by using the {@link AlgaeIntakeIOSim} class
+ * instead of {@link AlgaeIntakeIOHardware AlgaeIntakeIOHardware.}
+ * 
+ * <p>This class is <b>not</b> a singleton and needs to have an instance created in {@link RobotContainer}.
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public class AlgaeIntakeSubsystem extends SubsystemBase {
   private final AlgaeIntakeIO io;
   private final AlgaeIntakeIOInputsAutoLogged inputs = new AlgaeIntakeIOInputsAutoLogged();
@@ -28,7 +38,14 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
   private final LoggedTunableNumber rollerKV;
   private final LoggedTunableNumber rollerKA;
 
-  /** Creates a new AlgaeIntakeSubsystem. */
+  private final LoggedTunableNumber angleKP;
+  private final LoggedTunableNumber angleKI;
+  private final LoggedTunableNumber angleKD;
+
+  /**
+   * Creates a new AlgaeIntakeSubsystem.
+   * @param io
+   */
   public AlgaeIntakeSubsystem(AlgaeIntakeIO io) {
     this.io = io;
 
@@ -47,6 +64,10 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
     rollerKS = new LoggedTunableNumber("AlgaeIntake/Roller/Gains/kS", gains.rollerKS());
     rollerKV = new LoggedTunableNumber("AlgaeIntake/Roller/Gains/kV", gains.rollerKV());
     rollerKA = new LoggedTunableNumber("AlgaeIntake/Roller/Gains/kA", gains.rollerKA());
+
+    angleKP = new LoggedTunableNumber("AlgaeIntake/Angle/Gains/kP", gains.angleKP());
+    angleKI = new LoggedTunableNumber("AlgaeIntake/Angle/Gains/kI", gains.angleKI());
+    angleKD = new LoggedTunableNumber("AlgaeIntake/Angle/Gains/kD", gains.angleKD());
   }
 
   @Override
@@ -62,9 +83,9 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
       hashCode(),
       (values) -> {
         io.setGains(
-          new AlgaeIntakeGains(values[0], values[1], values[2], values[3], values[4], values[5]));
+          new AlgaeIntakeGains(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8]));
       },
-      rollerKP, rollerKI, rollerKD, rollerKS, rollerKV, rollerKA);
+      rollerKP, rollerKI, rollerKD, rollerKS, rollerKV, rollerKA, angleKP, angleKI, angleKD);
   }
 
   public void apply(double intakeVelocity, Rotation2d anglePosition) {
