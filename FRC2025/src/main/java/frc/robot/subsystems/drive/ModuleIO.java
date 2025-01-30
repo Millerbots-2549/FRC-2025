@@ -6,9 +6,33 @@ package frc.robot.subsystems.drive;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 
-/** Add your docs here. */
+/**
+ * An interface used to create different hardware and simulated implementations of
+ * an individual swerve module on the robot.
+ * 
+ * <p>The inner class {@link ModuleIOInputs} is used to store all of the
+ * inputs that will be logged to <a href="https://docs.advantagescope.com">
+ * AdvantageScope</a> (Included in WPILib as of 2025, located in the WPILib
+ * Tools folder)</p>
+ * <ul>
+ *  <li>The method {@link ModuleIO#updateInputs updateInputs} is used to update
+ *     a given {@link ModuleIOInputs} object with the inputs calculated with this
+ *     class. This should be changed for every implementation of this
+ *     interface.</li>
+ *  <li>The inputs with the suffix 'Connected' should be set to be always true in
+ *     simulation. Otherwise, they should be set with a {@link Debouncer} with a
+ *     debounce time of 0.5 seconds.</li>
+ * </ul>
+ * 
+ * <p>The record {@link ModuleGains} contains PID values for the <b>drive motor</b>
+ * and can be accessed through the getGains() method, and set using the method
+ * setGains()
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public interface ModuleIO {
     @AutoLog
     public static class ModuleIOInputs {
@@ -62,5 +86,8 @@ public interface ModuleIO {
 
     public default void setGains(ModuleGains gains) {}
 
+    /**
+     * A record containing PID values for the <b>drive motor</b>
+     */
     public record ModuleGains(double kP, double kI, double kD, double kS, double kV, double kA) {}
 }

@@ -15,11 +15,23 @@ import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
-import frc.robot.SparkModuleConstants;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.SparkModuleConstants;
 import frc.robot.util.SimulationUtils;
 
-/** Add your docs here. */
+/**
+ * This is an implementation of the {@link ModuleIO} interface which uses
+ * MapleSim's {@link SwerveModuleSimulation}, as well as two {@link
+ * SimulatedMotorController#GenericMotorController GenericMotorController}
+ * simulations to figure out how the module should move in real life.
+ * This is different from {@link ModuleIOSim}
+ * 
+ * <p><b>NOTE: </b> this is based on the old swerve modules, and needs to
+ * be changed when we change the motors to Krakens.
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public class ModuleIOSparkSim implements ModuleIO {
     private final SwerveModuleSimulation moduleSimulation;
     private final SimulatedMotorController.GenericMotorController driveMotor;

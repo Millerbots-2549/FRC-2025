@@ -11,7 +11,12 @@ import org.ironmaple.simulation.drivesims.GyroSimulation;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.SimulationUtils;
 
-/** Add your docs here. */
+/**
+ * This is an implementation of the {@link GyroIO} interface which uses
+ * a simulated gyroscope.
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public class GyroIOSim implements GyroIO {
     private final GyroSimulation gyroSimulation;
 

@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
-import static frc.robot.Constants.MathConstants.*;
+import static frc.robot.Constants.MathConstants.PI;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -16,7 +16,16 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants.DriveConstants;
 
-/** Add your docs here. */
+/**
+ * This is an implementation of the {@link ModuleIO} interface which uses
+ * two {@link DCMotorSim} objects to simulate how the module <i>should</i>
+ * move. This class uses preset gains in declared locally in this class.
+ * 
+ * <p><b>NOTE: </b> this is based on the old swerve modules, and needs to
+ * be changed when we change the motors to Krakens.
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public class ModuleIOSim implements ModuleIO {
     private static final double DRIVE_KP = 0.05;
     private static final double DRIVE_KD = 0.0;

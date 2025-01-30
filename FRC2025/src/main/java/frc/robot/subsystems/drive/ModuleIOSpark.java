@@ -4,7 +4,9 @@
 
 package frc.robot.subsystems.drive;
 
-import static frc.robot.util.MotorUtils.*;
+import static frc.robot.util.MotorUtils.ifOk;
+import static frc.robot.util.MotorUtils.sparkStickyFault;
+import static frc.robot.util.MotorUtils.tryUntilOk;
 
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
@@ -32,22 +34,41 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.MathConstants;
 import frc.robot.SparkModuleConstants;
 import frc.robot.SparkModuleConstants.ModuleSpecConfig;
 
-/** Add your docs here. */
+/**
+ * This is an implementation of the {@link ModuleIO} interface which uses
+ * two {@link SparkMax Spark Max} motor controllers to control the wheel.
+ * This class has two motors, one motor for turning and one for drive.
+ * The swerve modules also use a CANCoder to detect the rotation of the
+ * module, and the relative encoder on the turn motor should be used to
+ * update the velocity input.
+ * 
+ * <p>If you want to change any of the module configurations, you can do
+ * so in the {@link SparkModuleConstants} class.
+ * 
+ * <p><b>NOTE: </b> this is based on the old swerve modules, and needs to
+ * be changed when we change the motors to Krakens.
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ */
 public class ModuleIOSpark implements ModuleIO {
     /** The offset of the CANCoder */
     private final Rotation2d zeroRotation;
 
+    /** If the <b>drive</b> should be inverted */
     private final boolean invert;
 
+    /** The drive motor as a {@link SparkBase} */
     private final SparkBase driveMotor;
+    /** The turn motor as a {@link SparkBase} */
     private final SparkBase turnMotor;
+    /** A relative encoder used by the drive motor */
     private final RelativeEncoder driveEncoder;
+    /** A relative encoder used by the turn motor */
     private final RelativeEncoder turnEncoder;
 
     private final SparkBaseConfig driveConfig;
@@ -58,9 +79,16 @@ public class ModuleIOSpark implements ModuleIO {
     private final CANcoder canCoder;
     private final StatusSignal<Angle> turnAbsolutePosition;
 
+    /**
+     * The {@link PIDController} for the turn motor. We have to use a generic PIDController
+     * Instead of a {@link SparkClosedLoopController} because otherwise it doesn't work for
+     * some reason
+     */
     private PIDController turnPID;
+    /** The {@link SparkClosedLoopController closed loop controller} for the drive motor */
     private final SparkClosedLoopController driveController;
 
+    // These are used by the odometry thread
     private final Queue<Double> timestampQueue;
     private final Queue<Double> drivePositionQueue;
     private final Queue<Double> turnPositionQueue;
@@ -77,6 +105,7 @@ public class ModuleIOSpark implements ModuleIO {
     public ModuleIOSpark(ModuleSpecConfig config) {
         zeroRotation = config.CANcoderOffset();
 
+        // Setting up all of the hardware
         driveMotor = new SparkMax(config.driveCanID(), MotorType.kBrushless);
         turnMotor = new SparkMax(config.turnCanID(), MotorType.kBrushless);
 
@@ -84,12 +113,14 @@ public class ModuleIOSpark implements ModuleIO {
         turnEncoder = turnMotor.getEncoder();
         canCoder = new CANcoder(config.CANcoderID());
 
+        // Setting up the turn PID controller
         turnPID = new PIDController(SparkModuleConstants.turnKp, 0, SparkModuleConstants.turnKd);
         turnPID.enableContinuousInput(SparkModuleConstants.turnPIDMinInput, SparkModuleConstants.turnPIDMaxInput);
         turnPID.setTolerance(10);
         
         driveController = driveMotor.getClosedLoopController();
 
+        // Configuring the drive motor
         invert = config.invertDrive();
         driveConfig = SparkModuleConstants.driveConfig;
         driveConfig.inverted(config.invertDrive());
@@ -97,18 +128,21 @@ public class ModuleIOSpark implements ModuleIO {
             driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(driveMotor, 5, () -> driveEncoder.setPosition(0.0));
 
+        // Configuring the turn motor
         turnConfig = SparkModuleConstants.turnConfig;
         turnConfig.inverted(config.invertTurn());
         tryUntilOk(turnMotor, 5, () ->
             turnMotor.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         turnEncoder.setPosition(0.0);
 
+        // Configuring the CANCoder
         canCoder.getConfigurator().apply(SparkModuleConstants.canCoderConfig, 0.25);
         turnAbsolutePosition = canCoder.getAbsolutePosition();
 
         turnMotor.getEncoder().setPosition(
             canCoder.getPosition().getValueAsDouble() * DriveConstants.TURN_ENCODER_POSITION_FACTOR);
 
+        // Creating all of the queues used by the odometry thread
         timestampQueue = OdometryThread.getInstance().makeTimestampQueue();
         drivePositionQueue = OdometryThread.getInstance().registerSignal(driveMotor, driveEncoder::getPosition);
         turnPositionQueue = OdometryThread.getInstance().registerSignal(turnMotor, turnEncoder::getPosition);
@@ -128,6 +162,7 @@ public class ModuleIOSpark implements ModuleIO {
 
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
+        // Updating the drive motor inputs
         sparkStickyFault = false;
         ifOk(driveMotor, driveEncoder::getPosition, (value) -> inputs.drivePositionRadians = value);
         ifOk(driveMotor, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = invert ? -value : value);
@@ -136,6 +171,7 @@ public class ModuleIOSpark implements ModuleIO {
         ifOk(driveMotor, driveMotor::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
         inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
 
+        // Updating the turn motor inputs
         sparkStickyFault = false;
         ifOk(
             turnMotor,
@@ -153,6 +189,7 @@ public class ModuleIOSpark implements ModuleIO {
         inputs.turnAppliedVolts = turnMotor.getAppliedOutput() * turnMotor.getBusVoltage();
         inputs.turnCurrentAmps = turnMotor.getOutputCurrent();
 
+        // Updating the odometry inputs
         inputs.odometryTimestamps =
             timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryDrivePositionsRad =
@@ -180,7 +217,8 @@ public class ModuleIOSpark implements ModuleIO {
 
     @Override
     public void setDriveVelocity(double velocity) {
-        double vel = invert ? -velocity : velocity;
+        double vel = invert ? -velocity : velocity; // Inverts the velocity based on the invert boolean
+        // Calculating the feed forward volts using the formula V = K_s + K_v * v + K_a * a
         double ffVolts =
             SparkModuleConstants.driveKs * Math.signum(vel)
             + SparkModuleConstants.driveKv * vel;
@@ -194,21 +232,26 @@ public class ModuleIOSpark implements ModuleIO {
 
     @Override
     public void setTurnPosition(Rotation2d rotation) {
+        // We need to map the absolute position of the module to the correct range
         double absolutePosition =
             MathUtil.inputModulus(
                 Units.rotationsToRadians(canCoder.getAbsolutePosition().getValueAsDouble()),
                 SparkModuleConstants.turnPIDMinInput,
                 SparkModuleConstants.turnPIDMaxInput);
+        // Mapping the setpoint to the same range as the absolute position
         double setPoint =
             MathUtil.inputModulus(
                 rotation.plus(zeroRotation).getRadians(),
                 SparkModuleConstants.turnPIDMinInput,
                 SparkModuleConstants.turnPIDMaxInput);
+        // Makes sure the PID values are right, remove later
         turnPID.setP(SparkModuleConstants.turnKp);
         turnPID.setI(0.0);
         turnPID.setD(SparkModuleConstants.turnKd);
         turnPID.setTolerance(0.1, 0.1);
+        // Used for debugging
         SmartDashboard.putNumber("Turn Error" + canCoder.getDeviceID(), absolutePosition);
+        // Sets the motor speed
         double output = turnPID.calculate(absolutePosition, setPoint);
         output = MathUtil.clamp(output, -1.0, 1.0);
         turnMotor.set(output);
