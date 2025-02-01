@@ -218,7 +218,7 @@ public class RobotContainer {
       */
 
     driverController.rightBumper().whileTrue(
-      Commands.run(() -> algaeIntakeSubsystem.apply(0.3, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
+      Commands.run(() -> algaeIntakeSubsystem.apply(0.5, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
     
     /*
     driverController.povUp().whileTrue(

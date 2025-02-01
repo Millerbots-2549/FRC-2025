@@ -193,7 +193,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
             ffVolts,
             ArbFFUnits.kVoltage);
             */
-        //rollerMotor.set(-velocity);
+        rollerMotor.set(-velocity);
     }
 
     @Override

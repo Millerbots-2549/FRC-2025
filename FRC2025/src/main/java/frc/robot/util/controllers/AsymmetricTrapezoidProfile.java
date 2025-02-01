@@ -196,9 +196,7 @@ public class AsymmetricTrapezoidProfile {
      * Returns the time left until a target distance in the profile is reached.
      *
      * @param target The target distance.
-     * @return The time left until a target distance in the profile is reached.
-     *     <p>TODO: This function is marked 'protected' as its not implemented for the asymmetric
-     *     case. Do not use!!!
+     * @return The time left until a target distance in the profile is reached
      */
     protected double timeLeftUntil(double target) {
         assert (false);

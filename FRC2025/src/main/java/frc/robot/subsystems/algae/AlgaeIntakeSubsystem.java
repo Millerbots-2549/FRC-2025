@@ -11,10 +11,9 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AlgaeIntakeConstants;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.algae.AlgaeIntakeIO.AlgaeIntakeGains;
 import frc.robot.util.LoggedTunableNumber;
-
-import frc.robot.RobotContainer;
 
 /**
  * This is the subsystem for the algae intake. Can be simulated by using the {@link AlgaeIntakeIOSim} class
@@ -89,9 +88,13 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
   }
 
   public void apply(double intakeVelocity, Rotation2d anglePosition) {
-    io.setRollerVelocity(intakeVelocity);
     io.setAnglePosition(anglePosition
       .plus(AlgaeIntakeConstants.ANGLE_OFFSET));
+    io.setRollerVelocity(intakeVelocity);
+  }
+
+  public void apply(double intakeVelocity) {
+    io.setRollerVelocity(intakeVelocity);
   }
 
   public void runCharacterization(double output) {
@@ -116,5 +119,9 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
 
   public double getRollerVelocity() {
     return inputs.rollerVelocity;
+  }
+
+  public double getRollerCurrent() {
+    return inputs.rollerCurrent;
   }
 }
