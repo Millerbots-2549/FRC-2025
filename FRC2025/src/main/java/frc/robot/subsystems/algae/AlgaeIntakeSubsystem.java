@@ -91,7 +91,6 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
   public void apply(double intakeVelocity, Rotation2d anglePosition) {
     io.setRollerVelocity(intakeVelocity);
     io.setAnglePosition(anglePosition
-      .times(AlgaeIntakeConstants.ANGLE_GEAR_RATIO)
       .plus(AlgaeIntakeConstants.ANGLE_OFFSET));
   }
 

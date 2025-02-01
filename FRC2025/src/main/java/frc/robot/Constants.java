@@ -34,6 +34,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.SimulationUtils;
+import frc.robot.util.controllers.AsymmetricTrapezoidProfile;
+import frc.robot.util.controllers.AsymmetricTrapezoidProfile.Constraints;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -192,32 +194,36 @@ public final class Constants {
   }
 
   public static class AlgaeIntakeConstants {
-    public static final int ROLLER_MOTOR_ID = 17;
-    public static final int ROLLER_CURRENT_LIMIT = 30;
+    public static final double ANGLE_GEAR_RATIO = 5;
+    public static final double ROLLER_GEAR_RATIO = 1;
+
+    public static final int ROLLER_MOTOR_ID = 21;
+    public static final int ROLLER_CURRENT_LIMIT = 5;
     public static final double ROLLER_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double ROLLER_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
-    public static final int ANGLE_MOTOR_ID = 18;
+    public static final int ANGLE_MOTOR_ID = 16;
     public static final int ANGLE_CURRENT_LIMIT = 30;
-    public static final double ANGLE_ENCODER_POSITION_FACTOR = MathConstants.TAU;
+    public static final double ANGLE_ENCODER_POSITION_FACTOR = MathConstants.TAU * ANGLE_GEAR_RATIO;
     public static final double ANGLE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
-    public static final double ANGLE_GEAR_RATIO = 1;
-    public static final double ROLLER_GEAR_RATIO = 1;
+    public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(-90);
 
-    public static final Rotation2d ANGLE_OFFSET = new Rotation2d(0);
-
-    public static final double ROLLER_KP = 0.05;
-    public static final double ROLLER_KD = 0.4;
+    public static final double ROLLER_KP = 0.06;
+    public static final double ROLLER_KD = 0.0;
     public static final double ROLLER_KS = 0.0;
-    public static final double ROLLER_KV = 0.0;
+    public static final double ROLLER_KV = 0.0789;
     public static final double ROLLER_SIM_KP = 1.0;
     public static final double ROLLER_SIM_KD = 0.0;
     public static final double ROLLER_SIM_KS = 0.0;
     public static final double ROLLER_SIM_KV = 0.0;
 
-    public static final double ANGLE_KP = 0.2;
+    public static final double ANGLE_KP = 0.1;
     public static final double ANGLE_KD = 0.0;
+    public static final double ANGLE_KS = 0.23;
+    public static final double ANGLE_KG = 0.05;
+    public static final double ANGLE_KV = 1.15;
+    public static final double ANGLE_KA = 0.081;
     public static final double ANGLE_SIM_KP = 2.0;
     public static final double ANGLE_SIM_KD = 0.0;
     public static final double ANGLE_PID_MIN_INPUT = 0.0;
@@ -286,10 +292,35 @@ public final class Constants {
       new AngleConfig(ANGLE_MOTOR_ID, false);
 
     public static final double ROLLER_MAX_SPEED = 1;
-    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(Units.degreesToRadians(45));
-    public static final Rotation2d INTAKE_ANGLE_UP = new Rotation2d(0);
+    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(0.45 * ANGLE_GEAR_RATIO);
+    public static final Rotation2d INTAKE_ANGLE_UP = new Rotation2d(0.2 * ANGLE_GEAR_RATIO);
 
     public static final double INTAKE_ANGLE_TOLERANCE = 10;
+
+    public static final double ANGLE_MAX_VELOCITY = 5.0;
+    public static final double ANGLE_MAX_NEGATIVE_ACCEL = 14.0;
+    public static final double ANGLE_MAX_POSITIVE_ACCEL = 6.0;
+
+    public static final Constraints POSITIVE_CONSTRAINTS =
+      new AsymmetricTrapezoidProfile.Constraints(
+        ANGLE_MAX_VELOCITY,
+        ANGLE_MAX_NEGATIVE_ACCEL,
+        ANGLE_MAX_POSITIVE_ACCEL);
+    
+    public static final Constraints SLOW_CONSTRAINTS =
+      new AsymmetricTrapezoidProfile.Constraints(
+        ANGLE_MAX_VELOCITY,
+        ANGLE_MAX_POSITIVE_ACCEL,
+        ANGLE_MAX_POSITIVE_ACCEL);
+    
+    public static final Constraints FAST_CONSTRAINTS =
+      new AsymmetricTrapezoidProfile.Constraints(
+        ANGLE_MAX_VELOCITY,
+        ANGLE_MAX_NEGATIVE_ACCEL,
+        ANGLE_MAX_NEGATIVE_ACCEL);
+
+    public static final double ANGLE_FORWARD_SOFT_LIMIT = 4.13f;
+    public static final double ANGLE_REVERSE_SOFT_LIMIT = -1.05f;
   }
 
   public static class FieldConstants {

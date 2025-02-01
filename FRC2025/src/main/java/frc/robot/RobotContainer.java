@@ -26,20 +26,19 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
-import frc.robot.commands.RunAlgaeIntake;
-import frc.robot.commands.StopAlgaeIntake;
 import frc.robot.commands.drive.*;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
+import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
 import frc.robot.subsystems.algae.AlgaeIntakeSubsystem;
 import frc.robot.subsystems.drive.DriveSubsystem;
@@ -49,7 +48,6 @@ import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.drive.ModuleIOSparkSim;
-import frc.robot.subsystems.drive.OdometryThread;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionSubsystem;
@@ -89,7 +87,7 @@ public class RobotContainer {
           driveSubsystem, new VisionIO() {});
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
-          new AlgaeIntakeIO() { });
+          new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
         break;
 
       case SIM:
@@ -167,12 +165,17 @@ public class RobotContainer {
    */
   private void configureBindings() {
     
-    
+    /*
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
+         */
+
+    algaeIntakeSubsystem.setDefaultCommand(
+      Commands.run(() -> algaeIntakeSubsystem.apply(0, AlgaeIntakeConstants.INTAKE_ANGLE_UP), algaeIntakeSubsystem)
+    );
          
          
          
@@ -213,8 +216,11 @@ public class RobotContainer {
     driverController.rightBumper().onTrue(
       new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
       */
+
+    driverController.rightBumper().whileTrue(
+      Commands.run(() -> algaeIntakeSubsystem.apply(0.3, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
     
-    
+    /*
     driverController.povUp().whileTrue(
       new RunCommand(() -> driveSubsystem.runModule(
         Rotation2d.fromDegrees(0), 0.8, 0), driveSubsystem));
@@ -229,6 +235,7 @@ public class RobotContainer {
         Rotation2d.fromDegrees(0), 0.8,3), driveSubsystem));
     driverController.rightTrigger()
       .onTrue(AlignmentCommands.alignToReef(driveSubsystem));
+      */
   }
 
   /**
