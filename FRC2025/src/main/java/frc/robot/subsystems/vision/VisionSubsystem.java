@@ -4,7 +4,14 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.Constants.VisionConstants.*;
+import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
+import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_MEGATAG2_FACTOR;
+import static frc.robot.Constants.VisionConstants.APRIL_TAG_LAYOUT;
+import static frc.robot.Constants.VisionConstants.CAMERA_STD_DEV_FACTORS;
+import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_BASELINE;
+import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_MEGATAG2_FACTOR;
+import static frc.robot.Constants.VisionConstants.MAX_AMBIGUITY;
+import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -86,66 +93,82 @@ public class VisionSubsystem extends SubsystemBase {
             List<Pose3d> robotPosesAccepted = new LinkedList<>();
             List<Pose3d> robotPosesRejected = new LinkedList<>();
 
-            // Add tag poses
-            for (int tagId : inputs[cameraIndex].tagIds) {
-                var tagPose = APRIL_TAG_LAYOUT.getTagPose(tagId);
-                if (tagPose.isPresent()) {
-                    tagPoses.add(tagPose.get());
+            if(io[cameraIndex].useAprilTags()) {
+                // Add tag poses
+                for (int tagId : inputs[cameraIndex].tagIds) {
+                    var tagPose = APRIL_TAG_LAYOUT.getTagPose(tagId);
+                    if (tagPose.isPresent()) {
+                        tagPoses.add(tagPose.get());
+                    }
+                }
+
+                // Loop over pose observations
+                for (var observation : inputs[cameraIndex].poseObservations) {
+                    // Check whether to reject pose
+                    boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
+                            || (observation.tagCount() == 1
+                                    && observation.ambiguity() > MAX_AMBIGUITY) // Cannot be high ambiguity
+                            || Math.abs(observation.pose().getZ()) > MAX_Z_ERROR // Must have realistic Z coordinate
+
+                            // Must be within the field boundaries
+                            || observation.pose().getX() < 0.0
+                            || observation.pose().getX() > APRIL_TAG_LAYOUT.getFieldLength()
+                            || observation.pose().getY() < 0.0
+                            || observation.pose().getY() > APRIL_TAG_LAYOUT.getFieldWidth();
+
+                    // Add pose to log
+                    robotPoses.add(observation.pose());
+                    if (rejectPose) {
+                        robotPosesRejected.add(observation.pose());
+                    } else {
+                        robotPosesAccepted.add(observation.pose());
+                    }
+
+                    // Skip if rejected
+                    if (rejectPose) {
+                        continue;
+                    }
+
+                    // Calculate standard deviations
+                    double stdDevFactor = Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+                    double linearStdDev = LINEAR_STD_DEV_BASELINE * stdDevFactor;
+                    double angularStdDev = ANGULAR_STD_DEV_BASELINE * stdDevFactor;
+                    if (observation.type() == PoseObservationType.MEGATAG_2) {
+                        linearStdDev *= LINEAR_STD_DEV_MEGATAG2_FACTOR;
+                        angularStdDev *= ANGULAR_STD_DEV_MEGATAG2_FACTOR;
+                    }
+                    if (cameraIndex < CAMERA_STD_DEV_FACTORS.length) {
+                        linearStdDev *= CAMERA_STD_DEV_FACTORS[cameraIndex];
+                        angularStdDev *= CAMERA_STD_DEV_FACTORS[cameraIndex];
+                    }
+
+                    // Send vision observation
+                    
+                    consumer.addVisionMeasurement(
+                            observation.pose().toPose2d(),
+                            observation.timestamp(),
+                            VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
+                            
+                }
+            } else { // Subsystem doesn't use april tags
+                for (var observation : inputs[cameraIndex].poseObservations) {
+                    robotPoses.add(observation.pose());
+
+                    double linearStdDev = LINEAR_STD_DEV_BASELINE;
+                    double angularStdDev = ANGULAR_STD_DEV_BASELINE;
+
+                    consumer.addVisionMeasurement(
+                            observation.pose().toPose2d(),
+                            observation.timestamp(),
+                            VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
                 }
             }
 
-            // Loop over pose observations
-            for (var observation : inputs[cameraIndex].poseObservations) {
-                // Check whether to reject pose
-                boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
-                        || (observation.tagCount() == 1
-                                && observation.ambiguity() > MAX_AMBIGUITY) // Cannot be high ambiguity
-                        || Math.abs(observation.pose().getZ()) > MAX_Z_ERROR // Must have realistic Z coordinate
-
-                        // Must be within the field boundaries
-                        || observation.pose().getX() < 0.0
-                        || observation.pose().getX() > APRIL_TAG_LAYOUT.getFieldLength()
-                        || observation.pose().getY() < 0.0
-                        || observation.pose().getY() > APRIL_TAG_LAYOUT.getFieldWidth();
-
-                // Add pose to log
-                robotPoses.add(observation.pose());
-                if (rejectPose) {
-                    robotPosesRejected.add(observation.pose());
-                } else {
-                    robotPosesAccepted.add(observation.pose());
-                }
-
-                // Skip if rejected
-                if (rejectPose) {
-                    continue;
-                }
-
-                // Calculate standard deviations
-                double stdDevFactor = Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
-                double linearStdDev = LINEAR_STD_DEV_BASELINE * stdDevFactor;
-                double angularStdDev = ANGULAR_STD_DEV_BASELINE * stdDevFactor;
-                if (observation.type() == PoseObservationType.MEGATAG_2) {
-                    linearStdDev *= LINEAR_STD_DEV_MEGATAG2_FACTOR;
-                    angularStdDev *= ANGULAR_STD_DEV_MEGATAG2_FACTOR;
-                }
-                if (cameraIndex < CAMERA_STD_DEV_FACTORS.length) {
-                    linearStdDev *= CAMERA_STD_DEV_FACTORS[cameraIndex];
-                    angularStdDev *= CAMERA_STD_DEV_FACTORS[cameraIndex];
-                }
-
-                // Send vision observation
-                
-                consumer.addVisionMeasurement(
-                        observation.pose().toPose2d(),
-                        observation.timestamp(),
-                        VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
-                        
+            if(io[cameraIndex].useAprilTags()) {
+                // Log camera datadata
+                Logger.recordOutput(
+                        "Vision/Camera" + cameraIndex + "/TagPoses", tagPoses.toArray(new Pose3d[tagPoses.size()]));
             }
-
-            // Log camera datadata
-            Logger.recordOutput(
-                    "Vision/Camera" + cameraIndex + "/TagPoses", tagPoses.toArray(new Pose3d[tagPoses.size()]));
             Logger.recordOutput(
                     "Vision/Camera" + cameraIndex + "/RobotPoses", robotPoses.toArray(new Pose3d[robotPoses.size()]));
             Logger.recordOutput(
@@ -161,7 +184,9 @@ public class VisionSubsystem extends SubsystemBase {
         }
 
         // Log summary data
-        Logger.recordOutput("Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
+        if (!allTagPoses.isEmpty()) {
+            Logger.recordOutput("Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
+        }
         Logger.recordOutput("Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
         Logger.recordOutput(
                 "Vision/Summary/RobotPosesAccepted",
