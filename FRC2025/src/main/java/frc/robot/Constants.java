@@ -58,6 +58,7 @@ public final class Constants {
 
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kManipulatorControllerPort = 1;
     public static final double DEADBAND = 0.1;
   }
 
@@ -198,7 +199,7 @@ public final class Constants {
     public static final double ROLLER_GEAR_RATIO = 1;
 
     public static final int ROLLER_MOTOR_ID = 21;
-    public static final int ROLLER_CURRENT_LIMIT = 5;
+    public static final int ROLLER_CURRENT_LIMIT = 6;
     public static final double ROLLER_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double ROLLER_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
@@ -218,7 +219,7 @@ public final class Constants {
     public static final double ROLLER_SIM_KS = 0.0;
     public static final double ROLLER_SIM_KV = 0.0;
 
-    public static final double ANGLE_KP = 0.1;
+    public static final double ANGLE_KP = 0.13;
     public static final double ANGLE_KD = 0.0;
     public static final double ANGLE_KS = 0.23;
     public static final double ANGLE_KG = 0.05;

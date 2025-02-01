@@ -7,11 +7,14 @@ package frc.robot.subsystems.vision;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.vision.QuestNav;
 
 /** Add your docs here. */
@@ -56,6 +59,13 @@ public class VisionIOQuestNav implements VisionIO {
             poseObservations.toArray(new PoseObservation[poseObservations.size()]);
         
         inputs.tagIds = new int[0];
+
+        Logger.recordOutput("QuestNavOutputs/Connected", questNav.connected());
+        Logger.recordOutput("QuestNavOutputs/Pose", questNav.getPose());
+        Logger.recordOutput("QuestNavOutputs/BatteryPercent", questNav.getBatteryPercent());
+        Logger.recordOutput("QuestNavOutputs/TImestamp", questNav.timestamp());
+
+        SmartDashboard.putBoolean("Questnav connected", questNav.connected());
     }
 
     @Override

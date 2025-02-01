@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -36,6 +37,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.IntakeAlgae;
 import frc.robot.commands.drive.*;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
@@ -73,6 +75,8 @@ public class RobotContainer {
 
   private final CommandXboxController driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController manipulatorController =
+      new CommandXboxController(OperatorConstants.kManipulatorControllerPort);
 
   private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -90,7 +94,7 @@ public class RobotContainer {
           new ModuleIOSpark(SparkModuleConstants.backRight));
 
         visionSubsystem = new VisionSubsystem(
-          driveSubsystem, new VisionIO() {});
+          driveSubsystem, new VisionIOQuestNav(questNav, new Transform3d()));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
@@ -207,7 +211,7 @@ public class RobotContainer {
                     driveSubsystem)
                 .ignoringDisable(true));
     
-    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
+    //driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
     
     /*
     driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
@@ -223,8 +227,12 @@ public class RobotContainer {
       new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
       */
 
-    driverController.rightBumper().whileTrue(
-      Commands.run(() -> algaeIntakeSubsystem.apply(0.5, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
+    //manipulatorController.rightBumper().whileTrue(
+    //  Commands.run(() -> algaeIntakeSubsystem.apply(0.4, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
+
+    manipulatorController.leftBumper().onTrue(
+      new IntakeAlgae(algaeIntakeSubsystem)
+    );
     
     /*
     driverController.povUp().whileTrue(

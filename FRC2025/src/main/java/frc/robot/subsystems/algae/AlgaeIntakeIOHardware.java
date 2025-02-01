@@ -144,6 +144,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         inputs.angleConnected = angleConnectedDebounce.calculate(!sparkStickyFault);
 
         SmartDashboard.putNumber("Angle Motor Encoder Position", inputs.anglePosition.getRadians());
+        SmartDashboard.putNumber("Roller Amps", rollerMotor.getOutputCurrent());
     }
 
     public void periodic() {

@@ -223,7 +223,7 @@ public class ModuleIOSpark implements ModuleIO {
             SparkModuleConstants.driveKs * Math.signum(vel)
             + SparkModuleConstants.driveKv * vel;
         driveController.setReference(
-            MathUtil.clamp(vel, -0.1, 0.1),
+            MathUtil.clamp(vel, -1.0, 1.0),
             ControlType.kVelocity,
             ClosedLoopSlot.kSlot0,
             ffVolts,

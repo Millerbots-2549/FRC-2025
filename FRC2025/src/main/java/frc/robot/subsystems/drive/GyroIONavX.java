@@ -19,7 +19,7 @@ import edu.wpi.first.math.util.Units;
  */
 public class GyroIONavX implements GyroIO {
     /** The NavX gyro */
-    public AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k50Hz);
+    public AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
     // Queues used by the odometry thread to update the robot's rotation for pose estimation.
     public Queue<Double> yawPositionQueue;
     public Queue<Double> yawTimestampQueue;
@@ -27,6 +27,7 @@ public class GyroIONavX implements GyroIO {
     public GyroIONavX() {
         yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
         yawPositionQueue = OdometryThread.getInstance().registerSignal(gyro::getYaw);
+        gyro.zeroYaw();
     }
 
     @Override
@@ -44,5 +45,10 @@ public class GyroIONavX implements GyroIO {
             .toArray(Rotation2d[]::new);
         yawTimestampQueue.clear();
         yawPositionQueue.clear();
+    }
+
+    @Override
+    public void zeroGyro(Rotation2d rotation) {
+        gyro.zeroYaw();
     }
 }

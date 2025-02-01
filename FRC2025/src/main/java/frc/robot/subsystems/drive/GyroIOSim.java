@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.SimulationUtils;
 
@@ -32,5 +33,11 @@ public class GyroIOSim implements GyroIO {
 
         inputs.odometryTimestamps = SimulationUtils.getSimulationOdometryTimeStamps();
         inputs.odometryYaw = gyroSimulation.getCachedGyroReadings();
+    }
+
+    @Override
+    public void zeroGyro(Rotation2d rotation) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'zeroGyro'");
     }
 }

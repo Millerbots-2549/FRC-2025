@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.subsystems.drive.ModuleIO.ModuleIOInputs;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
 import frc.robot.util.pathplanner.LocalADStarAK;
 
@@ -148,6 +149,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
         }
 
+        /* 
         double[] sampleTimestamps = modules[0].getOdometryTimestamps();
         int sampleCount = sampleTimestamps.length;
         for(int i = 0; i < sampleCount; i++) {
@@ -170,6 +172,18 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
             poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
         }
+            */
+
+        rawGyroRotation = gyroInputs.yaw;
+
+        SwerveModulePosition[] positions = new SwerveModulePosition[4];
+        for(int i = 0; i < modules.length; i++) {
+            positions[i] = modules[i].getPosition();
+        }
+        
+        poseEstimator.update(
+            gyroInputs.yaw,
+            positions);
 
         SmartDashboard.putNumber("NavX Yaw", gyroInputs.yaw.getRadians());
         SmartDashboard.putBoolean("NavX Connected", gyroInputs.connected);
@@ -179,7 +193,11 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         Logger.recordOutput("Pathfinding/CurrentPath", currentPathPoses.toArray(new Pose2d[currentPath.size()]));
     }
 
-    public void runVelocity(ChassisSpeeds speeds) {
+    public void runVelocity(ChassisSpeeds chassisSpeeds) {
+        ChassisSpeeds speeds = new ChassisSpeeds(
+            chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
+            chassisSpeeds.omegaRadiansPerSecond);
+
         speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
@@ -283,6 +301,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
     public void setPose(Pose2d pose) {
         poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+        gyroIO.zeroGyro(pose.getRotation());
     }
 
     public void addVisionMeasurement(
