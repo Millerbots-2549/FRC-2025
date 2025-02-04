@@ -13,9 +13,12 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -183,18 +186,15 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
     @Override
     public void setRollerVelocity(double velocity) {
         // Calculated the feed forward volts using the formula V = K_s + K_v * v + K_a * a
-        /*
         double ffVolts =
             AlgaeIntakeConstants.ROLLER_KS * Math.signum(velocity)
             + AlgaeIntakeConstants.ROLLER_KV * velocity;
-        rollerController.setReference(
+        rollerClosedLoopController.setReference(
             MathUtil.clamp(velocity, -1.0, 1.0),
             ControlType.kVelocity,
             ClosedLoopSlot.kSlot0,
             ffVolts,
             ArbFFUnits.kVoltage);
-            */
-        rollerMotor.set(-velocity);
     }
 
     @Override

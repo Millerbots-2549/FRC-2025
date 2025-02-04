@@ -210,7 +210,7 @@ public final class Constants {
 
     public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(-90);
 
-    public static final double ROLLER_KP = 0.06;
+    public static final double ROLLER_KP = 0.005;
     public static final double ROLLER_KD = 0.0;
     public static final double ROLLER_KS = 0.0;
     public static final double ROLLER_KV = 0.0789;

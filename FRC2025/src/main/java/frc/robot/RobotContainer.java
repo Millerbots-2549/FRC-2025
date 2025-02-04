@@ -175,13 +175,13 @@ public class RobotContainer {
    */
   private void configureBindings() {
     
-    /*
+    
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
-         */
+         
 
     algaeIntakeSubsystem.setDefaultCommand(
       Commands.run(() -> algaeIntakeSubsystem.apply(0, AlgaeIntakeConstants.INTAKE_ANGLE_UP), algaeIntakeSubsystem)

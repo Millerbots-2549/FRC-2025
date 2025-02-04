@@ -30,7 +30,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -48,7 +47,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
-import frc.robot.subsystems.drive.ModuleIO.ModuleIOInputs;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
 import frc.robot.util.pathplanner.LocalADStarAK;
 
@@ -85,6 +83,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     };
     private static List<Pose2d> currentPathPoses = new ArrayList<>();
     private static List<PathPoint> currentPath = new ArrayList<>();
+
+    private Rotation2d desiredHeading = new Rotation2d();
         
     public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO) {
         this.gyroIO = gyroIO;
@@ -194,9 +194,14 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     public void runVelocity(ChassisSpeeds chassisSpeeds) {
+        SmartDashboard.putNumber("Omega Rad Per Sec", chassisSpeeds.omegaRadiansPerSecond);
+        SmartDashboard.putNumber("Desired Heading", desiredHeading.getRadians());
+        SmartDashboard.putNumber("Correction", 1.0 * (getRotation().getRadians()) - desiredHeading.getRadians());
+
         ChassisSpeeds speeds = new ChassisSpeeds(
             chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
-            chassisSpeeds.omegaRadiansPerSecond);
+            chassisSpeeds.omegaRadiansPerSecond +
+                (1.0 * (getRotation().getRadians()) - desiredHeading.getRadians()));
 
         speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
@@ -211,6 +216,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         }
 
         Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
+
+        desiredHeading = desiredHeading.plus(new Rotation2d(-chassisSpeeds.omegaRadiansPerSecond * 0.02));
     }
 
     public void runModule(Rotation2d angle, double velocity, int moduleNum) {
