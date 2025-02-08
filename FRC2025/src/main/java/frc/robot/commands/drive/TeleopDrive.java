@@ -4,8 +4,6 @@
 
 package frc.robot.commands.drive;
 
-import static frc.robot.Constants.MathConstants.*;
-
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
@@ -59,7 +57,7 @@ public class TeleopDrive extends Command {
       && DriverStation.getAlliance().get() == Alliance.Red;
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
       speeds,
-      isFlipped ? driveSubsystem.getRotation().plus(new Rotation2d(PI))
+      isFlipped ? driveSubsystem.getRotation().plus(Rotation2d.kPi)
       : driveSubsystem.getRotation());
     driveSubsystem.runVelocity(speeds);
   }
@@ -80,8 +78,8 @@ public class TeleopDrive extends Command {
 
     magnitude = magnitude * magnitude;
 
-    return new Pose2d(new Translation2d(), direction)
-      .transformBy(new Transform2d(magnitude, 0.0, new Rotation2d()))
+    return new Pose2d(Translation2d.kZero, direction)
+      .transformBy(new Transform2d(magnitude, 0.0, Rotation2d.kZero))
       .getTranslation();
   }
 }

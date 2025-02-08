@@ -10,8 +10,6 @@ import static frc.robot.util.MotorUtils.tryUntilOk;
 
 import java.util.function.DoubleSupplier;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -170,9 +168,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
             angleSetpoint,
             Units.rotationsToRadians(angleEncoder.getPosition()),
             (angleSetpoint) -> angleFeedForward.calculate(angleSetpoint.position, angleSetpoint.velocity));
-        
-        Logger.recordOutput("AlgaeIntake/AngleController/Position", positionController.getCalculatedPosition());
-        Logger.recordOutput("AlgaeIntake/AngleController/FFVolts", positionController.getCalculatedFeedForward());
 
         /*
         angleClosedLoopController.setReference(
@@ -186,6 +181,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
     @Override
     public void setRollerVelocity(double velocity) {
         // Calculated the feed forward volts using the formula V = K_s + K_v * v + K_a * a
+        /*
         double ffVolts =
             AlgaeIntakeConstants.ROLLER_KS * Math.signum(velocity)
             + AlgaeIntakeConstants.ROLLER_KV * velocity;
@@ -195,6 +191,8 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
             ClosedLoopSlot.kSlot0,
             ffVolts,
             ArbFFUnits.kVoltage);
+            */
+        rollerMotor.set(velocity);
     }
 
     @Override

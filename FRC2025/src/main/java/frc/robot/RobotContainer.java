@@ -38,7 +38,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.IntakeAlgae;
-import frc.robot.commands.drive.*;
+import frc.robot.commands.drive.TeleopDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
@@ -67,6 +67,7 @@ public class RobotContainer {
   private final QuestNav questNav;
 
   private final DriveSubsystem driveSubsystem;
+  @SuppressWarnings("unused")
   private final VisionSubsystem visionSubsystem;
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
 
@@ -174,8 +175,6 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    
-    
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
@@ -191,6 +190,7 @@ public class RobotContainer {
          
     
 
+    /*
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
             ? () -> driveSubsystem.setPose(driveSimulation
@@ -199,9 +199,16 @@ public class RobotContainer {
                         driveSubsystem.getPose().getTranslation(),
                         DriverStation.getAlliance().isPresent()
                             ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
-                                ? new Rotation2d(Math.PI)
-                                : new Rotation2d())
-                            : new Rotation2d()));
+                                ? Rotation2d.kPi
+                                : Rotation2d.kZero)
+                            : Rotation2d.kZero));
+                            */
+    
+    final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
+        ? () -> {}
+        : () -> driveSubsystem.zeroGyro(DriverStation.getAlliance().isPresent()
+            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? Rotation2d.kPi : Rotation2d.kZero)
+            : Rotation2d.kZero);
 
     driverController
         .y()
@@ -230,9 +237,8 @@ public class RobotContainer {
     //manipulatorController.rightBumper().whileTrue(
     //  Commands.run(() -> algaeIntakeSubsystem.apply(0.4, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
 
-    manipulatorController.leftBumper().onTrue(
-      new IntakeAlgae(algaeIntakeSubsystem)
-    );
+    driverController.leftBumper().onTrue(
+      new IntakeAlgae(algaeIntakeSubsystem));
     
     /*
     driverController.povUp().whileTrue(

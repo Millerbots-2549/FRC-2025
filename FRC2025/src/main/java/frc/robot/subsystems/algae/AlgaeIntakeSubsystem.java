@@ -93,8 +93,13 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
     io.setRollerVelocity(intakeVelocity);
   }
 
-  public void apply(double intakeVelocity) {
+  public void setRollerSpeed(double intakeVelocity) {
     io.setRollerVelocity(intakeVelocity);
+  }
+
+  public void setTargetAngle(Rotation2d targetAngle) {
+    io.setAnglePosition(targetAngle
+      .plus(AlgaeIntakeConstants.ANGLE_OFFSET));
   }
 
   public void runCharacterization(double output) {

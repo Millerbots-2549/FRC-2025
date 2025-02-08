@@ -4,12 +4,14 @@
 
 package frc.robot.subsystems.drive;
 
-import java.util.Queue;
-
 import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXUpdateRate;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * This is an implementation of the {@link GyroIO} interface which uses
@@ -19,36 +21,45 @@ import edu.wpi.first.math.util.Units;
  */
 public class GyroIONavX implements GyroIO {
     /** The NavX gyro */
-    public AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
-    // Queues used by the odometry thread to update the robot's rotation for pose estimation.
-    public Queue<Double> yawPositionQueue;
-    public Queue<Double> yawTimestampQueue;
+    private final AHRS gyro;
+
+    private Rotation2d offset;
+
+    private int successive_error_count = 0;
+
+    private int NUM_IGNORED_SUCCESSIVE_ERRORS = 50;
+    private boolean TRACE = false;
+    private boolean AHRS_USB_CONNECTED = false;
+    SPI port = null;
     
     public GyroIONavX() {
-        yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
-        yawPositionQueue = OdometryThread.getInstance().registerSignal(gyro::getYaw);
+        gyro = new AHRS(AHRS.NavXComType.kUSB1, NavXUpdateRate.k50Hz);
+        gyro.enableLogging(true);
         gyro.zeroYaw();
+
+        gyro.getRotation3d();
+
+        offset = Rotation2d.kZero;
     }
 
     @Override
     public void updateInputs(GyroIOInputs inputs) {
         inputs.connected = gyro.isConnected();
-        inputs.yaw = Rotation2d.fromDegrees(-gyro.getAngle());
+        inputs.calibrating = gyro.isCalibrating();
+        inputs.yaw = Rotation2d.fromDegrees(-gyro.getAngle()).minus(offset);
         inputs.yawVelocityRadPerSec = Units.degreesToRadians(-gyro.getRawGyroZ());
-
-        // Updating queues for odometry thread
-        inputs.odometryTimestamps =
-            yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-        inputs.odometryYaw =
-            yawPositionQueue.stream()
-            .map((Double value) -> Rotation2d.fromDegrees(-value))
-            .toArray(Rotation2d[]::new);
-        yawTimestampQueue.clear();
-        yawPositionQueue.clear();
+        inputs.rot3d = gyro.getRotation3d();
+        inputs.accel = new Translation3d(
+                gyro.getWorldLinearAccelX(),
+                gyro.getWorldLinearAccelY(),
+                gyro.getWorldLinearAccelZ());
+        
+        inputs.updateCount = gyro.getUpdateCount();
+        inputs.byteCount = gyro.getByteCount();
     }
 
     @Override
     public void zeroGyro(Rotation2d rotation) {
-        gyro.zeroYaw();
+        offset = rotation.plus(Rotation2d.fromDegrees(-gyro.getAngle()));
     }
 }

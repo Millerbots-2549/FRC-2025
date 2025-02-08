@@ -7,6 +7,8 @@ package frc.robot.subsystems.drive;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 
 /**
  * An interface used to create different hardware and simulated implementations of
@@ -28,14 +30,20 @@ import edu.wpi.first.math.geometry.Rotation2d;
 public interface GyroIO {
     @AutoLog
     public static class GyroIOInputs {
-        public boolean connected;
-        public Rotation2d yaw;
-        public double yawVelocityRadPerSec;
-        public double[] odometryTimestamps;
-        public Rotation2d[] odometryYaw;
+        public boolean connected = false;
+        public boolean calibrating = false;
+        public Rotation2d yaw = new Rotation2d();
+        public double yawVelocityRadPerSec = 0.0;
+        public Rotation3d rot3d = new Rotation3d();
+        public Translation3d accel = new Translation3d();
+
+        public double updateCount = 0;
+        public double byteCount = 0;
     }
 
     public default void updateInputs(GyroIOInputs inputs) {};
 
     public default void zeroGyro(Rotation2d rotation) {};
+
+    public default boolean printDisconnectErrorBytes(byte first_address, byte[] buffer) { return true; };
 }

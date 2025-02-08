@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 public class TalonFXIOSim extends TalonFXIO {
     protected DCMotorSim motorSim;
     private Notifier notifier = null;
-    private double lastUpdateTime = 0.0;
+    //private double lastUpdateTime = 0.0;
 
     public TalonFXIOSim(TalonFXConfig config) {
         super(config);

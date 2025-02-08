@@ -10,7 +10,6 @@ import org.ironmaple.simulation.drivesims.GyroSimulation;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.util.SimulationUtils;
 
 /**
  * This is an implementation of the {@link GyroIO} interface which uses
@@ -28,11 +27,9 @@ public class GyroIOSim implements GyroIO {
     @Override
     public void updateInputs(GyroIOInputs inputs) {
         inputs.connected = true;
+        inputs.calibrating = false;
         inputs.yaw = gyroSimulation.getGyroReading();
         inputs.yawVelocityRadPerSec = Units.degreesToRadians(gyroSimulation.getMeasuredAngularVelocity().in(RadiansPerSecond));
-
-        inputs.odometryTimestamps = SimulationUtils.getSimulationOdometryTimeStamps();
-        inputs.odometryYaw = gyroSimulation.getCachedGyroReadings();
     }
 
     @Override

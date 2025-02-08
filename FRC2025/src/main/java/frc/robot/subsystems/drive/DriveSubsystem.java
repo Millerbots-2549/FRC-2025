@@ -5,7 +5,6 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.Volts;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -25,7 +24,9 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -52,6 +53,8 @@ import frc.robot.util.pathplanner.LocalADStarAK;
 
 /** Add your docs here. */
 public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
+    public static final SwerveModuleState[] kSwerveModuleStateNone = new SwerveModuleState[] {};
+
     static final Lock odometryLock = new ReentrantLock();
     private final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -92,6 +95,9 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         this.modules[1] = new SwerveModule(frIO, 1);
         this.modules[2] = new SwerveModule(blIO, 2);
         this.modules[3] = new SwerveModule(brIO, 3);
+
+        correctionPID.setPID(15, 0.0, 0.0);
+        correctionPID.setTolerance(0.1);
 
         HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
@@ -145,8 +151,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             for (SwerveModule module : modules) {
                 module.stop();
             }
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
+            Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
+            Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
         }
 
         /* 
@@ -176,32 +182,40 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
         rawGyroRotation = gyroInputs.yaw;
 
-        SwerveModulePosition[] positions = new SwerveModulePosition[4];
         for(int i = 0; i < modules.length; i++) {
-            positions[i] = modules[i].getPosition();
+            tempPositions[i] = modules[i].getPosition();
         }
         
         poseEstimator.update(
             gyroInputs.yaw,
-            positions);
+            tempPositions);
 
         SmartDashboard.putNumber("NavX Yaw", gyroInputs.yaw.getRadians());
         SmartDashboard.putBoolean("NavX Connected", gyroInputs.connected);
+        SmartDashboard.putBoolean("NavX Calibrating", gyroInputs.calibrating);
 
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-
-        Logger.recordOutput("Pathfinding/CurrentPath", currentPathPoses.toArray(new Pose2d[currentPath.size()]));
     }
+
+    SwerveModulePosition[] tempPositions = new SwerveModulePosition[4];
+
+    PIDController correctionPID = new PIDController(15.0, 0.0, 0.0);
 
     public void runVelocity(ChassisSpeeds chassisSpeeds) {
         SmartDashboard.putNumber("Omega Rad Per Sec", chassisSpeeds.omegaRadiansPerSecond);
         SmartDashboard.putNumber("Desired Heading", desiredHeading.getRadians());
-        SmartDashboard.putNumber("Correction", 1.0 * (getRotation().getRadians()) - desiredHeading.getRadians());
+        SmartDashboard.putNumber("Correction", 0.5 * (getRotation().getRadians()) - desiredHeading.getRadians());
+
+        double correction = 0.0;
+        if(Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond) > 0.1) {
+            //correction = correctionPID.calculate(getRotation().getRadians(), desiredHeading.getRadians());
+            correction = 0.2;
+        }
+        correction = MathUtil.clamp(correction, -0.3, 0.3);
 
         ChassisSpeeds speeds = new ChassisSpeeds(
             chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
-            chassisSpeeds.omegaRadiansPerSecond +
-                (1.0 * (getRotation().getRadians()) - desiredHeading.getRadians()));
+            chassisSpeeds.omegaRadiansPerSecond + correction);
 
         speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
@@ -226,6 +240,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             angle
         ));
     }
+
     public void runModule(double output, int moduleNum) {
         modules[moduleNum].runCharacterization(output);
     }
@@ -336,5 +351,10 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             return null;
         }
         return currentPath;
+    }
+
+    public void zeroGyro(Rotation2d rotation) {
+        gyroIO.zeroGyro(rotation);
+        desiredHeading = Rotation2d.kZero;
     }
 }
