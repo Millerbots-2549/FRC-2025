@@ -30,13 +30,13 @@ public class JoystickDrive extends Command {
   private Rotation2d rotationMaintenanceSetpoint;
 
   /** Creates a new JoystickDrive. */
-  public JoystickDrive(DoubleSupplier driverXInputSupplier, DoubleSupplier driverYInputSupplier, DoubleSupplier driverRotationalInputSupplier, DriveSubsystem driveSubsystem) {
+  public JoystickDrive(DriveSubsystem driveSubsystem, DoubleSupplier driverXInputSupplier, DoubleSupplier driverYInputSupplier, DoubleSupplier driverRotationalInputSupplier) {
     this.driverXInputSupplier = driverXInputSupplier;
     this.driverYInputSupplier = driverYInputSupplier;
     this.driverRotationalInputSupplier = driverRotationalInputSupplier;
     this.previousRotationalInputTimer = new Timer();
     this.driveSubsystem = driveSubsystem;
-    chassisRotationController = new PIDController(12, 0, 0); // fill your pid
+    chassisRotationController = new PIDController(0.5, 0, 0); // fill your pid
     chassisRotationController.enableContinuousInput(0, Math.toRadians(360));
     super.addRequirements(driveSubsystem);
   }
@@ -60,7 +60,7 @@ public class JoystickDrive extends Command {
     if (rot != 0) previousRotationalInputTimer.reset();
 
     /* no rotation input for 0.5 seconds, maintain current rotation */
-    if (previousRotationalInputTimer.hasElapsed(0.5)) {
+    if (previousRotationalInputTimer.hasElapsed(0.15)) {
       rot = chassisRotationController.calculate(
         driveSubsystem.getRotation().getRadians(),
         rotationMaintenanceSetpoint.getRadians());

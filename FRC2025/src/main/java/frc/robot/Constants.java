@@ -56,6 +56,8 @@ public final class Constants {
 
   public static final boolean TUNING_MODE = false;
 
+  public static final boolean minimalLogging = true;
+
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
     public static final int kManipulatorControllerPort = 1;
@@ -70,7 +72,7 @@ public final class Constants {
     public static final double WHEEL_BASE = Units.inchesToMeters(28.0);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 5.45;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 6.0;
     public static final double MAX_ACCELERATION = 4.5;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
@@ -85,11 +87,11 @@ public final class Constants {
     public static final int DRIVE_CURRENT_LIMIT = 35;
     public static final int TURN_CURRENT_LIMIT = 25;
 
-    private static final double degreesOffsetAll = -60;
-    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-0.19 + 0.15 + Units.degreesToRotations(degreesOffsetAll));
-    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(1.26 + 0.45 + Units.degreesToRotations(degreesOffsetAll));
-    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(1.78 + 0.9 + 0.45 + Units.degreesToRotations(degreesOffsetAll));
-    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(-1.45 + 0.1 + Units.degreesToRotations(degreesOffsetAll));
+    private static final double degreesOffsetAll = 0;
+    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.06 + Units.degreesToRotations(degreesOffsetAll)); // -0.44
+    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-0.04 + Units.degreesToRotations(degreesOffsetAll)); // 0.29
+    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.48 + Units.degreesToRotations(degreesOffsetAll)); // 0.07
+    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-0.19 + Units.degreesToRotations(degreesOffsetAll)); // 0.25
 
     public static final int FRONT_LEFT_DRIVE_ID = 8;
     public static final int FRONT_RIGHT_DRIVE_ID = 11;
@@ -199,7 +201,7 @@ public final class Constants {
     public static final double ROLLER_GEAR_RATIO = 1;
 
     public static final int ROLLER_MOTOR_ID = 21;
-    public static final int ROLLER_CURRENT_LIMIT = 6;
+    public static final int ROLLER_CURRENT_LIMIT = 5;
     public static final double ROLLER_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double ROLLER_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
@@ -219,8 +221,8 @@ public final class Constants {
     public static final double ROLLER_SIM_KS = 0.0;
     public static final double ROLLER_SIM_KV = 0.0;
 
-    public static final double ANGLE_KP = 0.13;
-    public static final double ANGLE_KD = 0.0;
+    public static final double ANGLE_KP = 0.09;
+    public static final double ANGLE_KD = 0.01;
     public static final double ANGLE_KS = 0.23;
     public static final double ANGLE_KG = 0.05;
     public static final double ANGLE_KV = 1.15;

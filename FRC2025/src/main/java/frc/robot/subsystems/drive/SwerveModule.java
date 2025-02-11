@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.drive.ModuleIO.ModuleGains;
 import frc.robot.util.LoggedTunableNumber;
@@ -61,7 +62,7 @@ public class SwerveModule {
     
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+        if(!Constants.minimalLogging) Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
 
         // Calculate positions for odometry
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together

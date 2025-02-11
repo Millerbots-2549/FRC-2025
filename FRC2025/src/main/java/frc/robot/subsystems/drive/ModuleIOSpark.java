@@ -123,7 +123,7 @@ public class ModuleIOSpark implements ModuleIO {
         // Configuring the drive motor
         invert = config.invertDrive();
         driveConfig = SparkModuleConstants.driveConfig;
-        driveConfig.inverted(config.invertDrive());
+        //driveConfig.inverted(config.invertDrive());
         tryUntilOk(driveMotor, 5, () ->
             driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(driveMotor, 5, () -> driveEncoder.setPosition(0.0));
@@ -202,7 +202,7 @@ public class ModuleIOSpark implements ModuleIO {
         drivePositionQueue.clear();
         turnPositionQueue.clear();
 
-        SmartDashboard.putNumber("CANCoder" + driveMotor.getDeviceId(), Units.rotationsToRadians(canCoder.getAbsolutePosition().getValueAsDouble()));
+        SmartDashboard.putNumber("CANCoder" + driveMotor.getDeviceId(), canCoder.getAbsolutePosition().getValueAsDouble());
     }
 
     @Override

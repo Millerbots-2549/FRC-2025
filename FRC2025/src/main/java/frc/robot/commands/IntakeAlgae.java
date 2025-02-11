@@ -63,7 +63,7 @@ public class IntakeAlgae extends Command {
     }
     if (intakeDown) {
       algaeIntakeSubsystem.apply(1.0,
-        AlgaeIntakeConstants.INTAKE_ANGLE_DOWN.plus(Rotation2d.fromDegrees(15)));
+        AlgaeIntakeConstants.INTAKE_ANGLE_DOWN.plus(Rotation2d.fromDegrees(0)), true);
       if (Math.abs(absolutePosition - downPoint) > 1.8) {
         finalize = true;
       }

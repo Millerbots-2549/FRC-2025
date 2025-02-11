@@ -38,6 +38,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.IntakeAlgae;
+import frc.robot.commands.drive.JoystickDrive;
 import frc.robot.commands.drive.TeleopDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
@@ -175,8 +176,16 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    /*
     driveSubsystem.setDefaultCommand(
       new TeleopDrive(driveSubsystem,
+        () -> -driverController.getLeftY(),
+        () -> -driverController.getLeftX(),
+        () -> -driverController.getRightX()));
+         */
+
+    driveSubsystem.setDefaultCommand(
+      new JoystickDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
@@ -237,8 +246,16 @@ public class RobotContainer {
     //manipulatorController.rightBumper().whileTrue(
     //  Commands.run(() -> algaeIntakeSubsystem.apply(0.4, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
 
+    /* 
     driverController.leftBumper().onTrue(
-      new IntakeAlgae(algaeIntakeSubsystem));
+      new IntakeAlgae(algaeIntakeSubsystem).onlyWhile(() -> driverController.leftBumper().getAsBoolean()));
+      */
+    driverController.leftBumper().whileTrue(
+      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(1.0), algaeIntakeSubsystem)
+      .onlyWhile(() -> driverController.leftBumper().getAsBoolean()));
+    driverController.rightBumper().whileTrue(
+      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem)
+      .onlyWhile(() -> driverController.rightBumper().getAsBoolean()));
     
     /*
     driverController.povUp().whileTrue(

@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.algae.AlgaeIntakeIO.AlgaeIntakeGains;
@@ -72,8 +73,8 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("AlgaeIntake/Intake", inputs);
-    Logger.recordOutput("AlgaeIntake/Ye", 0.0);
+    if(!Constants.minimalLogging) Logger.processInputs("AlgaeIntake/Intake", inputs);
+    if(!Constants.minimalLogging) Logger.recordOutput("AlgaeIntake/Ye", 0.0);
 
     rollerDisconnectedAlert.set(!inputs.rollerConnected);
     angleDisconnectedAlert.set(!inputs.angleConnected);
@@ -90,6 +91,12 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
   public void apply(double intakeVelocity, Rotation2d anglePosition) {
     io.setAnglePosition(anglePosition
       .plus(AlgaeIntakeConstants.ANGLE_OFFSET));
+    io.setRollerVelocity(intakeVelocity);
+  }
+
+  public void apply(double intakeVelocity, Rotation2d anglePosition, boolean resist) {
+    io.setAnglePosition(anglePosition
+      .plus(AlgaeIntakeConstants.ANGLE_OFFSET), resist);
     io.setRollerVelocity(intakeVelocity);
   }
 

@@ -141,7 +141,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     public void periodic() {
         odometryLock.lock();
         gyroIO.updateInputs(gyroInputs);
-        Logger.processInputs("Drive/Gyro", gyroInputs);
+        if(!Constants.minimalLogging) Logger.processInputs("Drive/Gyro", gyroInputs);
         for (SwerveModule module : modules) {
             module.periodic();
         }
@@ -151,8 +151,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             for (SwerveModule module : modules) {
                 module.stop();
             }
-            Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
-            Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
+            if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
+            if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
         }
 
         /* 
@@ -209,27 +209,27 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         double correction = 0.0;
         if(Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond) > 0.1) {
             //correction = correctionPID.calculate(getRotation().getRadians(), desiredHeading.getRadians());
-            correction = 0.2;
+            correction = -0.2;
         }
         correction = MathUtil.clamp(correction, -0.3, 0.3);
 
         ChassisSpeeds speeds = new ChassisSpeeds(
             chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
-            chassisSpeeds.omegaRadiansPerSecond + correction);
+            chassisSpeeds.omegaRadiansPerSecond);
 
         speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
 
-        Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-        Logger.recordOutput("SwerveChassisSpeeds/Setpoints", speeds);
+        if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
+        if(!Constants.minimalLogging) Logger.recordOutput("SwerveChassisSpeeds/Setpoints", speeds);
 
         for (int i = 0; i < 4; i++) {
             modules[i].apply(setpointStates[i]);
         }
 
-        Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
+        if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
 
         desiredHeading = desiredHeading.plus(new Rotation2d(-chassisSpeeds.omegaRadiansPerSecond * 0.02));
     }

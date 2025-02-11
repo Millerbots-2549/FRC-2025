@@ -73,6 +73,7 @@ public interface AlgaeIntakeIO {
      * @param velocity The velocity in <b>rotations per second</b>
      */
     public default void setAnglePosition(Rotation2d position) {};
+    public default void setAnglePosition(Rotation2d position, boolean resist) {};
 
     /**
      * Runs the angle motor to run at a specific voltage

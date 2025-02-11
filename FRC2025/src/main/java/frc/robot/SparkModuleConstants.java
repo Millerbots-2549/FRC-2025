@@ -107,7 +107,7 @@ public class SparkModuleConstants {
             DriveConstants.FRONT_LEFT_TURN_ID,
             DriveConstants.FRONT_LEFT_CANCODER_ID,
             DriveConstants.FRONT_LEFT_ZERO_ROTATION,
-            true, false);
+            false, false);
     public static final ModuleSpecConfig frontRight =
         new ModuleSpecConfig(
             DriveConstants.FRONT_RIGHT_DRIVE_ID,
@@ -121,12 +121,12 @@ public class SparkModuleConstants {
             DriveConstants.BACK_LEFT_TURN_ID,
             DriveConstants.BACK_LEFT_CANCODER_ID,
             DriveConstants.BACK_LEFT_ZERO_ROTATION,
-            true, false);
+            false, false);
     public static final ModuleSpecConfig backRight =
         new ModuleSpecConfig(
             DriveConstants.BACK_RIGHT_DRIVE_ID,
             DriveConstants.BACK_RIGHT_TURN_ID,
             DriveConstants.BACK_RIGHT_CANCODER_ID,
             DriveConstants.BACK_RIGHT_ZERO_ROTATION,
-            false, false);
+            true, false);
 }

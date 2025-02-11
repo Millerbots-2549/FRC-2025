@@ -63,6 +63,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
      * some reason
      */
     private final PIDController angleController;
+    private final PIDController evilAngleController;
 
     private ArmFeedForward angleFeedForward = new ArmFeedForward(
         AlgaeIntakeConstants.ANGLE_KS,
@@ -87,6 +88,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
 
         rollerClosedLoopController = rollerMotor.getClosedLoopController();
         angleController = new PIDController(0, 0, 0); // This is set up later in the constructor
+        evilAngleController = new PIDController(0, 0, 0); // This is set up later in the constructor
         positionController = new ProfiledPositionController(AlgaeIntakeConstants.POSITIVE_CONSTRAINTS);
 
         // Configurating the roller motor
@@ -116,9 +118,12 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         );
 
         // Setting up the angle motor PID
-        angleController.setPID(gains.angleKP(), gains.angleKI(), gains.angleKD());
+        angleController.setPID(AlgaeIntakeConstants.ANGLE_KP, 0.0, AlgaeIntakeConstants.ANGLE_KD);
         angleController.enableContinuousInput(AlgaeIntakeConstants.ANGLE_PID_MIN_INPUT, AlgaeIntakeConstants.ANGLE_PID_MAX_INPUT);
         angleController.setTolerance(0.1, 0.1);
+        evilAngleController.setPID(0.17, 0.0, 0.0);
+        evilAngleController.enableContinuousInput(AlgaeIntakeConstants.ANGLE_PID_MIN_INPUT, AlgaeIntakeConstants.ANGLE_PID_MAX_INPUT);
+        evilAngleController.setTolerance(0.1, 0.1);
     }
 
     @Override
@@ -192,7 +197,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
             ffVolts,
             ArbFFUnits.kVoltage);
             */
-        rollerMotor.set(velocity);
+        rollerMotor.set(-velocity);
     }
 
     @Override
@@ -219,12 +224,34 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         angleController.setTolerance(0.1, 0.1);
         double output = angleController.calculate(absolutePosition, setPoint);
         output -= Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
-        angleMotor.set(MathUtil.clamp(output, -0.25, 0.25));
+        angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
 
         SmartDashboard.putNumber("Angle Absolute Position", absolutePosition);
         SmartDashboard.putNumber("Angle Setpoint", setPoint);
         SmartDashboard.putNumber("Angle Gravity Comp", -Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG);
         SmartDashboard.putNumber("Angle Output", output);
+    }
+
+    @Override
+    public void setAnglePosition(Rotation2d rotation, boolean resist) {
+        // Sets the measurement to the correct range
+        double absolutePosition = 
+            MathUtil.inputModulus(
+                angleEncoder.getPosition(),
+                AlgaeIntakeConstants.ANGLE_PID_MIN_INPUT,
+                AlgaeIntakeConstants.ANGLE_PID_MAX_INPUT
+            );
+        // This converts the rotation into radians in the correct range
+        double setPoint =
+            MathUtil.inputModulus(
+                -rotation.getRadians(),
+                AlgaeIntakeConstants.ANGLE_PID_MIN_INPUT,
+                AlgaeIntakeConstants.ANGLE_PID_MAX_INPUT
+            );
+        evilAngleController.setTolerance(0.1, 0.1);
+        double output = angleController.calculate(absolutePosition, setPoint);
+        output -= Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
+        angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
     }
 
     @Override
