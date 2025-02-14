@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.elevator;
 
+import com.ctre.phoenix6.Orchestra;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -21,6 +23,8 @@ public class ElevatorIOHardware implements ElevatorIO {
 
     private double elevatorSetpointHeightMeters;
 
+    private Orchestra orchestra = new Orchestra();
+
     private PIDController heightPID = new PIDController(0.03, 0.0, 0.0);
 
     public ElevatorIOHardware(MotorIOTalonFX leftMotor, MotorIOTalonFX rightMotor) {
@@ -28,6 +32,15 @@ public class ElevatorIOHardware implements ElevatorIO {
         this.rightMotor = rightMotor;
 
         elevatorSetpointHeightMeters = 0.0;
+
+        orchestra.addInstrument(leftMotor.motor);
+        orchestra.addInstrument(rightMotor.motor);
+
+        var status = orchestra.loadMusic("music/badapple.chrp");
+
+        if (status.isError()) {
+            System.out.println(status.toString());
+        }
     }
 
     private double motorPositionToHeight(double position) {
@@ -82,5 +95,15 @@ public class ElevatorIOHardware implements ElevatorIO {
         double newOutput = output;
         leftMotor.applyDutyCycle(newOutput);
         rightMotor.applyDutyCycle(newOutput);
+    }
+
+    @Override
+    public void playMusic() {
+        orchestra.play();
+    }
+
+    @Override
+    public void stopMusic() {
+        orchestra.stop();
     }
 }
