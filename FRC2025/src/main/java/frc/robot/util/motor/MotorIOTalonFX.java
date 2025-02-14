@@ -24,7 +24,7 @@ import edu.wpi.first.units.measure.Voltage;
 
 /** Add your docs here. */
 public class MotorIOTalonFX implements MotorIO {
-    private final TalonFX motor;
+    public final TalonFX motor;
     private final TalonFXConfiguration config;
 
     private final int ID;

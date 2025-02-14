@@ -14,11 +14,12 @@ import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
+import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.CustomParamsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
@@ -333,21 +334,34 @@ public final class Constants {
   }
 
   public static class ElevatorConstants {
+    public static final double ELEVATOR_KP = 0.005;
+    public static final double ELEVATOR_KI = 0.0;
+    public static final double ELEVATOR_KD = 0.0;
+    public static final double ELEVATOR_KS = 0.0;
+    public static final double ELEVATOR_KV = 0.0;
+    public static final double ELEVATOR_KA = 0.0;
+    public static final double ELEVATOR_KG = 0.0;
+
     public static final int LEFT_MOTOR_ID = 2;
     public static final int RIGHT_MOTOR_ID = 3;
-    public static final double CURRENT_LIMIT = 50;
+    public static final double CURRENT_LIMIT = 60;
     public static final double MOTOR_TO_HEIGHT_RATIO = 1;
     public static final double CURRENT_UPPER_BOUND = 100;
     public static final TalonFXConfiguration LEFT_CONFIG = new TalonFXConfiguration()
       .withCurrentLimits(
-        new CurrentLimitsConfigs().withStatorCurrentLimit(CURRENT_LIMIT).withSupplyCurrentLimit(CURRENT_LIMIT))
+        new CurrentLimitsConfigs().withStatorCurrentLimit(CURRENT_LIMIT))
       .withMotorOutput(
-        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-    public static final TalonFXConfiguration RIGHT_CONFIG = new TalonFXConfiguration()
-      .withCurrentLimits(
-        new CurrentLimitsConfigs().withStatorCurrentLimit(CURRENT_LIMIT).withSupplyCurrentLimit(CURRENT_LIMIT))
-      .withMotorOutput(
-        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+      .withSlot0(
+        new Slot0Configs().withKP(ELEVATOR_KP).withKI(ELEVATOR_KI).withKD(ELEVATOR_KD)
+          .withKS(ELEVATOR_KS).withKV(ELEVATOR_KV).withKA(ELEVATOR_KA)
+          .withGravityType(GravityTypeValue.Elevator_Static).withKG(ELEVATOR_KG))
+      .withClosedLoopRamps(
+        new ClosedLoopRampsConfigs()
+          .withDutyCycleClosedLoopRampPeriod(0.02)
+          .withTorqueClosedLoopRampPeriod(0.02)
+          .withVoltageClosedLoopRampPeriod(0.02));
+    public static final TalonFXConfiguration RIGHT_CONFIG = LEFT_CONFIG;
   }
 
   public static class FieldConstants {

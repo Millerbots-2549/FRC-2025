@@ -202,7 +202,7 @@ public class RobotContainer {
     );
 
     elevatorSubsystem.setDefaultCommand(
-      Commands.run(() -> elevatorSubsystem.setElevatorVelocity(0.0), elevatorSubsystem)
+      Commands.run(() -> {}, elevatorSubsystem)
     );
     
     final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
@@ -250,11 +250,19 @@ public class RobotContainer {
       .onlyWhile(() -> driverController.rightBumper().getAsBoolean()));
     
     manipulatorController.povUp().whileTrue(
-      Commands.run(() -> elevatorSubsystem.setElevatorVelocity(0.08), elevatorSubsystem)
+      Commands.run(() -> elevatorSubsystem.setElevatorPosition(24.0), elevatorSubsystem)
+      .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
+    manipulatorController.povLeft().whileTrue(
+      Commands.run(() -> elevatorSubsystem.setElevatorPosition(10.0), elevatorSubsystem)
       .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
     manipulatorController.povDown().whileTrue(
-      Commands.run(() -> elevatorSubsystem.setElevatorVelocity(-0.04), elevatorSubsystem)
+      Commands.run(() -> elevatorSubsystem.setElevatorPosition(0.5), elevatorSubsystem)
       .onlyWhile(() -> manipulatorController.povDown().getAsBoolean()));
+    
+    manipulatorController.a().onTrue(
+      Commands.runOnce(() -> elevatorSubsystem.playMusic(), elevatorSubsystem));
+    manipulatorController.b().onTrue(
+      Commands.runOnce(() -> elevatorSubsystem.stopMusic(), elevatorSubsystem));
   }
 
   /**

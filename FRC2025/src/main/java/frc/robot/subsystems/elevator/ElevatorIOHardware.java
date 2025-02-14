@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems.elevator;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.util.motor.MotorIOTalonFX;
 import frc.robot.util.motor.MotorIO.MotorIOInputs;
@@ -17,6 +20,8 @@ public class ElevatorIOHardware implements ElevatorIO {
     private final MotorIOInputs rightMotorInputs = new MotorIOInputs();
 
     private double elevatorSetpointHeightMeters;
+
+    private PIDController heightPID = new PIDController(0.03, 0.0, 0.0);
 
     public ElevatorIOHardware(MotorIOTalonFX leftMotor, MotorIOTalonFX rightMotor) {
         this.leftMotor = leftMotor;
@@ -48,13 +53,22 @@ public class ElevatorIOHardware implements ElevatorIO {
         boolean rightOverpowered = rightMotorInputs.statorCurrentAmps >= ElevatorConstants.CURRENT_UPPER_BOUND;
         boolean goingDown = inputs.velocityMetersPerSecond < 0;
         inputs.outOfBounds = (leftOverpowered || rightOverpowered) && goingDown;
+
+        SmartDashboard.putNumber("Elevator Left Motor Position", leftMotorInputs.position);
+        SmartDashboard.putNumber("Elevator Right Motor Position", rightMotorInputs.position);
+
+        double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters);
+        SmartDashboard.putNumber("Wanted Output", output);
+        output = MathUtil.clamp(output + 0.015, -0.19, 0.27);
+        leftMotor.applyDutyCycle(output);
+        rightMotor.applyDutyCycle(output);
     }
 
     @Override
     public void applySetpointMeters(double position) {
         elevatorSetpointHeightMeters = position;
-        leftMotor.applyProfileSetpoint(heightToMotorPosition(position));
-        rightMotor.applyProfileSetpoint(heightToMotorPosition(position));
+        //leftMotor.applyProfileSetpoint(heightToMotorPosition(position));
+        //rightMotor.applyProfileSetpoint(heightToMotorPosition(position));
     }
 
     @Override

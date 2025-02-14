@@ -39,6 +39,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     setElevatorPosition(level.height);
   }
 
+  public void playMusic() {
+    io.playMusic();
+  }
+
+  public void stopMusic() {
+    io.stopMusic();
+  }
+
   public static enum ElevatorLevel {
     FLOOR(0.0),
     L1(1.0),
