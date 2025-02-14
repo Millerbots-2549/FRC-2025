@@ -7,9 +7,22 @@ package frc.robot.subsystems.elevator;
 import org.littletonrobotics.junction.AutoLog;
 
 /** Add your docs here. */
-public class ElevatorIO {
+public interface ElevatorIO {
     @AutoLog
     public static class ElevatorIOInputs {
-        public boolean elevatorConnected;
+        public boolean elevatorConnected = false;
+        public boolean outOfBounds = false;
+
+        public double velocityMetersPerSecond = 0.0;
+        public double heightMeters = 0.0;
+        public double heightSetpointMeters = 0.0;
     }
+
+    public default void updateInputs(ElevatorIOInputs inputs) {};
+
+    public default void applySetpointMeters(double position) {};
+
+    public default void applyVelocityMetersPerSecond(double velocity) {};
+
+    public default void applyDutyCycle(double output) {};
 }

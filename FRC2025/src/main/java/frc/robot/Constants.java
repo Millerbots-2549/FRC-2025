@@ -14,6 +14,12 @@ import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.CustomParamsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -324,6 +330,24 @@ public final class Constants {
 
     public static final double ANGLE_FORWARD_SOFT_LIMIT = 4.13f;
     public static final double ANGLE_REVERSE_SOFT_LIMIT = -1.05f;
+  }
+
+  public static class ElevatorConstants {
+    public static final int LEFT_MOTOR_ID = 2;
+    public static final int RIGHT_MOTOR_ID = 3;
+    public static final double CURRENT_LIMIT = 50;
+    public static final double MOTOR_TO_HEIGHT_RATIO = 1;
+    public static final double CURRENT_UPPER_BOUND = 100;
+    public static final TalonFXConfiguration LEFT_CONFIG = new TalonFXConfiguration()
+      .withCurrentLimits(
+        new CurrentLimitsConfigs().withStatorCurrentLimit(CURRENT_LIMIT).withSupplyCurrentLimit(CURRENT_LIMIT))
+      .withMotorOutput(
+        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+    public static final TalonFXConfiguration RIGHT_CONFIG = new TalonFXConfiguration()
+      .withCurrentLimits(
+        new CurrentLimitsConfigs().withStatorCurrentLimit(CURRENT_LIMIT).withSupplyCurrentLimit(CURRENT_LIMIT))
+      .withMotorOutput(
+        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
   }
 
   public static class FieldConstants {

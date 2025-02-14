@@ -32,14 +32,12 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
-import frc.robot.commands.IntakeAlgae;
-import frc.robot.commands.drive.JoystickDrive;
-import frc.robot.commands.drive.TeleopDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
@@ -51,11 +49,15 @@ import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.drive.ModuleIOSparkSim;
+import frc.robot.subsystems.elevator.ElevatorIO;
+import frc.robot.subsystems.elevator.ElevatorIOHardware;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.SimulationUtils;
+import frc.robot.util.motor.MotorIOTalonFX;
 import frc.robot.util.vision.QuestNav;
 
 /**
@@ -71,6 +73,7 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final VisionSubsystem visionSubsystem;
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
+  private final ElevatorSubsystem elevatorSubsystem;
 
   private SwerveDriveSimulation driveSimulation = null;
   private IntakeSimulation intakeSimulation = null;
@@ -89,7 +92,7 @@ public class RobotContainer {
     switch (Constants.currentMode) {
       case REAL:
         driveSubsystem = new DriveSubsystem(
-          new GyroIONavX(),
+          new GyroIO() {},
           new ModuleIOSpark(SparkModuleConstants.frontLeft),
           new ModuleIOSpark(SparkModuleConstants.frontRight),
           new ModuleIOSpark(SparkModuleConstants.backLeft),
@@ -100,6 +103,11 @@ public class RobotContainer {
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
+
+        elevatorSubsystem = new ElevatorSubsystem(
+          new ElevatorIOHardware(
+            new MotorIOTalonFX(ElevatorConstants.LEFT_MOTOR_ID, ElevatorConstants.LEFT_CONFIG),
+            new MotorIOTalonFX(ElevatorConstants.RIGHT_MOTOR_ID, ElevatorConstants.RIGHT_CONFIG)));
         break;
 
       case SIM:
@@ -131,6 +139,8 @@ public class RobotContainer {
         
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOSim());
+
+        elevatorSubsystem = new ElevatorSubsystem(new ElevatorIO() { });
         break;
     
       default:
@@ -144,6 +154,8 @@ public class RobotContainer {
         visionSubsystem = new VisionSubsystem(driveSubsystem, new VisionIO() {}, new VisionIO() {});
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(new AlgaeIntakeIO() {});
+
+        elevatorSubsystem = new ElevatorSubsystem(new ElevatorIO() { });
         break;
     }
 
@@ -178,40 +190,20 @@ public class RobotContainer {
   private void configureBindings() {
     /*
     driveSubsystem.setDefaultCommand(
-      new TeleopDrive(driveSubsystem,
-        () -> -driverController.getLeftY(),
-        () -> -driverController.getLeftX(),
-        () -> -driverController.getRightX()));
-         */
-
-    driveSubsystem.setDefaultCommand(
       new JoystickDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
+    */
          
 
     algaeIntakeSubsystem.setDefaultCommand(
       Commands.run(() -> algaeIntakeSubsystem.apply(0, AlgaeIntakeConstants.INTAKE_ANGLE_UP), algaeIntakeSubsystem)
     );
-         
-         
-         
-    
 
-    /*
-    final Runnable resetGyro =
-        Constants.currentMode == Constants.Mode.SIM
-            ? () -> driveSubsystem.setPose(driveSimulation
-                        .getSimulatedDriveTrainPose())
-            : () -> driveSubsystem.setPose(new Pose2d(
-                        driveSubsystem.getPose().getTranslation(),
-                        DriverStation.getAlliance().isPresent()
-                            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
-                                ? Rotation2d.kPi
-                                : Rotation2d.kZero)
-                            : Rotation2d.kZero));
-                            */
+    elevatorSubsystem.setDefaultCommand(
+      Commands.run(() -> elevatorSubsystem.setElevatorVelocity(0.0), elevatorSubsystem)
+    );
     
     final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
         ? () -> {}
@@ -257,22 +249,12 @@ public class RobotContainer {
       Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem)
       .onlyWhile(() -> driverController.rightBumper().getAsBoolean()));
     
-    /*
-    driverController.povUp().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(0), 0.8, 0), driveSubsystem));
-    driverController.povRight().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(0), 0.8, 1), driveSubsystem));
-    driverController.povLeft().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(0), 0.8,2), driveSubsystem));
-    driverController.povDown().whileTrue(
-      new RunCommand(() -> driveSubsystem.runModule(
-        Rotation2d.fromDegrees(0), 0.8,3), driveSubsystem));
-    driverController.rightTrigger()
-      .onTrue(AlignmentCommands.alignToReef(driveSubsystem));
-      */
+    manipulatorController.povUp().whileTrue(
+      Commands.run(() -> elevatorSubsystem.setElevatorVelocity(0.08), elevatorSubsystem)
+      .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
+    manipulatorController.povDown().whileTrue(
+      Commands.run(() -> elevatorSubsystem.setElevatorVelocity(-0.04), elevatorSubsystem)
+      .onlyWhile(() -> manipulatorController.povDown().getAsBoolean()));
   }
 
   /**

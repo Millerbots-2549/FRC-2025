@@ -10,7 +10,7 @@ import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
-// from robochargers code
+// mostly from robochargers code
 
 /** Add your docs here. */
 public class AsymmetricTrapezoidProfile {
