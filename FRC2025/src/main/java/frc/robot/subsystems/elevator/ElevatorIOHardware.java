@@ -8,6 +8,8 @@ import com.ctre.phoenix6.Orchestra;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.util.motor.MotorIOTalonFX;
@@ -25,7 +27,7 @@ public class ElevatorIOHardware implements ElevatorIO {
 
     private Orchestra orchestra = new Orchestra();
 
-    private PIDController heightPID = new PIDController(0.03, 0.0, 0.0);
+    private ProfiledPIDController heightPID = new ProfiledPIDController(0.03, 0.0, 0.0, new Constraints(32, 54));
 
     public ElevatorIOHardware(MotorIOTalonFX leftMotor, MotorIOTalonFX rightMotor) {
         this.leftMotor = leftMotor;
@@ -70,9 +72,12 @@ public class ElevatorIOHardware implements ElevatorIO {
         SmartDashboard.putNumber("Elevator Left Motor Position", leftMotorInputs.position);
         SmartDashboard.putNumber("Elevator Right Motor Position", rightMotorInputs.position);
 
+        SmartDashboard.putNumber("Elevator Stator Current", leftMotorInputs.statorCurrentAmps);
+        SmartDashboard.putNumber("Elevator Supply Current", leftMotorInputs.supplyCurrentAmps);
+
         double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters);
         SmartDashboard.putNumber("Wanted Output", output);
-        output = MathUtil.clamp(output + 0.015, -0.19, 0.27);
+        output = MathUtil.clamp(output + 0.01, -0.19, 0.27);
         leftMotor.applyDutyCycle(output);
         rightMotor.applyDutyCycle(output);
     }
