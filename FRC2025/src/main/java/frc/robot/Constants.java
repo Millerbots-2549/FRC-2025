@@ -79,8 +79,8 @@ public final class Constants {
     public static final double WHEEL_BASE = Units.inchesToMeters(28.0);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 6.0;
-    public static final double MAX_ACCELERATION = 4.5;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 7.0;
+    public static final double MAX_ACCELERATION = 5.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
 

@@ -94,7 +94,7 @@ public class RobotContainer {
     switch (Constants.currentMode) {
       case REAL:
         driveSubsystem = new DriveSubsystem(
-          new GyroIO() {},
+          new GyroIONavX(),
           new ModuleIOSpark(SparkModuleConstants.frontLeft),
           new ModuleIOSpark(SparkModuleConstants.frontRight),
           new ModuleIOSpark(SparkModuleConstants.backLeft),
