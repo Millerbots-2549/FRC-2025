@@ -344,7 +344,7 @@ public final class Constants {
 
     public static final int LEFT_MOTOR_ID = 2;
     public static final int RIGHT_MOTOR_ID = 3;
-    public static final double CURRENT_LIMIT = 60;
+    public static final double CURRENT_LIMIT = 80;
     public static final double MOTOR_TO_HEIGHT_RATIO = 1;
     public static final double CURRENT_UPPER_BOUND = 100;
     public static final TalonFXConfiguration LEFT_CONFIG = new TalonFXConfiguration()

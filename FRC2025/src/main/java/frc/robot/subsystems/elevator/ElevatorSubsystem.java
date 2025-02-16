@@ -4,12 +4,16 @@
 
 package frc.robot.subsystems.elevator;
 
+import java.util.logging.Level;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
   private final ElevatorIO io;
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
+
+  private int currentLevel = 0;
 
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
@@ -37,6 +41,19 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public void moveToLevel(ElevatorLevel level) {
     setElevatorPosition(level.height);
+    currentLevel = level.ordinal();
+  }
+
+  public void nextLevel() {
+    if (currentLevel >= 4) return;
+
+    moveToLevel(ElevatorLevel.values()[currentLevel + 1]);
+  }
+
+  public void previousLevel() {
+    if (currentLevel <= 1) return;
+
+    moveToLevel(ElevatorLevel.values()[currentLevel - 1]);
   }
 
   public void playMusic() {
@@ -48,11 +65,11 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public static enum ElevatorLevel {
-    FLOOR(0.0),
-    L1(1.0),
-    L2(2.0),
-    L3(3.0),
-    L4(4.0);
+    FLOOR(0.5),
+    L1(0.5),
+    L2(7.5),
+    L3(15.0),
+    L4(24.0);
 
     public final double height;
     ElevatorLevel(double height) {

@@ -38,6 +38,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.drive.JoystickDrive;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
@@ -52,6 +53,7 @@ import frc.robot.subsystems.drive.ModuleIOSparkSim;
 import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOHardware;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
@@ -188,13 +190,12 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    /*
     driveSubsystem.setDefaultCommand(
       new JoystickDrive(driveSubsystem,
         () -> -driverController.getLeftY(),
         () -> -driverController.getLeftX(),
         () -> -driverController.getRightX()));
-    */
+    
          
 
     algaeIntakeSubsystem.setDefaultCommand(
@@ -242,22 +243,23 @@ public class RobotContainer {
     driverController.leftBumper().onTrue(
       new IntakeAlgae(algaeIntakeSubsystem).onlyWhile(() -> driverController.leftBumper().getAsBoolean()));
       */
-    driverController.leftBumper().whileTrue(
-      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(1.0), algaeIntakeSubsystem)
-      .onlyWhile(() -> driverController.leftBumper().getAsBoolean()));
-    driverController.rightBumper().whileTrue(
+    manipulatorController.leftBumper().whileTrue(
+      Commands.run(() -> algaeIntakeSubsystem.apply(1.0, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem)
+      .onlyWhile(() -> manipulatorController.leftBumper().getAsBoolean()));
+    manipulatorController.rightBumper().whileTrue(
       Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem)
-      .onlyWhile(() -> driverController.rightBumper().getAsBoolean()));
+      .onlyWhile(() -> manipulatorController.rightBumper().getAsBoolean()));
     
-    manipulatorController.povUp().whileTrue(
-      Commands.run(() -> elevatorSubsystem.setElevatorPosition(24.0), elevatorSubsystem)
+    manipulatorController.button(8).whileTrue(
+      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem)
       .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
-    manipulatorController.povLeft().whileTrue(
-      Commands.run(() -> elevatorSubsystem.setElevatorPosition(10.0), elevatorSubsystem)
-      .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
-    manipulatorController.povDown().whileTrue(
-      Commands.run(() -> elevatorSubsystem.setElevatorPosition(0.5), elevatorSubsystem)
+    manipulatorController.button(7).whileTrue(
+      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem)
       .onlyWhile(() -> manipulatorController.povDown().getAsBoolean()));
+    manipulatorController.povUp().onTrue(
+      Commands.runOnce(() -> elevatorSubsystem.nextLevel(), elevatorSubsystem));
+    manipulatorController.povDown().onTrue(
+      Commands.runOnce(() -> elevatorSubsystem.previousLevel(), elevatorSubsystem));
     
     manipulatorController.a().onTrue(
       Commands.runOnce(() -> elevatorSubsystem.playMusic(), elevatorSubsystem));

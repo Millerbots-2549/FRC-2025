@@ -24,8 +24,10 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AlgaeIntakeConstants;
@@ -62,7 +64,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
      * Instead of a {@link SparkClosedLoopController} because otherwise it doesn't work for
      * some reason
      */
-    private final PIDController angleController;
+    private final ProfiledPIDController angleController;
     private final PIDController evilAngleController;
 
     private ArmFeedForward angleFeedForward = new ArmFeedForward(
@@ -84,10 +86,10 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         angleMotor = new SparkMax(angleConfig.ID(), MotorType.kBrushless);
 
         rollerEncoder = rollerMotor.getEncoder(); // Relative encoder
-        angleEncoder = angleMotor.getEncoder(); // Relative encoder
+        angleEncoder = angleMotor.getEncoder(); // Relative encode=
 
         rollerClosedLoopController = rollerMotor.getClosedLoopController();
-        angleController = new PIDController(0, 0, 0); // This is set up later in the constructor
+        angleController = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10)); // This is set up later in the constructor
         evilAngleController = new PIDController(0, 0, 0); // This is set up later in the constructor
         positionController = new ProfiledPositionController(AlgaeIntakeConstants.POSITIVE_CONSTRAINTS);
 
@@ -224,7 +226,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         angleController.setTolerance(0.1, 0.1);
         double output = angleController.calculate(absolutePosition, setPoint);
         output -= Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
-        //angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
+        angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
 
         SmartDashboard.putNumber("Angle Absolute Position", absolutePosition);
         SmartDashboard.putNumber("Angle Setpoint", setPoint);
@@ -251,7 +253,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         evilAngleController.setTolerance(0.1, 0.1);
         double output = angleController.calculate(absolutePosition, setPoint);
         output -= Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
-        //angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
+        angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
     }
 
     @Override

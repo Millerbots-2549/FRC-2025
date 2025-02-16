@@ -27,7 +27,7 @@ public class ElevatorIOHardware implements ElevatorIO {
 
     private Orchestra orchestra = new Orchestra();
 
-    private ProfiledPIDController heightPID = new ProfiledPIDController(0.03, 0.0, 0.0, new Constraints(32, 54));
+    private ProfiledPIDController heightPID = new ProfiledPIDController(0.035, 0.0, 0.0, new Constraints(66, 88));
 
     public ElevatorIOHardware(MotorIOTalonFX leftMotor, MotorIOTalonFX rightMotor) {
         this.leftMotor = leftMotor;
@@ -77,7 +77,7 @@ public class ElevatorIOHardware implements ElevatorIO {
 
         double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters);
         SmartDashboard.putNumber("Wanted Output", output);
-        output = MathUtil.clamp(output + 0.01, -0.19, 0.27);
+        output = MathUtil.clamp(output + 0.01, -0.21, 0.29);
         leftMotor.applyDutyCycle(output);
         rightMotor.applyDutyCycle(output);
     }
