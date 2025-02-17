@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems.drive;
 
+import static frc.robot.util.MotorUtils.tryUntilOk;
+import static frc.robot.Constants.ModuleConstants;
+
 import java.util.Queue;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -34,9 +37,17 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 
-import static frc.robot.util.MotorUtils.*;
-
-/** Add your docs here. */
+/**
+ * This is an implementation of the {@link ModuleIO} interface which uses
+ * two Kraken motors to control the module, and a CANcoder used as the
+ * turn encoder.
+ * 
+ * <p>If you want to change any of the module configurations, you can do
+ * so in the {@link ModuleConstants} class.
+ * 
+ * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ * @see ModuleIO
+ */
 public class ModuleIOKraken implements ModuleIO {
     private final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants;
 
