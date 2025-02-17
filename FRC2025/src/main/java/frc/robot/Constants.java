@@ -106,7 +106,7 @@ public final class Constants {
     public static final SwerveDrivetrainConstants DRIVETRAIN_CONSTANTS = new SwerveDrivetrainConstants();
 
     public static final boolean INVERT_LEFT = false;
-    public static final boolean INVERT_RIGHT = false;
+    public static final boolean INVERT_RIGHT = true;
 
     public static final double ODOMETRY_FREQUENCY = 0.02;
 
@@ -116,7 +116,7 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final Distance WHEEL_RADIUS = Inches.of(2.167);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 7.0;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 4.69;
     public static final double MAX_ACCELERATION = 5.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
@@ -131,9 +131,9 @@ public final class Constants {
     public static final int DRIVE_CURRENT_LIMIT = 40;
     public static final int TURN_CURRENT_LIMIT = 30;
 
-    public static final double DRIVE_GEAR_RATIO = 6.12;
-    public static final double TURN_GEAR_RATIO = 12.8;
-    public static final double COUPLE_RATIO = 1.0;
+    public static final double DRIVE_GEAR_RATIO = 7.36363636;
+    public static final double TURN_GEAR_RATIO = 15.4285714;
+    public static final double COUPLE_RATIO = 3.18181818;
 
     public static final double ROBOT_MASS_KG = 74.0; // TODO: this
     public static final double ROBOT_MOI = 6.883; // TODO: this
@@ -179,34 +179,34 @@ public final class Constants {
   }
 
   public static class ModuleConstants {
-    public static final int FRONT_LEFT_DRIVE_ID = 8;
-    public static final int FRONT_RIGHT_DRIVE_ID = 11;
-    public static final int BACK_LEFT_DRIVE_ID = 4;
-    public static final int BACK_RIGHT_DRIVE_ID = 2;
+    public static final int FRONT_LEFT_TURN_ID = 8;
+    public static final int FRONT_RIGHT_TURN_ID = 11;
+    public static final int BACK_LEFT_TURN_ID = 4;
+    public static final int BACK_RIGHT_TURN_ID = 12;
 
-    public static final int FRONT_LEFT_TURN_ID = 7;
-    public static final int FRONT_RIGHT_TURN_ID = 10;
-    public static final int BACK_LEFT_TURN_ID = 6;
-    public static final int BACK_RIGHT_TURN_ID = 3;
+    public static final int FRONT_LEFT_DRIVE_ID = 7;
+    public static final int FRONT_RIGHT_DRIVE_ID = 10;
+    public static final int BACK_LEFT_DRIVE_ID = 6;
+    public static final int BACK_RIGHT_DRIVE_ID = 13;
 
-    public static final int FRONT_LEFT_CANCODER_ID = 7;
-    public static final int FRONT_RIGHT_CANCODER_ID = 12;
-    public static final int BACK_LEFT_CANCODER_ID = 5;
-    public static final int BACK_RIGHT_CANCODER_ID = 1;
+    public static final int FRONT_LEFT_CANCODER_ID = 3;
+    public static final int FRONT_RIGHT_CANCODER_ID = 7;
+    public static final int BACK_LEFT_CANCODER_ID = 9;
+    public static final int BACK_RIGHT_CANCODER_ID = 2;
 
-    private static final double TURN_KP = 100;
-    private static final double TURN_KI = 0.0;
-    private static final double TURN_KD = 0.5;
-    private static final double TURN_KS = 0.1;
-    private static final double TURN_KV = 1.91;
-    private static final double TURN_KA = 0.0;
+    public static final double TURN_KP = 40.0;
+    public static final double TURN_KI = 0.0;
+    public static final double TURN_KD = 0.5;
+    public static final double TURN_KS = 0.1;
+    public static final double TURN_KV = 1.91;
+    public static final double TURN_KA = 0.0;
 
-    private static final double DRIVE_KP = 0.1;
-    private static final double DRIVE_KI = 0.0;
-    private static final double DRIVE_KD = 0.0;
-    private static final double DRIVE_KS = 0.0;
-    private static final double DRIVE_KV = 0.124;
-    private static final double DRIVE_KA = 0.0;
+    public static final double DRIVE_KP = 0.1;
+    public static final double DRIVE_KI = 0.0;
+    public static final double DRIVE_KD = 0.0;
+    public static final double DRIVE_KS = 0.0;
+    public static final double DRIVE_KV = 0.124;
+    public static final double DRIVE_KA = 0.0;
 
     private static final Slot0Configs TURN_GAINS =
       new Slot0Configs()
@@ -276,25 +276,25 @@ public final class Constants {
 
     private static final boolean FRONT_LEFT_STEER_MOTOR_INVERTED = true;
     private static final boolean FRONT_LEFT_ENCODER_INVERTED = false;
-    private static final Angle FRONT_LEFT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Angle FRONT_LEFT_ENCODER_OFFSET = Rotations.of(0.140);
     private static final Distance FRONT_LEFT_X_POS = Inches.of(WHEEL_BASE / 2);
     private static final Distance FRONT_LEFT_Y_POS = Inches.of(TRACK_WIDTH / 2);
 
     private static final boolean FRONT_RIGHT_STEER_MOTOR_INVERTED = true;
     private static final boolean FRONT_RIGHT_ENCODER_INVERTED = false;
-    private static final Angle FRONT_RIGHT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Angle FRONT_RIGHT_ENCODER_OFFSET = Rotations.of(0.309);
     private static final Distance FRONT_RIGHT_X_POS = Inches.of(WHEEL_BASE / 2);
     private static final Distance FRONT_RIGHT_Y_POS = Inches.of(-TRACK_WIDTH / 2);
 
     private static final boolean BACK_LEFT_STEER_MOTOR_INVERTED = true;
     private static final boolean BACK_LEFT_ENCODER_INVERTED = false;
-    private static final Angle BACK_LEFT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Angle BACK_LEFT_ENCODER_OFFSET = Rotations.of(-0.0842);
     private static final Distance BACK_LEFT_X_POS = Inches.of(-WHEEL_BASE / 2);
     private static final Distance BACK_LEFT_Y_POS = Inches.of(TRACK_WIDTH / 2);
 
     private static final boolean BACK_RIGHT_STEER_MOTOR_INVERTED = true;
     private static final boolean BACK_RIGHT_ENCODER_INVERTED = false;
-    private static final Angle BACK_RIGHT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Angle BACK_RIGHT_ENCODER_OFFSET = Rotations.of(-0.112);
     private static final Distance BACK_RIGHT_X_POS = Inches.of(-WHEEL_BASE / 2);
     private static final Distance BACK_RIGHT_Y_POS = Inches.of(-TRACK_WIDTH / 2);
 

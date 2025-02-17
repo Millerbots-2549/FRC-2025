@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 
 /** Add your docs here. */
@@ -67,11 +68,13 @@ public class SwerveModule {
         driveDisconnectedAlert.set(!inputs.driveConnected);
         turnDisconnectedAlert.set(!inputs.turnConnected);
         canCoderDisconnectedAlert.set(!inputs.canCoderConnected);
+
+        SmartDashboard.putNumber("CANcoder " + this.index, inputs.turnAbsolutePosition.getRotations());
     }
 
     public void apply(SwerveModuleState state) {
         state.optimize(getAngle());
-        state.cosineScale(inputs.turnPosition);
+        //state.cosineScale(inputs.turnPosition);
 
         io.setDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
         io.setTurnPosition(state.angle);

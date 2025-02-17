@@ -29,6 +29,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -81,6 +82,8 @@ public class ModuleIOKraken implements ModuleIO {
     private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
     private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
     private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
+
+    private final PIDController turnController = new PIDController(ModuleConstants.TURN_KP, 0, ModuleConstants.TURN_KD);
 
     public ModuleIOKraken(
             SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants) {
@@ -155,6 +158,8 @@ public class ModuleIOKraken implements ModuleIO {
             turnVoltage,
             turnCurrent);
         ParentDevice.optimizeBusUtilizationForAll(driveMotor, turnMotor, cancoder);
+
+        turnController.setTolerance(0.1);
     }
 
     @Override
@@ -216,10 +221,17 @@ public class ModuleIOKraken implements ModuleIO {
 
     @Override
     public void setTurnPosition(Rotation2d rotation) {
+        
         turnMotor.setControl(
             switch (constants.SteerMotorClosedLoopOutput) {
                 case Voltage -> positionVoltageControl.withPosition(rotation.getRotations());
                 case TorqueCurrentFOC -> positionTorqueCurrentFOCControl.withPosition(rotation.getRotations());
             });
+            
+        /*
+        double output = turnController.calculate(turnAbsolutePosition.getValueAsDouble(), rotation.getRotations());
+        output = MathUtil.clamp(output, -0.05, 0.05);
+        turnMotor.set(output);
+        */
     }
 }
