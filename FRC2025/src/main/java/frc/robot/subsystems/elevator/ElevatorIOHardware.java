@@ -7,7 +7,6 @@ package frc.robot.subsystems.elevator;
 import com.ctre.phoenix6.Orchestra;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -49,6 +48,7 @@ public class ElevatorIOHardware implements ElevatorIO {
         return position * ElevatorConstants.MOTOR_TO_HEIGHT_RATIO;
     }
 
+    @SuppressWarnings("unused")
     private double heightToMotorPosition(double height) {
         return height / ElevatorConstants.MOTOR_TO_HEIGHT_RATIO;
     }

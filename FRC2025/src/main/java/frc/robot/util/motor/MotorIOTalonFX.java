@@ -27,6 +27,7 @@ public class MotorIOTalonFX implements MotorIO {
     public final TalonFX motor;
     private final TalonFXConfiguration config;
 
+    @SuppressWarnings("unused")
     private final int ID;
 
     private final DutyCycleOut dutyCycleController = new DutyCycleOut(0);
