@@ -18,6 +18,7 @@ import edu.wpi.first.math.util.Units;
  * a NavX gyro connected to the roborio via MXP SPI
  * 
  * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ * @see GyroIO
  */
 public class GyroIONavX implements GyroIO {
     /** The NavX gyro */

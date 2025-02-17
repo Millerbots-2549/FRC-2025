@@ -25,6 +25,7 @@ import frc.robot.Constants.DriveConstants;
  * be changed when we change the motors to Krakens.
  * 
  * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ * @see ModuleIO
  */
 public class ModuleIOSim implements ModuleIO {
     private static final double DRIVE_KP = 0.05;

@@ -16,6 +16,7 @@ import edu.wpi.first.math.util.Units;
  * a simulated gyroscope.
  * 
  * @author <a href="https://github.com/linus-honer">Linus Honer</a>
+ * @see GyroIO
  */
 public class GyroIOSim implements GyroIO {
     private final GyroSimulation gyroSimulation;

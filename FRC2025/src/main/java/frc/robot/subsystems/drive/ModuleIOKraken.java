@@ -180,6 +180,7 @@ public class ModuleIOKraken implements ModuleIO {
         inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double d) -> d).toArray();
         inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double d) -> Units.rotationsToRadians(d)).toArray();
         inputs.odometryTurnPositions = turnPositionQueue.stream().map((Double d) -> Rotation2d.fromRotations(d)).toArray(Rotation2d[]::new);
+        
         timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();
