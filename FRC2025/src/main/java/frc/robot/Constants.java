@@ -68,6 +68,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.SimulationUtils;
 import frc.robot.util.controllers.AsymmetricTrapezoidProfile;
 import frc.robot.util.controllers.AsymmetricTrapezoidProfile.Constraints;
@@ -81,7 +82,9 @@ import frc.robot.util.controllers.AsymmetricTrapezoidProfile.Constraints;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static Mode currentMode = Mode.REAL;
+  public static Mode currentMode = RobotBase.isSimulation() ? Mode.SIM : Mode.REAL;
+
+  //static { currentMode = Mode.REPLAY; }
 
   public static enum Mode {
     REAL,
@@ -132,12 +135,6 @@ public final class Constants {
     public static final double TURN_GEAR_RATIO = 12.8;
     public static final double COUPLE_RATIO = 1.0;
 
-    public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU;
-    public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
-
-    public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU;
-    public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
-
     public static final double ROBOT_MASS_KG = 74.0; // TODO: this
     public static final double ROBOT_MOI = 6.883; // TODO: this
     public static final double WHEEL_COF = 1.2; // TODO: this
@@ -149,7 +146,7 @@ public final class Constants {
                 WHEEL_RAIDUS_METERS,
                 MAX_SPEED_METERS_PER_SECOND,
                 WHEEL_COF,
-                DCMotor.getNEO(1).withReduction(DRIVE_GEAR_RATIO),
+                DCMotor.getKrakenX60(1).withReduction(DRIVE_GEAR_RATIO),
                 DRIVE_CURRENT_LIMIT,
                 1),
             MODULE_OFFSETS);
