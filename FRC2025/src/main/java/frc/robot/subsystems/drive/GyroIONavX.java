@@ -4,14 +4,14 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.Queue;
+
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXUpdateRate;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Timer;
 
 /**
  * This is an implementation of the {@link GyroIO} interface which uses
@@ -23,14 +23,10 @@ public class GyroIONavX implements GyroIO {
     /** The NavX gyro */
     private final AHRS gyro;
 
+    private final Queue<Double> yawPositionQueue;
+    private final Queue<Double> yawTimestampQueue;
+
     private Rotation2d offset;
-
-    private int successive_error_count = 0;
-
-    private int NUM_IGNORED_SUCCESSIVE_ERRORS = 50;
-    private boolean TRACE = false;
-    private boolean AHRS_USB_CONNECTED = false;
-    SPI port = null;
     
     public GyroIONavX() {
         gyro = new AHRS(AHRS.NavXComType.kUSB1, NavXUpdateRate.k50Hz);
@@ -40,6 +36,9 @@ public class GyroIONavX implements GyroIO {
         gyro.getRotation3d();
 
         offset = Rotation2d.kZero;
+
+        yawTimestampQueue = OdometryThread.getInstance().makeTimestampQueue();
+        yawPositionQueue = OdometryThread.getInstance().registerSignal(gyro::getAngle);
     }
 
     @Override
@@ -54,8 +53,11 @@ public class GyroIONavX implements GyroIO {
                 gyro.getWorldLinearAccelY(),
                 gyro.getWorldLinearAccelZ());
         
-        inputs.updateCount = gyro.getUpdateCount();
-        inputs.byteCount = gyro.getByteCount();
+        inputs.odometryYawTimestamps = yawTimestampQueue.stream().mapToDouble((Double d) -> d).toArray();
+        inputs.odometryYawPositions = yawPositionQueue.stream().map((Double d) -> Rotation2d.fromDegrees(-d)).toArray(Rotation2d[]::new);
+        
+        yawTimestampQueue.clear();
+        yawPositionQueue.clear();
     }
 
     @Override

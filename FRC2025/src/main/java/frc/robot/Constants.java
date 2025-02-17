@@ -4,16 +4,31 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Kilogram;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.Constants.DriveConstants.COUPLE_RATIO;
+import static frc.robot.Constants.DriveConstants.DRIVE_CURRENT_LIMIT;
+import static frc.robot.Constants.DriveConstants.DRIVE_GEAR_RATIO;
+import static frc.robot.Constants.DriveConstants.INVERT_LEFT;
+import static frc.robot.Constants.DriveConstants.INVERT_RIGHT;
+import static frc.robot.Constants.DriveConstants.TRACK_WIDTH;
+import static frc.robot.Constants.DriveConstants.TURN_CURRENT_LIMIT;
+import static frc.robot.Constants.DriveConstants.TURN_GEAR_RATIO;
+import static frc.robot.Constants.DriveConstants.WHEEL_BASE;
+import static frc.robot.Constants.DriveConstants.WHEEL_RADIUS;
 
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -21,6 +36,14 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants.ClosedLoopOutputType;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerFeedbackType;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
+import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -40,6 +63,11 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.SimulationUtils;
 import frc.robot.util.controllers.AsymmetricTrapezoidProfile;
 import frc.robot.util.controllers.AsymmetricTrapezoidProfile.Constraints;
@@ -72,13 +100,19 @@ public final class Constants {
   }
 
   public static class DriveConstants {
+    public static final SwerveDrivetrainConstants DRIVETRAIN_CONSTANTS = new SwerveDrivetrainConstants();
+
+    public static final boolean INVERT_LEFT = false;
+    public static final boolean INVERT_RIGHT = false;
+
     public static final double ODOMETRY_FREQUENCY = 0.02;
 
     // TODO: this
     public static final double TRACK_WIDTH = Units.inchesToMeters(28.0);
     public static final double WHEEL_BASE = Units.inchesToMeters(28.0);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
-    public static final double WHEEL_RAIDUS_METERS = Units.inchesToMeters(2);
+    public static final Distance WHEEL_RADIUS = Inches.of(2.167);
+    public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
     public static final double MAX_SPEED_METERS_PER_SECOND = 7.0;
     public static final double MAX_ACCELERATION = 5.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
@@ -91,50 +125,18 @@ public final class Constants {
       new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0)
     };
 
-    public static final int DRIVE_CURRENT_LIMIT = 35;
-    public static final int TURN_CURRENT_LIMIT = 25;
-
-    private static final double degreesOffsetAll = 0;
-    public static final Rotation2d FRONT_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.06 + Units.degreesToRotations(degreesOffsetAll)); // -0.44
-    public static final Rotation2d BACK_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-0.04 + Units.degreesToRotations(degreesOffsetAll)); // 0.29
-    public static final Rotation2d BACK_RIGHT_ZERO_ROTATION = Rotation2d.fromRotations(0.48 + Units.degreesToRotations(degreesOffsetAll)); // 0.07
-    public static final Rotation2d FRONT_LEFT_ZERO_ROTATION = Rotation2d.fromRotations(-0.19 + Units.degreesToRotations(degreesOffsetAll)); // 0.25
-
-    public static final int FRONT_LEFT_DRIVE_ID = 8;
-    public static final int FRONT_RIGHT_DRIVE_ID = 11;
-    public static final int BACK_LEFT_DRIVE_ID = 4;
-    public static final int BACK_RIGHT_DRIVE_ID = 2;
-
-    public static final int FRONT_LEFT_TURN_ID = 7;
-    public static final int FRONT_RIGHT_TURN_ID = 10;
-    public static final int BACK_LEFT_TURN_ID = 6;
-    public static final int BACK_RIGHT_TURN_ID = 3;
-
-    public static final int FRONT_LEFT_CANCODER_ID = 7;
-    public static final int FRONT_RIGHT_CANCODER_ID = 12;
-    public static final int BACK_LEFT_CANCODER_ID = 5;
-    public static final int BACK_RIGHT_CANCODER_ID = 1;
+    public static final int DRIVE_CURRENT_LIMIT = 40;
+    public static final int TURN_CURRENT_LIMIT = 30;
 
     public static final double DRIVE_GEAR_RATIO = 6.12;
     public static final double TURN_GEAR_RATIO = 12.8;
+    public static final double COUPLE_RATIO = 1.0;
 
     public static final double DRIVE_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double DRIVE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
     public static final double TURN_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double TURN_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
-
-    public static final double DRIVE_P = 0.05;
-    public static final double DRIVE_D = 0.4;
-
-    public static final double TURN_P = 1.8;
-    public static final double TURN_D = 0.055;
-
-    public static final boolean TURN_INVERTED = false;
-    public static final boolean TURN_ENCODER_INVERTED = false;
-
-    public static final double TURN_PID_MIN_INPUT = 0;
-    public static final double TURN_PID_MAX_INPUT = MathConstants.TAU;
 
     public static final double ROBOT_MASS_KG = 74.0; // TODO: this
     public static final double ROBOT_MOI = 6.883; // TODO: this
@@ -177,6 +179,172 @@ public final class Constants {
 
     public static final double ALIGNMENT_MIN_TRANSLATION_ERROR = 0.05;
     public static final double ALIGNMENT_MIN_THETA_ERROR = Units.degreesToRadians(5);
+  }
+
+  public static class ModuleConstants {
+    public static final int FRONT_LEFT_DRIVE_ID = 8;
+    public static final int FRONT_RIGHT_DRIVE_ID = 11;
+    public static final int BACK_LEFT_DRIVE_ID = 4;
+    public static final int BACK_RIGHT_DRIVE_ID = 2;
+
+    public static final int FRONT_LEFT_TURN_ID = 7;
+    public static final int FRONT_RIGHT_TURN_ID = 10;
+    public static final int BACK_LEFT_TURN_ID = 6;
+    public static final int BACK_RIGHT_TURN_ID = 3;
+
+    public static final int FRONT_LEFT_CANCODER_ID = 7;
+    public static final int FRONT_RIGHT_CANCODER_ID = 12;
+    public static final int BACK_LEFT_CANCODER_ID = 5;
+    public static final int BACK_RIGHT_CANCODER_ID = 1;
+
+    private static final double TURN_KP = 100;
+    private static final double TURN_KI = 0.0;
+    private static final double TURN_KD = 0.5;
+    private static final double TURN_KS = 0.1;
+    private static final double TURN_KV = 1.91;
+    private static final double TURN_KA = 0.0;
+
+    private static final double DRIVE_KP = 0.1;
+    private static final double DRIVE_KI = 0.0;
+    private static final double DRIVE_KD = 0.0;
+    private static final double DRIVE_KS = 0.0;
+    private static final double DRIVE_KV = 0.124;
+    private static final double DRIVE_KA = 0.0;
+
+    private static final Slot0Configs TURN_GAINS =
+      new Slot0Configs()
+        .withKP(TURN_KP)
+        .withKI(TURN_KI)
+        .withKD(TURN_KD)
+        .withKS(TURN_KS)
+        .withKV(TURN_KV)
+        .withKA(TURN_KA)
+        .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
+    
+    private static final Slot0Configs DRIVE_GAINS =
+      new Slot0Configs()
+        .withKP(DRIVE_KP)
+        .withKI(DRIVE_KI)
+        .withKD(DRIVE_KD)
+        .withKS(DRIVE_KS)
+        .withKV(DRIVE_KV)
+        .withKA(DRIVE_KA);
+    
+    private static final ClosedLoopOutputType TURN_CLOSED_LOOP_OUTPUT = ClosedLoopOutputType.Voltage;
+    private static final ClosedLoopOutputType DRIVE_CLOSED_LOOP_OUTPUT = ClosedLoopOutputType.Voltage;
+
+    private static final DriveMotorArrangement DRIVE_MOTOR_TYPE = DriveMotorArrangement.TalonFX_Integrated;
+    private static final SteerMotorArrangement TURN_MOTOR_TYPE = SteerMotorArrangement.TalonFX_Integrated;
+
+    private static final SteerFeedbackType STEER_FEEDBACK_TYPE = SteerFeedbackType.FusedCANcoder;
+
+    private static final Current SLIP_CURRENT = Amps.of(DRIVE_CURRENT_LIMIT);
+
+    private static final TalonFXConfiguration DRIVE_INITIAL_CONFIGS = new TalonFXConfiguration();
+    private static final TalonFXConfiguration TURN_INITIAL_CONFIGS = new TalonFXConfiguration()
+      .withCurrentLimits(
+        new CurrentLimitsConfigs()
+          .withStatorCurrentLimit(Amps.of(TURN_CURRENT_LIMIT))
+          .withStatorCurrentLimitEnable(true));
+    private static final CANcoderConfiguration ENCODER_INITIAL_CONFIGS = new CANcoderConfiguration();
+
+    private static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.004);
+    private static final MomentOfInertia DRIVE_INERTIA = KilogramSquareMeters.of(0.025);
+
+    private static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.2);
+    private static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.2);
+
+    private static final SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> CONSTANT_CREATOR =
+      new SwerveModuleConstantsFactory<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>()
+        .withDriveMotorGearRatio(DRIVE_GEAR_RATIO)
+        .withSteerMotorGearRatio(TURN_GEAR_RATIO)
+        .withCouplingGearRatio(COUPLE_RATIO)
+        .withWheelRadius(WHEEL_RADIUS)
+        .withSteerMotorGains(TURN_GAINS)
+        .withDriveMotorGains(DRIVE_GAINS)
+        .withSteerMotorClosedLoopOutput(TURN_CLOSED_LOOP_OUTPUT)
+        .withDriveMotorClosedLoopOutput(DRIVE_CLOSED_LOOP_OUTPUT)
+        .withSlipCurrent(SLIP_CURRENT)
+        .withSpeedAt12Volts(MetersPerSecond.of(4.69))
+        .withDriveMotorType(DRIVE_MOTOR_TYPE)
+        .withSteerMotorType(TURN_MOTOR_TYPE)
+        .withFeedbackSource(STEER_FEEDBACK_TYPE)
+        .withDriveMotorInitialConfigs(DRIVE_INITIAL_CONFIGS)
+        .withSteerMotorInitialConfigs(TURN_INITIAL_CONFIGS)
+        .withEncoderInitialConfigs(ENCODER_INITIAL_CONFIGS)
+        .withSteerInertia(STEER_INERTIA)
+        .withDriveInertia(DRIVE_INERTIA)
+        .withSteerFrictionVoltage(STEER_FRICTION_VOLTAGE)
+        .withDriveFrictionVoltage(DRIVE_FRICTION_VOLTAGE);
+
+    private static final boolean FRONT_LEFT_STEER_MOTOR_INVERTED = true;
+    private static final boolean FRONT_LEFT_ENCODER_INVERTED = false;
+    private static final Angle FRONT_LEFT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Distance FRONT_LEFT_X_POS = Inches.of(WHEEL_BASE / 2);
+    private static final Distance FRONT_LEFT_Y_POS = Inches.of(TRACK_WIDTH / 2);
+
+    private static final boolean FRONT_RIGHT_STEER_MOTOR_INVERTED = true;
+    private static final boolean FRONT_RIGHT_ENCODER_INVERTED = false;
+    private static final Angle FRONT_RIGHT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Distance FRONT_RIGHT_X_POS = Inches.of(WHEEL_BASE / 2);
+    private static final Distance FRONT_RIGHT_Y_POS = Inches.of(-TRACK_WIDTH / 2);
+
+    private static final boolean BACK_LEFT_STEER_MOTOR_INVERTED = true;
+    private static final boolean BACK_LEFT_ENCODER_INVERTED = false;
+    private static final Angle BACK_LEFT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Distance BACK_LEFT_X_POS = Inches.of(-WHEEL_BASE / 2);
+    private static final Distance BACK_LEFT_Y_POS = Inches.of(TRACK_WIDTH / 2);
+
+    private static final boolean BACK_RIGHT_STEER_MOTOR_INVERTED = true;
+    private static final boolean BACK_RIGHT_ENCODER_INVERTED = false;
+    private static final Angle BACK_RIGHT_ENCODER_OFFSET = Rotations.of(0.0);
+    private static final Distance BACK_RIGHT_X_POS = Inches.of(-WHEEL_BASE / 2);
+    private static final Distance BACK_RIGHT_Y_POS = Inches.of(-TRACK_WIDTH / 2);
+
+    public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FRONT_LEFT_CONSTANTS =
+      CONSTANT_CREATOR.createModuleConstants(
+        FRONT_LEFT_DRIVE_ID,
+        FRONT_LEFT_TURN_ID,
+        FRONT_LEFT_CANCODER_ID,
+        FRONT_LEFT_ENCODER_OFFSET,
+        FRONT_LEFT_X_POS,
+        FRONT_LEFT_Y_POS,
+        INVERT_LEFT,
+        FRONT_LEFT_STEER_MOTOR_INVERTED,
+        FRONT_LEFT_ENCODER_INVERTED);
+    public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FRONT_RIGHT_CONSTANTS =
+      CONSTANT_CREATOR.createModuleConstants(
+        FRONT_RIGHT_DRIVE_ID,
+        FRONT_RIGHT_TURN_ID,
+        FRONT_RIGHT_CANCODER_ID,
+        FRONT_RIGHT_ENCODER_OFFSET,
+        FRONT_RIGHT_X_POS,
+        FRONT_RIGHT_Y_POS,
+        INVERT_RIGHT,
+        FRONT_RIGHT_STEER_MOTOR_INVERTED,
+        FRONT_RIGHT_ENCODER_INVERTED);
+    public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BACK_LEFT_CONSTANTS =
+      CONSTANT_CREATOR.createModuleConstants(
+        BACK_LEFT_DRIVE_ID,
+        BACK_LEFT_TURN_ID,
+        BACK_LEFT_CANCODER_ID,
+        BACK_LEFT_ENCODER_OFFSET,
+        BACK_LEFT_X_POS,
+        BACK_LEFT_Y_POS,
+        INVERT_LEFT,
+        BACK_LEFT_STEER_MOTOR_INVERTED,
+        BACK_LEFT_ENCODER_INVERTED);
+    public static final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BACK_RIGHT_CONSTANTS =
+      CONSTANT_CREATOR.createModuleConstants(
+        BACK_RIGHT_DRIVE_ID,
+        BACK_RIGHT_TURN_ID,
+        BACK_RIGHT_CANCODER_ID,
+        BACK_RIGHT_ENCODER_OFFSET,
+        BACK_RIGHT_X_POS,
+        BACK_RIGHT_Y_POS,
+        INVERT_RIGHT,
+        BACK_RIGHT_STEER_MOTOR_INVERTED,
+        BACK_RIGHT_ENCODER_INVERTED);
   }
 
   public static class VisionConstants {

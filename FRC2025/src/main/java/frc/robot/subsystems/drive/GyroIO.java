@@ -34,11 +34,12 @@ public interface GyroIO {
         public boolean calibrating = false;
         public Rotation2d yaw = new Rotation2d();
         public double yawVelocityRadPerSec = 0.0;
+
         public Rotation3d rot3d = new Rotation3d();
         public Translation3d accel = new Translation3d();
 
-        public double updateCount = 0;
-        public double byteCount = 0;
+        public double[] odometryYawTimestamps = new double[] {};
+        public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
     }
 
     public default void updateInputs(GyroIOInputs inputs) {};

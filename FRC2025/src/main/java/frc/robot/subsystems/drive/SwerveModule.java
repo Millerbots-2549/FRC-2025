@@ -6,6 +6,10 @@ package frc.robot.subsystems.drive;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -13,15 +17,13 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.subsystems.drive.ModuleIO.ModuleGains;
-import frc.robot.util.LoggedTunableNumber;
 
 /** Add your docs here. */
 public class SwerveModule {
     private final ModuleIO io;
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
     private final int index;
+    private final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants;
 
     private final Alert driveDisconnectedAlert;
     private final Alert turnDisconnectedAlert;
@@ -29,16 +31,13 @@ public class SwerveModule {
 
     private SwerveModulePosition[] odometryPositions;
 
-    private final LoggedTunableNumber kP;
-    private final LoggedTunableNumber kI;
-    private final LoggedTunableNumber kD;
-    private final LoggedTunableNumber kS;
-    private final LoggedTunableNumber kV;
-    private final LoggedTunableNumber kA;
-
-    public SwerveModule(ModuleIO io, int index) {
+    public SwerveModule(
+            ModuleIO io,
+            int index,
+            SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants) {
         this.io = io;
         this.index = index;
+        this.constants = constants;
         driveDisconnectedAlert =
             new Alert(
                 "Disconnected drive motor on module " + Integer.toString(index) + ".",
@@ -49,15 +48,6 @@ public class SwerveModule {
         canCoderDisconnectedAlert =
             new Alert(
                 "Disconnected CANcoder on module " + Integer.toString(index) + ".", AlertType.kError);
-
-        ModuleGains gains = io.getGains();
-
-        kP = new LoggedTunableNumber("Drive/" + index + "/Gains/kP", gains.kP());
-        kI = new LoggedTunableNumber("Drive/" + index + "/Gains/kI", gains.kI());
-        kD = new LoggedTunableNumber("Drive/" + index + "/Gains/kD", gains.kD());
-        kS = new LoggedTunableNumber("Drive/" + index + "/Gains/kS", gains.kS());
-        kV = new LoggedTunableNumber("Drive/" + index + "/Gains/kV", gains.kV());
-        kA = new LoggedTunableNumber("Drive/" + index + "/Gains/kA", gains.kA());
     }
     
     public void periodic() {
@@ -68,7 +58,7 @@ public class SwerveModule {
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
         odometryPositions = new SwerveModulePosition[sampleCount];
         for (int i = 0; i < sampleCount; i++) {
-            double positionMeters = inputs.odometryDrivePositionsRad[i] * DriveConstants.WHEEL_RAIDUS_METERS;
+            double positionMeters = inputs.odometryDrivePositionsRad[i] * constants.WheelRadius;
             Rotation2d angle = inputs.odometryTurnPositions[i];
             odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
         }
@@ -77,21 +67,13 @@ public class SwerveModule {
         driveDisconnectedAlert.set(!inputs.driveConnected);
         turnDisconnectedAlert.set(!inputs.turnConnected);
         canCoderDisconnectedAlert.set(!inputs.canCoderConnected);
-
-        LoggedTunableNumber.ifChanged(
-            hashCode(),
-            (values) -> {
-                io.setGains(
-                    new ModuleGains(values[0], values[1], values[2], values[3], values[4], values[5]));
-            },
-            kP, kI, kD, kS, kV, kA);
     }
 
     public void apply(SwerveModuleState state) {
         state.optimize(getAngle());
         state.cosineScale(inputs.turnPosition);
 
-        io.setDriveVelocity(state.speedMetersPerSecond / DriveConstants.WHEEL_RAIDUS_METERS);
+        io.setDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
         io.setTurnPosition(state.angle);
     }
 
@@ -110,11 +92,11 @@ public class SwerveModule {
     }
 
     public double getPositionMeters() {
-        return inputs.drivePositionRadians * DriveConstants.WHEEL_RAIDUS_METERS;
+        return inputs.drivePositionRadians * constants.WheelRadius;
     }
 
     public double getVelocityMetersPerSecond() {
-        return inputs.driveVelocityRadPerSec * DriveConstants.WHEEL_RAIDUS_METERS;
+        return inputs.driveVelocityRadPerSec * constants.WheelRadius;
     }
 
     public SwerveModulePosition getPosition() {

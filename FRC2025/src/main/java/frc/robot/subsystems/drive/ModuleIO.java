@@ -81,13 +81,4 @@ public interface ModuleIO {
      * @param rotation The setpoint as a {@link Rotation2d}
      */
     public default void setTurnPosition (Rotation2d rotation) {}
-
-    public default ModuleGains getGains() { return new ModuleGains(0, 0, 0, 0, 0, 0); }
-
-    public default void setGains(ModuleGains gains) {}
-
-    /**
-     * A record containing PID values for the <b>drive motor</b>
-     */
-    public record ModuleGains(double kP, double kI, double kD, double kS, double kV, double kA) {}
 }

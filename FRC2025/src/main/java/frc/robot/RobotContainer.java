@@ -35,6 +35,7 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
@@ -48,8 +49,8 @@ import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOSpark;
-import frc.robot.subsystems.drive.ModuleIOSparkSim;
+import frc.robot.subsystems.drive.ModuleIOKraken;
+import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOHardware;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
@@ -95,10 +96,10 @@ public class RobotContainer {
       case REAL:
         driveSubsystem = new DriveSubsystem(
           new GyroIONavX(),
-          new ModuleIOSpark(SparkModuleConstants.frontLeft),
-          new ModuleIOSpark(SparkModuleConstants.frontRight),
-          new ModuleIOSpark(SparkModuleConstants.backLeft),
-          new ModuleIOSpark(SparkModuleConstants.backRight));
+          new ModuleIOKraken(ModuleConstants.FRONT_LEFT_CONSTANTS),
+          new ModuleIOKraken(ModuleConstants.FRONT_RIGHT_CONSTANTS),
+          new ModuleIOKraken(ModuleConstants.BACK_LEFT_CONSTANTS),
+          new ModuleIOKraken(ModuleConstants.BACK_RIGHT_CONSTANTS));
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem, new VisionIOQuestNav(questNav, new Transform3d()));
@@ -127,10 +128,10 @@ public class RobotContainer {
 
         driveSubsystem = new DriveSubsystem(
           new GyroIOSim(driveSimulation.getGyroSimulation()),
-          new ModuleIOSparkSim(driveSimulation.getModules()[0]),
-          new ModuleIOSparkSim(driveSimulation.getModules()[1]),
-          new ModuleIOSparkSim(driveSimulation.getModules()[2]),
-          new ModuleIOSparkSim(driveSimulation.getModules()[3]));
+          new ModuleIOSim(),
+          new ModuleIOSim(),
+          new ModuleIOSim(),
+          new ModuleIOSim());
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,

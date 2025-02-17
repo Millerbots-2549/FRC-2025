@@ -31,6 +31,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -41,13 +42,13 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.Constants.ModuleConstants;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
 import frc.robot.util.pathplanner.LocalADStarAK;
 
@@ -91,17 +92,16 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         
     public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO) {
         this.gyroIO = gyroIO;
-        this.modules[0] = new SwerveModule(flIO, 0);
-        this.modules[1] = new SwerveModule(frIO, 1);
-        this.modules[2] = new SwerveModule(blIO, 2);
-        this.modules[3] = new SwerveModule(brIO, 3);
+        this.modules[0] = new SwerveModule(flIO, 0, ModuleConstants.FRONT_LEFT_CONSTANTS);
+        this.modules[1] = new SwerveModule(frIO, 1, ModuleConstants.FRONT_RIGHT_CONSTANTS);
+        this.modules[2] = new SwerveModule(blIO, 2, ModuleConstants.BACK_LEFT_CONSTANTS);
+        this.modules[3] = new SwerveModule(brIO, 3, ModuleConstants.BACK_RIGHT_CONSTANTS);
 
         correctionPID.setPID(15, 0.0, 0.0);
         correctionPID.setTolerance(0.1);
 
         HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
-        SmartDashboard.putBoolean("Odometry thread started", false);
         OdometryThread.getInstance().start();
 
         AutoBuilder.configure(
@@ -155,7 +155,6 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/Setpoints", kSwerveModuleStateNone);
         }
 
-        /* 
         double[] sampleTimestamps = modules[0].getOdometryTimestamps();
         int sampleCount = sampleTimestamps.length;
         for(int i = 0; i < sampleCount; i++) {
@@ -170,7 +169,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             }
 
             if (gyroInputs.connected) {
-                rawGyroRotation = gyroInputs.odometryYaw[i];
+                rawGyroRotation = gyroInputs.odometryYawPositions[i];
             } else {
                 Twist2d twist = kinematics.toTwist2d(moduleDeltas);
                 rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
@@ -178,21 +177,6 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
             poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
         }
-            */
-
-        rawGyroRotation = gyroInputs.yaw;
-
-        for(int i = 0; i < modules.length; i++) {
-            tempPositions[i] = modules[i].getPosition();
-        }
-        
-        poseEstimator.update(
-            gyroInputs.yaw,
-            tempPositions);
-
-        SmartDashboard.putNumber("NavX Yaw", gyroInputs.yaw.getRadians());
-        SmartDashboard.putBoolean("NavX Connected", gyroInputs.connected);
-        SmartDashboard.putBoolean("NavX Calibrating", gyroInputs.calibrating);
 
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
     }
@@ -202,10 +186,6 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     PIDController correctionPID = new PIDController(15.0, 0.0, 0.0);
 
     public void runVelocity(ChassisSpeeds chassisSpeeds) {
-        SmartDashboard.putNumber("Omega Rad Per Sec", chassisSpeeds.omegaRadiansPerSecond);
-        SmartDashboard.putNumber("Desired Heading", desiredHeading.getRadians());
-        SmartDashboard.putNumber("Correction", 0.5 * (getRotation().getRadians()) - desiredHeading.getRadians());
-
         double correction = 0.0;
         if(Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond) > 0.1) {
             //correction = correctionPID.calculate(getRotation().getRadians(), desiredHeading.getRadians());
@@ -318,12 +298,11 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     public Rotation2d getRotation() {
-        return gyroInputs.yaw;
+        return getPose().getRotation();
     }
 
     public void setPose(Pose2d pose) {
         poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
-        gyroIO.zeroGyro(pose.getRotation());
     }
 
     public void addVisionMeasurement(
