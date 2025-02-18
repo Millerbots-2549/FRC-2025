@@ -16,7 +16,6 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 
 import edu.wpi.first.math.MathUtil;
@@ -50,9 +49,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
 
     private final SparkBaseConfig rollerConfig;
     private final SparkBaseConfig angleConfig;
-
-    /** The gains for both the roller motor and the angle motor. */
-    private AlgaeIntakeGains gains;
 
     /** The {@link SparkClosedLoopController} for the roller motor. */
     @SuppressWarnings("unused")
@@ -103,19 +99,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         this.angleConfig.inverted(angleConfig.invert());
         tryUntilOk(angleMotor, 5, () ->
             angleEncoder.setPosition(0.0));
-
-        // Resets the gains to the default values.
-        gains = new AlgaeIntakeGains(
-            AlgaeIntakeConstants.ROLLER_KP,
-            0.0,
-            AlgaeIntakeConstants.ROLLER_KD,
-            AlgaeIntakeConstants.ROLLER_KS,
-            AlgaeIntakeConstants.ROLLER_KV,
-            0.0,
-            AlgaeIntakeConstants.ANGLE_KP,
-            0.0,
-            AlgaeIntakeConstants.ANGLE_KD
-        );
 
         // Setting up the angle motor PID
         angleController.setPID(AlgaeIntakeConstants.ANGLE_KP, 0.0, AlgaeIntakeConstants.ANGLE_KD);
@@ -257,27 +240,5 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
     @Override
     public void setAngleOpenLoop(double volts) {
         angleMotor.setVoltage(volts);
-    }
-
-    @Override
-    public AlgaeIntakeGains getGains() {
-        return gains;
-    }
-
-    @Override
-    public void setGains(AlgaeIntakeGains gains) {
-        this.gains = gains;
-        
-        tryUntilOk(
-            rollerMotor,
-            5,
-            () -> rollerMotor.configure(
-                rollerConfig.apply(
-                    new ClosedLoopConfig().pidf(gains.rollerKP(), gains.rollerKI(), gains.rollerKD(), gains.rollerKV())),
-                    ResetMode.kNoResetSafeParameters,
-                    PersistMode.kNoPersistParameters));
-        
-        angleController.setPID(gains.angleKP(), gains.angleKI(), gains.angleKD());
-        angleController.setTolerance(0.1, 0.1);
     }
 }

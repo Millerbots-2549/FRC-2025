@@ -298,7 +298,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     public Rotation2d getRotation() {
-        return getPose().getRotation();
+        //return getPose().getRotation();
+        return gyroInputs.yaw;
     }
 
     public void setPose(Pose2d pose) {
@@ -318,7 +319,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     }
 
     public double getMaxAngularSpeedRadPerSec() {
-        return getMaxLinearSpeedMetersPerSec() / DriveConstants.DRIVE_BASE_RADIUS;
+        return 2 * getMaxLinearSpeedMetersPerSec() / DriveConstants.DRIVE_BASE_RADIUS;
     }
 
     public static Translation2d[] getModuleTranslations() {

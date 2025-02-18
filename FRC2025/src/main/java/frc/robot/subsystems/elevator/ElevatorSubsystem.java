@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.elevator;
 
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -12,6 +14,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
   private int currentLevel = 0;
+  private double currentPositionSetpoint = 0;
 
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
@@ -29,12 +32,17 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public void setElevatorPosition(double position) {
+    currentPositionSetpoint = position;
     io.applySetpointMeters(position);
   }
 
-  public void setElevatorVelocity(double velocity) {
-    //io.applyVelocityMetersPerSecond(velocity);
-    io.applyDutyCycle(velocity);
+  public void setElevatorVelocity(DoubleSupplier velocity) {
+    setElevatorPosition(currentPositionSetpoint + velocity.getAsDouble());
+  }
+
+  public void moveToStation() {
+    setElevatorPosition(6.94);
+    currentLevel = 2;
   }
 
   public void moveToLevel(ElevatorLevel level) {
@@ -49,9 +57,13 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public void previousLevel() {
-    if (currentLevel <= 1) return;
+    if (currentLevel < 1) return;
 
     moveToLevel(ElevatorLevel.values()[currentLevel - 1]);
+  }
+
+  public void runIntake(double speed) {
+    io.applyIntakeDutyCycle(currentLevel == 1 ? speed * 0.75 : speed);
   }
 
   public void playMusic() {
@@ -63,11 +75,11 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public static enum ElevatorLevel {
-    FLOOR(0.5),
-    L1(0.5),
-    L2(7.5),
-    L3(15.0),
-    L4(24.0);
+    FLOOR(0.1),
+    L1(4.62),
+    L2(5.41),
+    L3(12.88),
+    L4(23.8);
 
     public final double height;
     ElevatorLevel(double height) {

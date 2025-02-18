@@ -16,6 +16,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -204,7 +205,10 @@ public class RobotContainer {
     );
 
     elevatorSubsystem.setDefaultCommand(
-      Commands.run(() -> {}, elevatorSubsystem)
+      Commands.run(() -> {
+        elevatorSubsystem.runIntake(0.0);
+        elevatorSubsystem.setElevatorVelocity(() -> MathUtil.applyDeadband(manipulatorController.getLeftY(), 0.1) * 0.1);
+      }, elevatorSubsystem)
     );
     
     final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
@@ -213,13 +217,8 @@ public class RobotContainer {
             ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? Rotation2d.kPi : Rotation2d.kZero)
             : Rotation2d.kZero);
 
-    driverController
-        .y()
-        .onTrue(
-            Commands.runOnce(
-                        resetGyro,
-                    driveSubsystem)
-                .ignoringDisable(true));
+    driverController.y().onTrue(Commands.runOnce(resetGyro, driveSubsystem)
+      .ignoringDisable(true));
     
     //driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
     
@@ -250,22 +249,33 @@ public class RobotContainer {
     manipulatorController.rightBumper().whileTrue(
       Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem)
       .onlyWhile(() -> manipulatorController.rightBumper().getAsBoolean()));
+
+    manipulatorController.leftTrigger().whileTrue(
+      Commands.run(() -> elevatorSubsystem.runIntake(0.5), elevatorSubsystem)
+      .onlyWhile(() -> manipulatorController.leftTrigger().getAsBoolean()));
+    manipulatorController.rightTrigger().whileTrue(
+      Commands.run(() -> elevatorSubsystem.runIntake(-0.5), elevatorSubsystem)
+      .onlyWhile(() -> manipulatorController.rightTrigger().getAsBoolean()));
     
     manipulatorController.button(8).whileTrue(
       Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem)
       .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
     manipulatorController.button(7).whileTrue(
-      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem)
+      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR), elevatorSubsystem)
       .onlyWhile(() -> manipulatorController.povDown().getAsBoolean()));
     manipulatorController.povUp().onTrue(
       Commands.runOnce(() -> elevatorSubsystem.nextLevel(), elevatorSubsystem));
     manipulatorController.povDown().onTrue(
       Commands.runOnce(() -> elevatorSubsystem.previousLevel(), elevatorSubsystem));
+    manipulatorController.y().onTrue(
+      Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
     
+      /*
     manipulatorController.a().onTrue(
       Commands.runOnce(() -> elevatorSubsystem.playMusic(), elevatorSubsystem));
     manipulatorController.b().onTrue(
       Commands.runOnce(() -> elevatorSubsystem.stopMusic(), elevatorSubsystem));
+      */
   }
 
   /**

@@ -5,14 +5,23 @@
 package frc.robot.subsystems.elevator;
 
 import com.ctre.phoenix6.Orchestra;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.util.motor.MotorIOTalonFX;
 import frc.robot.util.motor.MotorIO.MotorIOInputs;
+import frc.robot.util.motor.MotorIOTalonFX;
+
+import static frc.robot.util.MotorUtils.*;
 
 /** Add your docs here. */
 public class ElevatorIOHardware implements ElevatorIO {
@@ -21,6 +30,12 @@ public class ElevatorIOHardware implements ElevatorIO {
 
     private final MotorIOInputs leftMotorInputs = new MotorIOInputs();
     private final MotorIOInputs rightMotorInputs = new MotorIOInputs();
+
+    private final SparkBaseConfig intakeConfig;
+    private final SparkMax intakeMotor;
+    private final RelativeEncoder intakeEncoder;
+
+    private PIDController intakeSpeedPID = new PIDController(0.015, 0, 0);
 
     private double elevatorSetpointHeightMeters;
 
@@ -31,6 +46,13 @@ public class ElevatorIOHardware implements ElevatorIO {
     public ElevatorIOHardware(MotorIOTalonFX leftMotor, MotorIOTalonFX rightMotor) {
         this.leftMotor = leftMotor;
         this.rightMotor = rightMotor;
+        this.intakeMotor = new SparkMax(ElevatorConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
+        this.intakeEncoder = intakeMotor.getEncoder();
+
+        this.intakeConfig = ElevatorConstants.INTAKE_BASE_CONFIG;
+        tryUntilOk(intakeMotor, 5, () ->
+            intakeMotor.configure(this.intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        tryUntilOk(intakeMotor, 5, () -> intakeEncoder.setPosition(0.0));
 
         elevatorSetpointHeightMeters = 0.0;
 
@@ -75,9 +97,10 @@ public class ElevatorIOHardware implements ElevatorIO {
         SmartDashboard.putNumber("Elevator Stator Current", leftMotorInputs.statorCurrentAmps);
         SmartDashboard.putNumber("Elevator Supply Current", leftMotorInputs.supplyCurrentAmps);
 
-        double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters);
+        double g_offset = elevatorSetpointHeightMeters > 20.0 ? 0.015 : -0.015;
+        double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters + 0.4);
         SmartDashboard.putNumber("Wanted Output", output);
-        output = MathUtil.clamp(output + 0.01, -0.21, 0.29);
+        output = MathUtil.clamp(output + g_offset, -0.21, 0.29);
         leftMotor.applyDutyCycle(output);
         rightMotor.applyDutyCycle(output);
     }
@@ -100,6 +123,21 @@ public class ElevatorIOHardware implements ElevatorIO {
         double newOutput = output;
         leftMotor.applyDutyCycle(newOutput);
         rightMotor.applyDutyCycle(newOutput);
+    }
+
+    @Override
+    public void applyIntakeVelocity(double velocity) {
+        double output = intakeSpeedPID.calculate(intakeEncoder.getVelocity(), velocity);
+        output = MathUtil.clamp(output, -1.0, 1.0);
+        intakeMotor.set(output);
+    }
+
+    @Override
+    public void applyIntakeDutyCycle(double output) {
+        if (Math.abs(output) < 0.1) {
+            output = 0;
+        }
+        intakeMotor.set(output);
     }
 
     @Override

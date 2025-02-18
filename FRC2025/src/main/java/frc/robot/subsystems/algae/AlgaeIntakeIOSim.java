@@ -84,7 +84,7 @@ public class AlgaeIntakeIOSim implements AlgaeIntakeIO {
     @Override
     public void setRollerVelocity(double velocity) {
         rollerClosedLoop = true;
-        rollerFFVolts = getGains().rollerKS() * Math.signum(velocity) + getGains().rollerKV() * velocity;
+        rollerFFVolts = 0.0;
         rollerController.setSetpoint(velocity);
     }
 
@@ -105,13 +105,4 @@ public class AlgaeIntakeIOSim implements AlgaeIntakeIO {
         angleAppliedVolts = volts;
         angleClosedLoop = false;
     }
-
-    @Override
-    public AlgaeIntakeGains getGains() {
-        return new AlgaeIntakeGains(
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-    }
-
-    @Override
-    public void setGains(AlgaeIntakeGains gains) {}
 }

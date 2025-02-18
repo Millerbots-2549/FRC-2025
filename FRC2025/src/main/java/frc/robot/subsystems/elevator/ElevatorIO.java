@@ -26,6 +26,10 @@ public interface ElevatorIO {
 
     public default void applyDutyCycle(double output) {};
 
+    public default void applyIntakeVelocity(double velocity) {};
+
+    public default void applyIntakeDutyCycle(double output) {};
+
     public default void playMusic() {};
 
     public default void stopMusic() {};

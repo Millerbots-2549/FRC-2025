@@ -74,7 +74,7 @@ public class SwerveModule {
 
     public void apply(SwerveModuleState state) {
         state.optimize(getAngle());
-        //state.cosineScale(inputs.turnPosition);
+        state.cosineScale(inputs.turnPosition);
 
         io.setDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
         io.setTurnPosition(state.angle);

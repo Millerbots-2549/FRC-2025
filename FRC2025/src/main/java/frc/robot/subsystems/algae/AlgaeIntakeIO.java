@@ -80,15 +80,4 @@ public interface AlgaeIntakeIO {
      * @param volts The voltage to run the motor at
      */
     public default void setAngleOpenLoop(double volts) {};
-
-    public default AlgaeIntakeGains getGains() { return new AlgaeIntakeGains(0, 0, 0, 0, 0, 0, 0, 0, 0); };
-
-    public default void setGains(AlgaeIntakeGains gains) {};
-
-    /**
-     * A record containing PID & SVA values for the roller motor as well as PID values for the angle motor.
-     */
-    public record AlgaeIntakeGains(
-        double rollerKP, double rollerKI, double rollerKD, double rollerKS, double rollerKV, double rollerKA,
-        double angleKP, double angleKI, double angleKD) {}
 }

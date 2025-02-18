@@ -116,7 +116,7 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final Distance WHEEL_RADIUS = Inches.of(2.167);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 4.69;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 6.0;
     public static final double MAX_ACCELERATION = 5.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
@@ -201,7 +201,7 @@ public final class Constants {
     public static final double TURN_KV = 1.91;
     public static final double TURN_KA = 0.0;
 
-    public static final double DRIVE_KP = 0.1;
+    public static final double DRIVE_KP = 0.2;
     public static final double DRIVE_KI = 0.0;
     public static final double DRIVE_KD = 0.0;
     public static final double DRIVE_KS = 0.0;
@@ -262,7 +262,7 @@ public final class Constants {
         .withSteerMotorClosedLoopOutput(TURN_CLOSED_LOOP_OUTPUT)
         .withDriveMotorClosedLoopOutput(DRIVE_CLOSED_LOOP_OUTPUT)
         .withSlipCurrent(SLIP_CURRENT)
-        .withSpeedAt12Volts(MetersPerSecond.of(4.69))
+        .withSpeedAt12Volts(MetersPerSecond.of(6.0))
         .withDriveMotorType(DRIVE_MOTOR_TYPE)
         .withSteerMotorType(TURN_MOTOR_TYPE)
         .withFeedbackSource(STEER_FEEDBACK_TYPE)
@@ -509,6 +509,7 @@ public final class Constants {
 
     public static final int LEFT_MOTOR_ID = 2;
     public static final int RIGHT_MOTOR_ID = 3;
+    public static final int INTAKE_MOTOR_ID = 20;
     public static final double CURRENT_LIMIT = 80;
     public static final double MOTOR_TO_HEIGHT_RATIO = 1;
     public static final double CURRENT_UPPER_BOUND = 100;
@@ -527,6 +528,29 @@ public final class Constants {
           .withTorqueClosedLoopRampPeriod(0.02)
           .withVoltageClosedLoopRampPeriod(0.02));
     public static final TalonFXConfiguration RIGHT_CONFIG = LEFT_CONFIG;
+    public static final SparkBaseConfig INTAKE_BASE_CONFIG = new SparkMaxConfig()
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(30)
+        .voltageCompensation(12.0)
+        .apply(
+            new EncoderConfig()
+                .positionConversionFactor(1.0)
+                .velocityConversionFactor(1.0)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2))
+        .apply(
+            new ClosedLoopConfig()
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .pidf(0.0, 0.0, 0.0, 0.0))
+        .apply(
+            new SignalsConfig()
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs((int)(1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20));
   }
 
   public static class FieldConstants {
