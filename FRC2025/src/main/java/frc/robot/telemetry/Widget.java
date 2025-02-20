@@ -4,11 +4,7 @@
 
 package frc.robot.telemetry;
 
-import frc.robot.telemetry.annotations.DashboardOutput;
-
 /** Add your docs here. */
-public class ShuffleboardManager {
-    void foo(Object obj) {
-        // This is a test of the ShuffleboardManager class
-    }
+public class Widget {
+    
 }

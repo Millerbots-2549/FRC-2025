@@ -12,6 +12,10 @@ import java.lang.annotation.Target;
 /** Add your docs here. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface AutoDashboardOutput {
+public @interface DashboardTunable {
     public String key() default "";
+
+    public double min() default 0.0;
+
+    public double max() default 1.0;
 }

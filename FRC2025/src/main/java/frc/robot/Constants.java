@@ -17,6 +17,7 @@ import static frc.robot.Constants.DriveConstants.DRIVE_CURRENT_LIMIT;
 import static frc.robot.Constants.DriveConstants.DRIVE_GEAR_RATIO;
 import static frc.robot.Constants.DriveConstants.INVERT_LEFT;
 import static frc.robot.Constants.DriveConstants.INVERT_RIGHT;
+import static frc.robot.Constants.DriveConstants.MAX_SPEED_METERS_PER_SECOND;
 import static frc.robot.Constants.DriveConstants.TRACK_WIDTH;
 import static frc.robot.Constants.DriveConstants.TURN_CURRENT_LIMIT;
 import static frc.robot.Constants.DriveConstants.TURN_GEAR_RATIO;
@@ -262,7 +263,7 @@ public final class Constants {
         .withSteerMotorClosedLoopOutput(TURN_CLOSED_LOOP_OUTPUT)
         .withDriveMotorClosedLoopOutput(DRIVE_CLOSED_LOOP_OUTPUT)
         .withSlipCurrent(SLIP_CURRENT)
-        .withSpeedAt12Volts(MetersPerSecond.of(6.0))
+        .withSpeedAt12Volts(MetersPerSecond.of(MAX_SPEED_METERS_PER_SECOND))
         .withDriveMotorType(DRIVE_MOTOR_TYPE)
         .withSteerMotorType(TURN_MOTOR_TYPE)
         .withFeedbackSource(STEER_FEEDBACK_TYPE)
