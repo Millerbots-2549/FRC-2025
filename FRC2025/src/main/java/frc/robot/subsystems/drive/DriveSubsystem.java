@@ -189,9 +189,9 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         double correction = 0.0;
         if(Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond) > 0.1) {
             //correction = correctionPID.calculate(getRotation().getRadians(), desiredHeading.getRadians());
-            correction = -0.2;
+            //correction = -0.2;
         }
-        correction = MathUtil.clamp(correction, -0.3, 0.3);
+        //correction = MathUtil.clamp(correction, -0.3, 0.3);
 
         ChassisSpeeds speeds = new ChassisSpeeds(
             chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,

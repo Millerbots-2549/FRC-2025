@@ -22,18 +22,27 @@ import frc.robot.subsystems.drive.DriveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class JoystickDrive extends Command {
-  private final DoubleSupplier driverXInputSupplier, driverYInputSupplier, driverRotationalInputSupplier;
+  private final DoubleSupplier driverXInputSupplier, driverYInputSupplier, driverRotationalInputSupplier,
+    speedMultiplierSupplier;
   private final DriveSubsystem driveSubsystem;
 
   private final Timer previousRotationalInputTimer;
   private final PIDController chassisRotationController;
+  @SuppressWarnings("unused")
   private Rotation2d rotationMaintenanceSetpoint;
 
   /** Creates a new JoystickDrive. */
-  public JoystickDrive(DriveSubsystem driveSubsystem, DoubleSupplier driverXInputSupplier, DoubleSupplier driverYInputSupplier, DoubleSupplier driverRotationalInputSupplier) {
+  public JoystickDrive(
+      DriveSubsystem driveSubsystem,
+      DoubleSupplier driverXInputSupplier,
+      DoubleSupplier driverYInputSupplier,
+      DoubleSupplier driverRotationalInputSupplier,
+      DoubleSupplier speedMultiplierSupplier) {
     this.driverXInputSupplier = driverXInputSupplier;
     this.driverYInputSupplier = driverYInputSupplier;
     this.driverRotationalInputSupplier = driverRotationalInputSupplier;
+    this.speedMultiplierSupplier = speedMultiplierSupplier;
+    
     this.previousRotationalInputTimer = new Timer();
     this.driveSubsystem = driveSubsystem;
     chassisRotationController = new PIDController(0.5, 0, 0); // fill your pid
@@ -51,20 +60,26 @@ public class JoystickDrive extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    Translation2d linearVelocity = getVelocityFromJoysticks(driverXInputSupplier.getAsDouble(), driverYInputSupplier.getAsDouble());
+    Translation2d linearVelocity = getVelocityFromJoysticks(
+      driverXInputSupplier.getAsDouble() * speedMultiplierSupplier.getAsDouble(),
+      driverYInputSupplier.getAsDouble() * speedMultiplierSupplier.getAsDouble());
 
-    double rot = MathUtil.applyDeadband(driverRotationalInputSupplier.getAsDouble(), OperatorConstants.DEADBAND);
+    double rot = MathUtil.applyDeadband(
+      driverRotationalInputSupplier.getAsDouble() * speedMultiplierSupplier.getAsDouble(),
+      OperatorConstants.DEADBAND);
 
     rot = Math.copySign(rot * rot, rot);
 
     if (rot != 0) previousRotationalInputTimer.reset();
 
     /* no rotation input for 0.5 seconds, maintain current rotation */
+    /*
     if (previousRotationalInputTimer.hasElapsed(0.15)) {
       rot = chassisRotationController.calculate(
         driveSubsystem.getRotation().getRadians(),
         rotationMaintenanceSetpoint.getRadians());
     }
+        */
     /* there has been a rotation input within 0.5 seconds, reset rotation maintenance setpoint */
     else {
       rotationMaintenanceSetpoint = driveSubsystem.getRotation();

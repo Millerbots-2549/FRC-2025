@@ -76,8 +76,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static enum ElevatorLevel {
     FLOOR(0.1),
-    L1(4.62),
-    L2(5.41),
+    L1(4),
+    L2(6),
     L3(12.88),
     L4(23.8);
 

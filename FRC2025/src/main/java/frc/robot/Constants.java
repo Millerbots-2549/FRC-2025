@@ -17,6 +17,7 @@ import static frc.robot.Constants.DriveConstants.DRIVE_CURRENT_LIMIT;
 import static frc.robot.Constants.DriveConstants.DRIVE_GEAR_RATIO;
 import static frc.robot.Constants.DriveConstants.INVERT_LEFT;
 import static frc.robot.Constants.DriveConstants.INVERT_RIGHT;
+import static frc.robot.Constants.DriveConstants.MAX_SPEED_METERS_PER_SECOND;
 import static frc.robot.Constants.DriveConstants.TRACK_WIDTH;
 import static frc.robot.Constants.DriveConstants.TURN_CURRENT_LIMIT;
 import static frc.robot.Constants.DriveConstants.TURN_GEAR_RATIO;
@@ -84,6 +85,8 @@ import frc.robot.util.controllers.AsymmetricTrapezoidProfile.Constraints;
 public final class Constants {
   public static Mode currentMode = RobotBase.isSimulation() ? Mode.SIM : Mode.REAL;
 
+  public static final boolean useSingleController = false;
+
   //static { currentMode = Mode.REPLAY; }
 
   public static enum Mode {
@@ -99,6 +102,7 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
     public static final int kManipulatorControllerPort = 1;
+    public static final int kOperatorControllerPort = 3;
     public static final double DEADBAND = 0.1;
   }
 
@@ -116,9 +120,9 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final Distance WHEEL_RADIUS = Inches.of(2.167);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 6.0;
-    public static final double MAX_ACCELERATION = 5.0;
-    public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(720);
+    public static final double MAX_SPEED_METERS_PER_SECOND = 12.0;
+    public static final double MAX_ACCELERATION = 2.0;
+    public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(420);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
 
     public static final Translation2d[] MODULE_OFFSETS = {
@@ -131,8 +135,9 @@ public final class Constants {
     public static final int DRIVE_CURRENT_LIMIT = 40;
     public static final int TURN_CURRENT_LIMIT = 30;
 
-    public static final double DRIVE_GEAR_RATIO = 7.36363636;
-    public static final double TURN_GEAR_RATIO = 15.4285714;
+    public static final double DRIVE_GEAR_RATIO = 6.75;
+    //public static final double TURN_GEAR_RATIO = 15.4285714;
+    public static final double TURN_GEAR_RATIO = 150.0 / 7.0;
     public static final double COUPLE_RATIO = 3.18181818;
 
     public static final double ROBOT_MASS_KG = 74.0; // TODO: this
@@ -262,7 +267,7 @@ public final class Constants {
         .withSteerMotorClosedLoopOutput(TURN_CLOSED_LOOP_OUTPUT)
         .withDriveMotorClosedLoopOutput(DRIVE_CLOSED_LOOP_OUTPUT)
         .withSlipCurrent(SLIP_CURRENT)
-        .withSpeedAt12Volts(MetersPerSecond.of(6.0))
+        .withSpeedAt12Volts(MetersPerSecond.of(MAX_SPEED_METERS_PER_SECOND))
         .withDriveMotorType(DRIVE_MOTOR_TYPE)
         .withSteerMotorType(TURN_MOTOR_TYPE)
         .withFeedbackSource(STEER_FEEDBACK_TYPE)
@@ -551,6 +556,50 @@ public final class Constants {
                 .appliedOutputPeriodMs(20)
                 .busVoltagePeriodMs(20)
                 .outputCurrentPeriodMs(20));
+  }
+
+  public static class DescorerConstants {
+    public static final int WRIST_MOTOR_ID = 0;
+
+    public static final double WRIST_KP = 0.1;
+    public static final double WRIST_KI = 0.0;
+    public static final double WRIST_KD = 0.0;
+    public static final double WRIST_KS = 0.0;
+    public static final double WRIST_KG = 0.0;
+    public static final double WRIST_KV = 0.0;
+    public static final double WRIST_KA = 0.0;
+
+    public static final int WRIST_CURRENT_LIMIT = 30;
+
+    public static final double WRIST_POSITION_FACTOR = 1.0;
+    public static final double WRIST_VELOCITY_FACTOR = 1.0;
+
+    /* 
+    public static final SparkBaseConfig WRIST_BASE_CONFIG = new SparkMaxConfig()
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(WRIST_CURRENT_LIMIT)
+        .voltageCompensation(12.0)
+        .apply(
+            new EncoderConfig()
+                .positionConversionFactor(WRIST_POSITION_FACTOR)
+                .velocityConversionFactor(WRIST_VELOCITY_FACTOR)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2))
+        .apply(
+            new ClosedLoopConfig()
+                .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+                .positionWrappingEnabled(true)
+                .positionWrappingInputRange(ANGLE_PID_MIN_INPUT, ANGLE_PID_MAX_INPUT)
+                .pidf(ANGLE_KP, 0.0, ANGLE_KD, 0.0))
+        .apply(
+            new SignalsConfig()
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs((int)(1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20));*/
   }
 
   public static class FieldConstants {

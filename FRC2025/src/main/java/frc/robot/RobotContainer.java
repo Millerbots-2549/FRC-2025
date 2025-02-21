@@ -5,6 +5,9 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Meters;
+import static frc.robot.oi.OI.Button.*;
+import static frc.robot.oi.OI.Bumper.*;
+import static frc.robot.oi.OI.Trigger.*;
 
 import org.ironmaple.simulation.IntakeSimulation;
 import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
@@ -41,6 +44,9 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.drive.JoystickDrive;
+import frc.robot.oi.OI;
+import frc.robot.oi.OperatorControllerOI;
+import frc.robot.oi.SeperateControllerOI;
 import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
@@ -82,16 +88,21 @@ public class RobotContainer {
   private SwerveDriveSimulation driveSimulation = null;
   private IntakeSimulation intakeSimulation = null;
 
-  private final CommandXboxController driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
-  private final CommandXboxController manipulatorController =
-      new CommandXboxController(OperatorConstants.kManipulatorControllerPort);
+  private final OI oi;
 
   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     questNav = new QuestNav();
+
+    if (Constants.useSingleController) {
+      oi = new OperatorControllerOI(OperatorConstants.kOperatorControllerPort);
+    } else {
+      oi = new SeperateControllerOI(
+        OperatorConstants.kDriverControllerPort,
+        OperatorConstants.kManipulatorControllerPort);
+    }
 
     switch (Constants.currentMode) {
       case REAL:
@@ -182,6 +193,13 @@ public class RobotContainer {
     configureBindings();
   }
 
+  private double getDriveSpeedMultiplier(double leftTriggerAxis) {
+    double axis = 1 - leftTriggerAxis;
+    axis *= 0.7;
+    axis += 0.3;
+    return axis;
+  }
+
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -192,11 +210,13 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    
     driveSubsystem.setDefaultCommand(
       new JoystickDrive(driveSubsystem,
-        () -> -driverController.getLeftY(),
-        () -> -driverController.getLeftX(),
-        () -> -driverController.getRightX()));
+        () -> -oi.getDriveLeftY(),
+        () -> -oi.getDriveLeftX(),
+        () -> -oi.getDriveRightX(),
+        () -> getDriveSpeedMultiplier(oi.getDriveTriggerAxis(LT))));
     
          
 
@@ -207,7 +227,7 @@ public class RobotContainer {
     elevatorSubsystem.setDefaultCommand(
       Commands.run(() -> {
         elevatorSubsystem.runIntake(0.0);
-        elevatorSubsystem.setElevatorVelocity(() -> MathUtil.applyDeadband(manipulatorController.getLeftY(), 0.1) * 0.1);
+        elevatorSubsystem.setElevatorVelocity(() -> MathUtil.applyDeadband(-oi.getManipulatorLeftY(), 0.1) * 0.1);
       }, elevatorSubsystem)
     );
     
@@ -217,9 +237,9 @@ public class RobotContainer {
             ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? Rotation2d.kPi : Rotation2d.kZero)
             : Rotation2d.kZero);
 
-    driverController.y().onTrue(Commands.runOnce(resetGyro, driveSubsystem)
+    oi.onDriveButtonPressed(Y, Commands.runOnce(resetGyro, driveSubsystem)
       .ignoringDisable(true));
-    
+
     //driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
     
     /*
@@ -243,31 +263,29 @@ public class RobotContainer {
     driverController.leftBumper().onTrue(
       new IntakeAlgae(algaeIntakeSubsystem).onlyWhile(() -> driverController.leftBumper().getAsBoolean()));
       */
-    manipulatorController.leftBumper().whileTrue(
-      Commands.run(() -> algaeIntakeSubsystem.apply(1.0, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem)
-      .onlyWhile(() -> manipulatorController.leftBumper().getAsBoolean()));
-    manipulatorController.rightBumper().whileTrue(
-      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem)
-      .onlyWhile(() -> manipulatorController.rightBumper().getAsBoolean()));
+    oi.whileManipulatorBumperPressed(LB,
+      Commands.run(() -> algaeIntakeSubsystem.apply(1.0, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
+    oi.whileManipulatorBumperPressed(LB,
+      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem));
 
-    manipulatorController.leftTrigger().whileTrue(
-      Commands.run(() -> elevatorSubsystem.runIntake(0.5), elevatorSubsystem)
-      .onlyWhile(() -> manipulatorController.leftTrigger().getAsBoolean()));
-    manipulatorController.rightTrigger().whileTrue(
-      Commands.run(() -> elevatorSubsystem.runIntake(-0.5), elevatorSubsystem)
-      .onlyWhile(() -> manipulatorController.rightTrigger().getAsBoolean()));
+    oi.whileManipulatorTriggerPressed(LT,
+      Commands.run(() -> elevatorSubsystem.runIntake(0.5), elevatorSubsystem));
+    oi.whileManipulatorTriggerPressed(RT,
+      Commands.run(() -> elevatorSubsystem.runIntake(-0.5), elevatorSubsystem));
     
-    manipulatorController.button(8).whileTrue(
-      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem)
-      .onlyWhile(() -> manipulatorController.povUp().getAsBoolean()));
-    manipulatorController.button(7).whileTrue(
-      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR), elevatorSubsystem)
-      .onlyWhile(() -> manipulatorController.povDown().getAsBoolean()));
-    manipulatorController.povUp().onTrue(
+    oi.onManipulatorButtonPressed(START,
+      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem));
+    oi.onManipulatorButtonPressed(BACK,
+      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem));
+    oi.onManipulatorButtonPressed(B,
+      Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L3), elevatorSubsystem));
+    oi.onManipulatorButtonPressed(X,
+      Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L2), elevatorSubsystem));
+    oi.onManipulatorButtonPressed(POV_UP,
       Commands.runOnce(() -> elevatorSubsystem.nextLevel(), elevatorSubsystem));
-    manipulatorController.povDown().onTrue(
+    oi.onManipulatorButtonPressed(POV_DOWN,
       Commands.runOnce(() -> elevatorSubsystem.previousLevel(), elevatorSubsystem));
-    manipulatorController.y().onTrue(
+    oi.onManipulatorButtonPressed(Y,
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
     
       /*
