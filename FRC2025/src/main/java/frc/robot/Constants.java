@@ -87,6 +87,8 @@ public final class Constants {
 
   public static final boolean useSingleController = false;
 
+  public static final boolean enableDrive = false;
+
   //static { currentMode = Mode.REPLAY; }
 
   public static enum Mode {

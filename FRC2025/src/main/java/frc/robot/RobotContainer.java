@@ -210,13 +210,14 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    
-    driveSubsystem.setDefaultCommand(
-      new JoystickDrive(driveSubsystem,
-        () -> -oi.getDriveLeftY(),
-        () -> -oi.getDriveLeftX(),
-        () -> -oi.getDriveRightX(),
-        () -> getDriveSpeedMultiplier(oi.getDriveTriggerAxis(LT))));
+    if (Constants.enableDrive) {
+      driveSubsystem.setDefaultCommand(
+        new JoystickDrive(driveSubsystem,
+          () -> -oi.getDriveLeftY(),
+          () -> -oi.getDriveLeftX(),
+          () -> -oi.getDriveRightX(),
+          () -> getDriveSpeedMultiplier(oi.getDriveTriggerAxis(LT))));
+    }
     
          
 
