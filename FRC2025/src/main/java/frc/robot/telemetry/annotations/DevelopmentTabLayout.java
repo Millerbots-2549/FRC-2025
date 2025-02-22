@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface DevelopmentTabLayout {
-    public String key() default "";
+    public String key() default "DEFAULT";
 
-    public boolean useAutomaticLayout() default true;
+    public String layoutType() default "Grid";
 }
