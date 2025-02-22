@@ -569,12 +569,17 @@ public final class Constants {
     public static final double WRIST_KV = 0.0;
     public static final double WRIST_KA = 0.0;
 
+    public static final double WRIST_MAX_VELOCITY = 100.0;
+    public static final double WRIST_MAX_ACCEL = 100.0;
+
     public static final int WRIST_CURRENT_LIMIT = 30;
 
     public static final double WRIST_POSITION_FACTOR = 1.0;
     public static final double WRIST_VELOCITY_FACTOR = 1.0;
 
-    /* 
+    public static final double WRIST_PID_MIN_INPUT = 0.0;
+    public static final double WRIST_PID_MAX_INPUT = MathConstants.TAU;
+
     public static final SparkBaseConfig WRIST_BASE_CONFIG = new SparkMaxConfig()
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(WRIST_CURRENT_LIMIT)
@@ -589,8 +594,8 @@ public final class Constants {
             new ClosedLoopConfig()
                 .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
                 .positionWrappingEnabled(true)
-                .positionWrappingInputRange(ANGLE_PID_MIN_INPUT, ANGLE_PID_MAX_INPUT)
-                .pidf(ANGLE_KP, 0.0, ANGLE_KD, 0.0))
+                .positionWrappingInputRange(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT)
+                .pidf(WRIST_KP, 0.0, WRIST_KD, 0.0))
         .apply(
             new SignalsConfig()
                 .primaryEncoderPositionAlwaysOn(true)
@@ -599,7 +604,7 @@ public final class Constants {
                 .primaryEncoderVelocityPeriodMs(20)
                 .appliedOutputPeriodMs(20)
                 .busVoltagePeriodMs(20)
-                .outputCurrentPeriodMs(20));*/
+                .outputCurrentPeriodMs(20));
   }
 
   public static class FieldConstants {

@@ -24,9 +24,7 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -96,9 +94,6 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         this.modules[1] = new SwerveModule(frIO, 1, ModuleConstants.FRONT_RIGHT_CONSTANTS);
         this.modules[2] = new SwerveModule(blIO, 2, ModuleConstants.BACK_LEFT_CONSTANTS);
         this.modules[3] = new SwerveModule(brIO, 3, ModuleConstants.BACK_RIGHT_CONSTANTS);
-
-        correctionPID.setPID(15, 0.0, 0.0);
-        correctionPID.setTolerance(0.1);
 
         HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
@@ -181,17 +176,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
     }
 
-    SwerveModulePosition[] tempPositions = new SwerveModulePosition[4];
-
-    PIDController correctionPID = new PIDController(15.0, 0.0, 0.0);
-
     public void runVelocity(ChassisSpeeds chassisSpeeds) {
-        double correction = 0.0;
-        if(Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond) > 0.1) {
-            //correction = correctionPID.calculate(getRotation().getRadians(), desiredHeading.getRadians());
-            //correction = -0.2;
-        }
-        //correction = MathUtil.clamp(correction, -0.3, 0.3);
 
         ChassisSpeeds speeds = new ChassisSpeeds(
             chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
