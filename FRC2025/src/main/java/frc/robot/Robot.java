@@ -93,6 +93,8 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
 
     Threads.setCurrentThreadPriority(false, 10);
+
+    robotContainer.updateShuffleboard();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */

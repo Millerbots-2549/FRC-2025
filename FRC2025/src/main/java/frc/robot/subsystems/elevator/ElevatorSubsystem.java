@@ -4,21 +4,35 @@
 
 package frc.robot.subsystems.elevator;
 
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.oi.OI;
+import frc.robot.util.DashboardPublisher;
 
-public class ElevatorSubsystem extends SubsystemBase {
+public class ElevatorSubsystem extends SubsystemBase implements DashboardPublisher {
+  private final OI oi;
   private final ElevatorIO io;
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
   private int currentLevel = 0;
   private double currentPositionSetpoint = 0;
+  private Timer isDownTimer = new Timer();
 
   /** Creates a new ElevatorSubsystem. */
-  public ElevatorSubsystem(ElevatorIO io) {
+  public ElevatorSubsystem(OI oi, ElevatorIO io) {
+    this.oi = oi;
     this.io = io;
+
+    isDownTimer.start();
   }
 
   @Override
@@ -29,6 +43,17 @@ public class ElevatorSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Elevator Velocity", inputs.velocityMetersPerSecond);
     SmartDashboard.putBoolean("Elevator Connected", inputs.elevatorConnected);
     SmartDashboard.putBoolean("Elevator Out of Bounds", inputs.outOfBounds);
+
+    if (currentLevel == 0) {
+      if (isDownTimer.get() < 0.5) {
+        oi.setDriveRumble(RumbleType.kBothRumble, 0.5);
+      } else {
+        oi.setDriveRumble(RumbleType.kBothRumble, 0.0);
+      }
+    } else {
+      isDownTimer.reset();
+      oi.setDriveRumble(RumbleType.kBothRumble, 0.0);
+    }
   }
 
   public void setElevatorPosition(double position) {
@@ -79,11 +104,52 @@ public class ElevatorSubsystem extends SubsystemBase {
     L1(4),
     L2(6),
     L3(12.88),
-    L4(23.8);
+    L4(23.85);
 
     public final double height;
     ElevatorLevel(double height) {
       this.height = height;
     }
+  }
+
+  private ShuffleboardTab tab;
+
+  private GenericEntry connectedEntry, velocityEntry, heightEntry, setpointEntry;
+
+  @Override
+  public void initTab() {
+    tab = Shuffleboard.getTab("Elevator");
+
+    connectedEntry = tab.add("Connected", false)
+      .withWidget(BuiltInWidgets.kBooleanBox)
+      .withPosition(0, 0)
+      .withSize(2, 2)
+      .getEntry();
+    velocityEntry = tab.add("Velocity", inputs.velocityMetersPerSecond)
+      .withWidget(BuiltInWidgets.kDial)
+      .withPosition(0, 2)
+      .withSize(2, 2)
+      .withProperties(Map.of("min", -10.0, "max", 10.0))
+      .getEntry();
+    heightEntry = tab.add("Height", inputs.heightMeters)
+      .withWidget(BuiltInWidgets.kNumberBar)
+      .withPosition(0, 4)
+      .withSize(2, 1)
+      .withProperties(Map.of("min", 0.0, "max", 30, "center", 15))
+      .getEntry();
+    setpointEntry = tab.add("Setpoint", inputs.heightSetpointMeters)
+      .withWidget(BuiltInWidgets.kNumberBar)
+      .withPosition(0, 5)
+      .withSize(2, 1)
+      .withProperties(Map.of("min", 0.0, "max", 30, "center", 15))
+      .getEntry();
+  }
+
+  @Override
+  public void updateTab() {
+    connectedEntry.setBoolean(inputs.elevatorConnected);
+    velocityEntry.setDouble(inputs.velocityMetersPerSecond);
+    heightEntry.setDouble(inputs.heightMeters);
+    setpointEntry.setDouble(inputs.heightSetpointMeters);
   }
 }

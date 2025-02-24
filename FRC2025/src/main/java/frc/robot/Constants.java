@@ -87,7 +87,7 @@ public final class Constants {
 
   public static final boolean useSingleController = false;
 
-  public static final boolean enableDrive = false;
+  public static final boolean enableDrive = true;
 
   //static { currentMode = Mode.REPLAY; }
 
@@ -401,7 +401,7 @@ public final class Constants {
     public static final double ROLLER_SIM_KV = 0.0;
 
     public static final double ANGLE_KP = 0.09;
-    public static final double ANGLE_KD = 0.01;
+    public static final double ANGLE_KD = 0.00;
     public static final double ANGLE_KS = 0.23;
     public static final double ANGLE_KG = 0.05;
     public static final double ANGLE_KV = 1.15;

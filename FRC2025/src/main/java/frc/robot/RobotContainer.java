@@ -66,6 +66,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
+import frc.robot.util.DriverDash;
 import frc.robot.util.SimulationUtils;
 import frc.robot.util.motor.MotorIOTalonFX;
 import frc.robot.util.vision.QuestNav;
@@ -91,6 +92,8 @@ public class RobotContainer {
   private final OI oi;
 
   private final LoggedDashboardChooser<Command> autoChooser;
+
+  private final DriverDash driverDashboard = new DriverDash();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -119,7 +122,7 @@ public class RobotContainer {
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
 
-        elevatorSubsystem = new ElevatorSubsystem(
+        elevatorSubsystem = new ElevatorSubsystem(oi,
           new ElevatorIOHardware(
             new MotorIOTalonFX(ElevatorConstants.LEFT_MOTOR_ID, ElevatorConstants.LEFT_CONFIG),
             new MotorIOTalonFX(ElevatorConstants.RIGHT_MOTOR_ID, ElevatorConstants.RIGHT_CONFIG)));
@@ -155,7 +158,7 @@ public class RobotContainer {
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOSim());
 
-        elevatorSubsystem = new ElevatorSubsystem(new ElevatorIO() { });
+        elevatorSubsystem = new ElevatorSubsystem(oi, new ElevatorIO() { });
         break;
     
       default:
@@ -170,7 +173,7 @@ public class RobotContainer {
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(new AlgaeIntakeIO() {});
 
-        elevatorSubsystem = new ElevatorSubsystem(new ElevatorIO() { });
+        elevatorSubsystem = new ElevatorSubsystem(oi, new ElevatorIO() { });
         break;
     }
 
@@ -191,6 +194,10 @@ public class RobotContainer {
 
     // Configure the trigger bindings
     configureBindings();
+
+    elevatorSubsystem.initTab();
+
+    driverDashboard.initTab();
   }
 
   private double getDriveSpeedMultiplier(double leftTriggerAxis) {
@@ -220,7 +227,6 @@ public class RobotContainer {
     }
     
          
-
     algaeIntakeSubsystem.setDefaultCommand(
       Commands.run(() -> algaeIntakeSubsystem.apply(0, AlgaeIntakeConstants.INTAKE_ANGLE_UP), algaeIntakeSubsystem)
     );
@@ -257,16 +263,9 @@ public class RobotContainer {
       new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
       */
 
-    //manipulatorController.rightBumper().whileTrue(
-    //  Commands.run(() -> algaeIntakeSubsystem.apply(0.4, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
-
-    /* 
-    driverController.leftBumper().onTrue(
-      new IntakeAlgae(algaeIntakeSubsystem).onlyWhile(() -> driverController.leftBumper().getAsBoolean()));
-      */
     oi.whileManipulatorBumperPressed(LB,
       Commands.run(() -> algaeIntakeSubsystem.apply(1.0, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
-    oi.whileManipulatorBumperPressed(LB,
+    oi.whileManipulatorBumperPressed(RB,
       Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem));
 
     oi.whileManipulatorTriggerPressed(LT,
@@ -277,7 +276,7 @@ public class RobotContainer {
     oi.onManipulatorButtonPressed(START,
       Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem));
     oi.onManipulatorButtonPressed(BACK,
-      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem));
+      Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR), elevatorSubsystem));
     oi.onManipulatorButtonPressed(B,
       Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L3), elevatorSubsystem));
     oi.onManipulatorButtonPressed(X,
@@ -295,6 +294,12 @@ public class RobotContainer {
     manipulatorController.b().onTrue(
       Commands.runOnce(() -> elevatorSubsystem.stopMusic(), elevatorSubsystem));
       */
+  }
+
+  public void updateShuffleboard() {
+    elevatorSubsystem.updateTab();
+
+    driverDashboard.updateTab();
   }
 
   /**
