@@ -53,7 +53,7 @@ public class DescorerIOHardware implements DescorerIO {
 
     private final Debouncer wristConnectedDebounce = new Debouncer(0.5);
 
-    public DescorerIOHardware(SparkMaxConfig wristConfig, SparkMaxConfig rollerConfig) {
+    public DescorerIOHardware(SparkBaseConfig wristConfig, SparkBaseConfig rollerConfig) {
         this.wristMotor = new SparkMax(WRIST_MOTOR_ID, MotorType.kBrushless);
         this.rollerMotor = new SparkMax(ROLLER_MOTOR_ID, MotorType.kBrushless);
 

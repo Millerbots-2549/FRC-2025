@@ -4,14 +4,31 @@
 
 package frc.robot.subsystems.descorer;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DescorerSubsystem extends SubsystemBase {
+  private DescorerIO io;
+  private DescorerIOInputsAutoLogged inputs = new DescorerIOInputsAutoLogged();
+
   /** Creates a new DescorerSubsystem. */
-  public DescorerSubsystem() {}
+  public DescorerSubsystem(DescorerIO io) {
+    this.io = io;
+  }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    io.updateInputs(inputs);
+
+    SmartDashboard.putNumber("Descorer Wrist Angle", inputs.wristPosition.getRadians());
+  }
+
+  public void runRoller(double velocity) {
+    io.applyRollerVelocity(velocity);
+  }
+
+  public void applyWristSetpoint(Rotation2d setpoint) {
+    io.applyWristSetpoint(setpoint);
   }
 }

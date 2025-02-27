@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AlgaeIntakeConstants;
+import frc.robot.Constants.DescorerConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
@@ -51,6 +52,9 @@ import frc.robot.subsystems.algae.AlgaeIntakeIO;
 import frc.robot.subsystems.algae.AlgaeIntakeIOHardware;
 import frc.robot.subsystems.algae.AlgaeIntakeIOSim;
 import frc.robot.subsystems.algae.AlgaeIntakeSubsystem;
+import frc.robot.subsystems.descorer.DescorerIO;
+import frc.robot.subsystems.descorer.DescorerIOHardware;
+import frc.robot.subsystems.descorer.DescorerSubsystem;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
@@ -86,6 +90,7 @@ public class RobotContainer {
   private final VisionSubsystem visionSubsystem;
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
   private final ElevatorSubsystem elevatorSubsystem;
+  private final DescorerSubsystem descorerSubsystem;
 
   private SwerveDriveSimulation driveSimulation = null;
   private IntakeSimulation intakeSimulation = null;
@@ -127,6 +132,9 @@ public class RobotContainer {
           new ElevatorIOHardware(
             new MotorIOTalonFX(ElevatorConstants.LEFT_MOTOR_ID, ElevatorConstants.LEFT_CONFIG),
             new MotorIOTalonFX(ElevatorConstants.RIGHT_MOTOR_ID, ElevatorConstants.RIGHT_CONFIG)));
+
+        descorerSubsystem = new DescorerSubsystem(
+          new DescorerIOHardware(DescorerConstants.WRIST_BASE_CONFIG, DescorerConstants.ROLLER_BASE_CONFIG));
         break;
 
       case SIM:
@@ -160,6 +168,8 @@ public class RobotContainer {
           new AlgaeIntakeIOSim());
 
         elevatorSubsystem = new ElevatorSubsystem(oi, new ElevatorIO() { });
+
+        descorerSubsystem = new DescorerSubsystem(new DescorerIO() { });
         break;
     
       default:
@@ -175,6 +185,8 @@ public class RobotContainer {
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(new AlgaeIntakeIO() {});
 
         elevatorSubsystem = new ElevatorSubsystem(oi, new ElevatorIO() { });
+
+        descorerSubsystem = new DescorerSubsystem(new DescorerIO() { });
         break;
     }
 
@@ -239,6 +251,12 @@ public class RobotContainer {
         elevatorSubsystem.setElevatorVelocity(() -> MathUtil.applyDeadband(-oi.getManipulatorLeftY(), 0.1) * 0.1);
       }, elevatorSubsystem)
     );
+
+    descorerSubsystem.setDefaultCommand(
+      Commands.run(() -> {
+        descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_OFF_POSITION);
+        descorerSubsystem.runRoller(0);
+      }, descorerSubsystem));
     
     final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
         ? () -> {}
@@ -273,6 +291,12 @@ public class RobotContainer {
       Commands.runOnce(() -> elevatorSubsystem.previousLevel(), elevatorSubsystem));
     oi.onManipulatorButtonPressed(Y,
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
+
+    oi.onManipulatorButtonPressed(A,
+      Commands.run(() -> {
+        descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_ON_POSITION);
+        descorerSubsystem.runRoller(0);
+      }, descorerSubsystem));
   }
 
   public void updateShuffleboard() {

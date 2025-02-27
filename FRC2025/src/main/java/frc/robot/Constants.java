@@ -564,7 +564,10 @@ public final class Constants {
     public static final int WRIST_MOTOR_ID = 50;
     public static final int ROLLER_MOTOR_ID = 50;
 
-    public static final double WRIST_KP = 0.1;
+    public static final Rotation2d DESCORER_OFF_POSITION = Rotation2d.fromRadians(0);
+    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(0);
+
+    public static final double WRIST_KP = 0.0;
     public static final double WRIST_KI = 0.0;
     public static final double WRIST_KD = 0.0;
     public static final double WRIST_KS = 0.0;
@@ -572,18 +575,18 @@ public final class Constants {
     public static final double WRIST_KV = 0.0;
     public static final double WRIST_KA = 0.0;
 
-    public static final double ROLLER_KP = 0.1;
+    public static final double ROLLER_KP = 0.0;
     public static final double ROLLER_KI = 0.0;
     public static final double ROLLER_KD = 0.0;
     public static final double ROLLER_KS = 0.0;
     public static final double ROLLER_KV = 0.0;
     public static final double ROLLER_KA = 0.0;
 
-    public static final double WRIST_MAX_VELOCITY = 100.0;
-    public static final double WRIST_MAX_ACCEL = 100.0;
+    public static final double WRIST_MAX_VELOCITY = 10.0;
+    public static final double WRIST_MAX_ACCEL = 10.0;
 
-    public static final double ROLLER_MAX_VELOCITY = 100.0;
-    public static final double ROLLER_MAX_ACCEL = 100.0;
+    public static final double ROLLER_MAX_VELOCITY = 10.0;
+    public static final double ROLLER_MAX_ACCEL = 10.0;
 
     public static final int WRIST_CURRENT_LIMIT = 30;
     public static final int ROLLER_CURRENT_LIMIT = 15;
