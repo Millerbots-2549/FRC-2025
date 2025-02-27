@@ -24,6 +24,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.util.Units;
 import frc.robot.util.motor.ArmFeedForward;
 
 /** Add your docs here. */
@@ -61,10 +62,10 @@ public class DescorerIOHardware implements DescorerIO {
     @Override
     public void updateInputs(DescorerIOInputs inputs) {
         sparkStickyFault = false;
-        ifOk(wristMotor, wristEncoder::getVelocity, (value) -> inputs.wristVelocity = value);
+        ifOk(wristMotor, wristEncoder::getVelocity, (value) -> inputs.wristVelocityRadPerSec = Units.rotationsToRadians(value));
         ifOk(wristMotor,
             wristEncoder::getPosition,
-            (value) -> inputs.wristPosition = new Rotation2d(value));
+            (value) -> inputs.wristPosition = Rotation2d.fromRotations(value));
         ifOk(wristMotor,
             new DoubleSupplier[] {wristMotor::getAppliedOutput, wristMotor::getBusVoltage},
             (values) -> inputs.wristAppliedVolts = values[0] * values[1]);
@@ -75,7 +76,7 @@ public class DescorerIOHardware implements DescorerIO {
     public void periodic() {
         double absolutePosition =
             MathUtil.inputModulus(
-                wristEncoder.getPosition(),
+                Units.rotationsToRadians(wristEncoder.getPosition()),
                 WRIST_PID_MIN_INPUT,
                 WRIST_PID_MAX_INPUT
             );
@@ -87,13 +88,18 @@ public class DescorerIOHardware implements DescorerIO {
             );
         double output = wristPositionController.calculate(absolutePosition, setpointPosition);
         output += wristFeedForward.calculate(setpointPosition, 0.0);
+        wristMotor.set(MathUtil.clamp(output, -0.25, 0.25));
     }
 
     @Override
-    public void applyOpenLoop(double output) {};
+    public void applyOpenLoop(double output) {
+        wristMotor.set(output);
+    };
 
     @Override
-    public void applyVelocity(double velocity) {};
+    public void applyVelocity(double velocity) {
+        
+    };
 
     @Override
     public void applySetpoint(Rotation2d setpoint) {
@@ -103,5 +109,9 @@ public class DescorerIOHardware implements DescorerIO {
     @Override
     public Rotation2d getCurrentSetpoint() {
         return setpoint;
+    }
+
+    public Rotation2d getCurrentAbsolutePosition() {
+        return Rotation2d.fromRotations(wristEncoder.getPosition());
     }
 }

@@ -63,6 +63,7 @@ import frc.robot.subsystems.elevator.ElevatorIOHardware;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
@@ -117,7 +118,7 @@ public class RobotContainer {
           new ModuleIOKraken(ModuleConstants.BACK_RIGHT_CONSTANTS));
 
         visionSubsystem = new VisionSubsystem(
-          driveSubsystem, new VisionIOQuestNav(questNav, new Transform3d()));
+          driveSubsystem, new VisionIOPhotonVision("HQ_Camera", new Transform3d()));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
@@ -196,6 +197,7 @@ public class RobotContainer {
     configureBindings();
 
     elevatorSubsystem.initTab();
+    algaeIntakeSubsystem.initTab();
 
     driverDashboard.initTab();
   }
@@ -247,22 +249,6 @@ public class RobotContainer {
     oi.onDriveButtonPressed(Y, Commands.runOnce(resetGyro, driveSubsystem)
       .ignoringDisable(true));
 
-    //driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
-    
-    /*
-    driverController.a().onTrue(new PathfindToPose(driveSubsystem, () -> new Pose2d(new Translation2d(3, 3), Rotation2d.kZero), 0.0));
-    driverController.leftBumper().onTrue(
-      new ParallelCommandGroup(
-        new RunCommand(() -> intakeSimulation.startIntake(), visionSubsystem),
-        new RunAlgaeIntake(algaeIntakeSubsystem)));
-    driverController.leftBumper().onFalse(
-      new ParallelCommandGroup(
-        new RunCommand(() -> intakeSimulation.stopIntake(), visionSubsystem),
-        new StopAlgaeIntake(algaeIntakeSubsystem)));
-    driverController.rightBumper().onTrue(
-      new InstantCommand(() -> launchAlgae(), algaeIntakeSubsystem));
-      */
-
     oi.whileManipulatorBumperPressed(LB,
       Commands.run(() -> algaeIntakeSubsystem.apply(1.0, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
     oi.whileManipulatorBumperPressed(RB,
@@ -287,17 +273,11 @@ public class RobotContainer {
       Commands.runOnce(() -> elevatorSubsystem.previousLevel(), elevatorSubsystem));
     oi.onManipulatorButtonPressed(Y,
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
-    
-      /*
-    manipulatorController.a().onTrue(
-      Commands.runOnce(() -> elevatorSubsystem.playMusic(), elevatorSubsystem));
-    manipulatorController.b().onTrue(
-      Commands.runOnce(() -> elevatorSubsystem.stopMusic(), elevatorSubsystem));
-      */
   }
 
   public void updateShuffleboard() {
     elevatorSubsystem.updateTab();
+    algaeIntakeSubsystem.updateTab();
 
     driverDashboard.updateTab();
   }

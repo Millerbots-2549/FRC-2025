@@ -14,7 +14,7 @@ public interface DescorerIO {
     public static class DescorerIOInputs {
         public boolean wristConnected = false;
 
-        public double wristVelocity = 0.0;
+        public double wristVelocityRadPerSec = 0.0;
         public double wristAppliedVolts = 0.0;
         public double wristCurrent = 0.0;
         public Rotation2d wristPosition = Rotation2d.kZero;

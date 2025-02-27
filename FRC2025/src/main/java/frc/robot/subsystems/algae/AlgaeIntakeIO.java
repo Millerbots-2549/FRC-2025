@@ -45,6 +45,7 @@ public interface AlgaeIntakeIO {
         public double angleCurrent = 0.0;
 
         public double currentAngle = 0.0;
+        public double currentSetpoint = 0.0;
     }
 
     /**

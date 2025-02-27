@@ -7,12 +7,16 @@ package frc.robot.subsystems.algae;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AlgaeIntakeConstants;
-import frc.robot.telemetry.annotations.DevelopmentTabLayout;
+import frc.robot.util.DashboardPublisher;
 import frc.robot.RobotContainer;
 
 /**
@@ -23,8 +27,7 @@ import frc.robot.RobotContainer;
  * 
  * @author <a href="https://github.com/linus-honer">Linus Honer</a>
  */
-@DevelopmentTabLayout(key = "Algae Intake")
-public class AlgaeIntakeSubsystem extends SubsystemBase {
+public class AlgaeIntakeSubsystem extends SubsystemBase implements DashboardPublisher {
   private final AlgaeIntakeIO io;
   private final AlgaeIntakeIOInputsAutoLogged inputs = new AlgaeIntakeIOInputsAutoLogged();
 
@@ -103,5 +106,31 @@ public class AlgaeIntakeSubsystem extends SubsystemBase {
 
   public double getRollerCurrent() {
     return inputs.rollerCurrent;
+  }
+
+  private ShuffleboardTab tab;
+
+  private GenericEntry armAngleEntry, armSetpointEntry;
+
+  @Override
+  public void initTab() {
+    tab = Shuffleboard.getTab("AlgaeIntake");
+
+    armAngleEntry = tab.add("Arm Angle", inputs.currentAngle)
+      .withPosition(0, 0)
+      .withSize(4, 1)
+      .withWidget(BuiltInWidgets.kTextView)
+      .getEntry();
+    armSetpointEntry = tab.add("Arm Setpoint", inputs.currentAngle)
+      .withPosition(0, 1)
+      .withSize(4, 1)
+      .withWidget(BuiltInWidgets.kTextView)
+      .getEntry();
+  }
+
+  @Override
+  public void updateTab() {
+    armAngleEntry.setDouble(inputs.currentAngle);
+    armSetpointEntry.setDouble(inputs.currentSetpoint);
   }
 }

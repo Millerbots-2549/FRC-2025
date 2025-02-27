@@ -27,6 +27,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 
@@ -74,6 +75,10 @@ public class VisionSubsystem extends SubsystemBase {
         for (int i = 0; i < io.length; i++) {
             io[i].updateInputs(inputs[i]);
             Logger.processInputs("Vision/Camera" + i, inputs[i]);
+
+            SmartDashboard.putNumber("Camera" + i + " Target X Rot", inputs[i].latestTargetObservation.tx().getDegrees());
+            SmartDashboard.putNumber("Camera" + i + " Target Y Rot", inputs[i].latestTargetObservation.ty().getDegrees());
+            SmartDashboard.putNumber("Camera" + i + " Target Area", inputs[i].latestTargetArea);
         }
 
         // Initialize logging values
