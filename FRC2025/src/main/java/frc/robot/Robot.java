@@ -11,15 +11,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.CvSink;
-import edu.wpi.first.cscore.CvSource;
-import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,17 +27,11 @@ public class Robot extends LoggedRobot {
 
   private final RobotContainer robotContainer;
 
-  private Thread cameraThread;
-
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
   public Robot() {
-    cameraThread = buildCameraThread();
-    //cameraThread.setDaemon(true);
-    //cameraThread.start();
-
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
     Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
     Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
@@ -170,29 +156,5 @@ public class Robot extends LoggedRobot {
   public void simulationPeriodic() {
     SimulatedArena.getInstance().simulationPeriodic();
     robotContainer.sendSimulatedFieldToAdvantageScope();
-  }
-
-  public Thread buildCameraThread() {
-    return new Thread(
-      () -> {
-        UsbCamera camera = CameraServer.startAutomaticCapture(1);
-        camera.setResolution(640, 480);
-
-        CvSink cvSink = CameraServer.getVideo();
-        CvSource outputStream = CameraServer.putVideo("Driver Camera", 640, 480);
-
-        Mat mat = new Mat();
-
-        while (!Thread.interrupted()) {
-          if (cvSink.grabFrame(mat) == 0) {
-            outputStream.notifyError(cvSink.getError());
-            continue;
-          }
-          Imgproc.rectangle(
-              mat, new Point(100, 100), new Point(400, 400), new Scalar(255, 255, 255), 5);
-          outputStream.putFrame(mat);
-        }
-      }
-    );
   }
 }

@@ -18,15 +18,24 @@ public interface DescorerIO {
         public double wristAppliedVolts = 0.0;
         public double wristCurrent = 0.0;
         public Rotation2d wristPosition = Rotation2d.kZero;
+
+        public boolean rollerConnected = false;
+
+        public double rollerVelocityRadPerSec = 0.0;
+        public double rollerAppliedVolts = 0.0;
+        public double rollerCurrent = 0.0;
+        public Rotation2d rollerPosition = Rotation2d.kZero;
     }
 
     public default void updateInputs(DescorerIOInputs inputs) {};
 
-    public default void applyOpenLoop(double output) {};
+    public default void applyWristDutyCycle(double output) {};
 
-    public default void applyVelocity(double velocity) {};
+    public default void applyWristSetpoint(Rotation2d setpoint) {};
 
-    public default void applySetpoint(Rotation2d setpoint) {};
+    public default void applyRollerDutyCycle(double output) {};
+
+    public default void applyRollerVelocity(double velocity) {};
 
     public default Rotation2d getCurrentSetpoint() { return new Rotation2d(); };
 }

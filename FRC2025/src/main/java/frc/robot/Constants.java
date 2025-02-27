@@ -561,7 +561,8 @@ public final class Constants {
   }
 
   public static class DescorerConstants {
-    public static final int WRIST_MOTOR_ID = 0;
+    public static final int WRIST_MOTOR_ID = 50;
+    public static final int ROLLER_MOTOR_ID = 50;
 
     public static final double WRIST_KP = 0.1;
     public static final double WRIST_KI = 0.0;
@@ -571,13 +572,30 @@ public final class Constants {
     public static final double WRIST_KV = 0.0;
     public static final double WRIST_KA = 0.0;
 
+    public static final double ROLLER_KP = 0.1;
+    public static final double ROLLER_KI = 0.0;
+    public static final double ROLLER_KD = 0.0;
+    public static final double ROLLER_KS = 0.0;
+    public static final double ROLLER_KV = 0.0;
+    public static final double ROLLER_KA = 0.0;
+
     public static final double WRIST_MAX_VELOCITY = 100.0;
     public static final double WRIST_MAX_ACCEL = 100.0;
 
-    public static final int WRIST_CURRENT_LIMIT = 30;
+    public static final double ROLLER_MAX_VELOCITY = 100.0;
+    public static final double ROLLER_MAX_ACCEL = 100.0;
 
-    public static final double WRIST_POSITION_FACTOR = 1.0;
-    public static final double WRIST_VELOCITY_FACTOR = 1.0;
+    public static final int WRIST_CURRENT_LIMIT = 30;
+    public static final int ROLLER_CURRENT_LIMIT = 15;
+
+    public static final double WRIST_GEAR_RATIO = 12.0;
+    public static final double ROLLER_GEAR_RATIO = 1.0;
+
+    public static final double WRIST_POSITION_FACTOR = MathConstants.TAU * WRIST_GEAR_RATIO;
+    public static final double WRIST_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
+
+    public static final double ROLLER_POSITION_FACTOR = MathConstants.TAU * ROLLER_GEAR_RATIO;
+    public static final double ROLLER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
     public static final double WRIST_PID_MIN_INPUT = 0.0;
     public static final double WRIST_PID_MAX_INPUT = MathConstants.TAU;
@@ -598,6 +616,30 @@ public final class Constants {
                 .positionWrappingEnabled(true)
                 .positionWrappingInputRange(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT)
                 .pidf(WRIST_KP, 0.0, WRIST_KD, 0.0))
+        .apply(
+            new SignalsConfig()
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs((int)(1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20));
+      
+    public static final SparkBaseConfig ROLLER_BASE_CONFIG = new SparkMaxConfig()
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(ROLLER_CURRENT_LIMIT)
+        .voltageCompensation(12.0)
+        .apply(
+            new EncoderConfig()
+                .positionConversionFactor(ROLLER_POSITION_FACTOR)
+                .velocityConversionFactor(ROLLER_VELOCITY_FACTOR)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2))
+        .apply(
+            new ClosedLoopConfig()
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .pidf(ROLLER_KP, 0.0, ROLLER_KD, 0.0))
         .apply(
             new SignalsConfig()
                 .primaryEncoderPositionAlwaysOn(true)
