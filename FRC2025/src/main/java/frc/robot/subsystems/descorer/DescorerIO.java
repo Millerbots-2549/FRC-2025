@@ -29,6 +29,8 @@ public interface DescorerIO {
 
     public default void updateInputs(DescorerIOInputs inputs) {};
 
+    public default void periodic() {};
+
     public default void applyWristDutyCycle(double output) {};
 
     public default void applyWristSetpoint(Rotation2d setpoint) {};
@@ -38,4 +40,6 @@ public interface DescorerIO {
     public default void applyRollerVelocity(double velocity) {};
 
     public default Rotation2d getCurrentSetpoint() { return new Rotation2d(); };
+
+    public default void setLowerLevel(boolean isLowerLevel) {};
 }

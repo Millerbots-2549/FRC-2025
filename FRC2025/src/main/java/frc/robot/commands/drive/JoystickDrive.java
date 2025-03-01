@@ -73,12 +73,11 @@ public class JoystickDrive extends Command {
     if (rot != 0) previousRotationalInputTimer.reset();
 
     /* no rotation input for 0.5 seconds, maintain current rotation */
-    /* 
     if (previousRotationalInputTimer.hasElapsed(0.15)) {
       rot = chassisRotationController.calculate(
         driveSubsystem.getRotation().getRadians(),
         rotationMaintenanceSetpoint.getRadians());
-    }*/
+    }
     /* there has been a rotation input within 0.5 seconds, reset rotation maintenance setpoint */
     else {
       rotationMaintenanceSetpoint = driveSubsystem.getRotation();

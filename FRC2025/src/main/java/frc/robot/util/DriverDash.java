@@ -22,6 +22,7 @@ public class DriverDash implements DashboardPublisher {
     private GenericEntry autoStatusEntry, teleopStatusEntry, timeLeftEntry;
     @SuppressWarnings("unused")
     private ComplexWidget fieldEntry;
+    private ComplexWidget leftCamera, rightCamera, driverCamera;
 
     private Field2d field;
 
@@ -45,13 +46,27 @@ public class DriverDash implements DashboardPublisher {
         timeLeftEntry = tab.add("Time left", 0.0)
             .withWidget(BuiltInWidgets.kNumberBar)
             .withPosition(2, 0)
-            .withSize(4, 2)
+            .withSize(5, 2)
             .withProperties(Map.of("min", 0.0, "max", 105.0, "center", 105.0 / 2.0))
             .getEntry();
+
         fieldEntry = tab.add("Field View", field)
             .withWidget(BuiltInWidgets.kField)
             .withPosition(2, 2)
-            .withSize(4, 3);
+            .withSize(5, 4);
+
+        /*leftCamera = tab.addCamera("Left Camera", "left_cam", "mjpg:http://10.25.49.2:1181/?action=stream")
+            .withProperties(Map.of("showControls", false))
+            .withPosition(7, 0)
+            .withSize(3, 2);*/
+        /*rightCamera = tab.addCamera("Right Camera", "right_cam", "mjpg:http://photonvision.local:1183/?action=stream")
+            .withProperties(Map.of("showControls", false))
+            .withPosition(10, 0)
+            .withSize(3, 2);*/
+        driverCamera = tab.addCamera("Front Camera", "front_cam", "mjpg:http://photonvision.local:1186/stream.mjpg")
+            .withProperties(Map.of("showControls", false))
+            .withPosition(7, 2)
+            .withSize(6, 4);
     }
 
     @Override

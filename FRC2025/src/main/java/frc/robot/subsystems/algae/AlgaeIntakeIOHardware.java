@@ -24,13 +24,10 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.AlgaeIntakeConstants.AngleConfig;
 import frc.robot.Constants.AlgaeIntakeConstants.RollerConfig;
-import frc.robot.util.controllers.ProfiledPositionController;
-import frc.robot.util.motor.ArmFeedForward;
 
 /**
  * This is an implementation of the {@link AlgaeIntakeIO} interface which uses
@@ -61,14 +58,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
     private final ProfiledPIDController angleController;
     private final PIDController evilAngleController;
 
-    private ArmFeedForward angleFeedForward = new ArmFeedForward(
-        AlgaeIntakeConstants.ANGLE_KS,
-        AlgaeIntakeConstants.ANGLE_KG,
-        AlgaeIntakeConstants.ANGLE_KV,
-        AlgaeIntakeConstants.ANGLE_KA);
-    
-    private ProfiledPositionController positionController;
-
     private double angleSetpoint;
 
     private final Debouncer rollerConnectedDebounce = new Debouncer(0.5);
@@ -85,7 +74,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         rollerClosedLoopController = rollerMotor.getClosedLoopController();
         angleController = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10)); // This is set up later in the constructor
         evilAngleController = new PIDController(0, 0, 0); // This is set up later in the constructor
-        positionController = new ProfiledPositionController(AlgaeIntakeConstants.POSITIVE_CONSTRAINTS);
 
         // Configurating the roller motor
         this.rollerConfig = AlgaeIntakeConstants.ROLLER_BASE_CONFIG;
@@ -145,18 +133,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
 
     @Override
     public void setRollerVelocity(double velocity) {
-        // Calculated the feed forward volts using the formula V = K_s + K_v * v + K_a * a
-        /*
-        double ffVolts =
-            AlgaeIntakeConstants.ROLLER_KS * Math.signum(velocity)
-            + AlgaeIntakeConstants.ROLLER_KV * velocity;
-        rollerClosedLoopController.setReference(
-            MathUtil.clamp(velocity, -1.0, 1.0),
-            ControlType.kVelocity,
-            ClosedLoopSlot.kSlot0,
-            ffVolts,
-            ArbFFUnits.kVoltage);
-            */
         rollerMotor.set(velocity);
     }
 
@@ -183,8 +159,9 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
             );
         angleController.setTolerance(0.1, 0.1);
         double output = angleController.calculate(absolutePosition, setPoint);
-        output -= Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
-        angleMotor.set(MathUtil.clamp(output, -0.75, 0.75));
+        output -= output < 0 ?  Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG
+                : Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
+        angleMotor.set(MathUtil.clamp(output, -1.0, 1.0));
 
         SmartDashboard.putNumber("Angle Absolute Position", absolutePosition);
         SmartDashboard.putNumber("Angle Setpoint", setPoint);

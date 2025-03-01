@@ -4,10 +4,9 @@
 
 package frc.robot.commands.drive;
 
-import java.lang.module.FindException;
-
-import org.opencv.core.Point;
-
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.vision.VisionSubsystem;
@@ -19,6 +18,11 @@ public class AlignToTag extends Command {
 
   private final double wantedXOffset;
   private final double wantedYOffset;
+  
+  private final PIDController offsetController = new PIDController(5.0, 0.0, 0.0);
+  private final PIDController distanceController = new PIDController(5.0, 0.0, 0.0);
+
+  private boolean finish = false;
 
   /** Creates a new AlignToTag. */
   public AlignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, double wantedXOffset, double wantedYOffset) {
@@ -26,6 +30,8 @@ public class AlignToTag extends Command {
     this.visionSubsystem = visionSubsystem;
     this.wantedXOffset = wantedXOffset;
     this.wantedYOffset = wantedYOffset;
+
+    this.finish = false;
   }
 
   // Called when the command is initially scheduled.
@@ -34,7 +40,21 @@ public class AlignToTag extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    double currentXOffset = visionSubsystem.getTargetX(0).getDegrees();
+    double currentYOffset = wantedYOffset;
+
+    double xOutput = offsetController.calculate(currentXOffset, wantedXOffset);
+    xOutput = MathUtil.clamp(xOutput, -0.05, 0.05);
+
+    ChassisSpeeds speeds = new ChassisSpeeds(xOutput, 0, 0);
+
+    driveSubsystem.runVelocity(speeds);
+
+    if (offsetController.atSetpoint()) {
+      finish = true;
+    }
+  }
 
   // Called once the command ends or is interrupted.
   @Override
@@ -43,6 +63,6 @@ public class AlignToTag extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return finish;
   }
 }

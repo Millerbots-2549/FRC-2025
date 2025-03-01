@@ -123,7 +123,10 @@ public class RobotContainer {
           new ModuleIOKraken(ModuleConstants.BACK_RIGHT_CONSTANTS));
 
         visionSubsystem = new VisionSubsystem(
-          driveSubsystem, new VisionIOPhotonVision("HQ_Camera", new Transform3d()));
+          driveSubsystem,
+          new VisionIOPhotonVision("front_cam", new Transform3d()));
+          //new VisionIOPhotonVision("left_cam", new Transform3d()),
+          //new VisionIOPhotonVision("right_cam", new Transform3d()));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
@@ -268,15 +271,15 @@ public class RobotContainer {
       .ignoringDisable(true));
 
     oi.whileManipulatorBumperPressed(LB,
-      Commands.run(() -> algaeIntakeSubsystem.apply(1.0, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
+      Commands.run(() -> algaeIntakeSubsystem.apply(0.5, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
     oi.whileManipulatorBumperPressed(RB,
-      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-1.0), algaeIntakeSubsystem));
+      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-0.5), algaeIntakeSubsystem));
 
-    oi.whileManipulatorTriggerPressed(LT,
-      Commands.run(() -> elevatorSubsystem.runIntake(0.5), elevatorSubsystem));
-    oi.whileManipulatorTriggerPressed(RT,
-      Commands.run(() -> elevatorSubsystem.runIntake(-0.5), elevatorSubsystem));
-    
+    oi.whileManipulatorTriggerPressedFullRange(LT,
+      Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(LT) * 0.067)), elevatorSubsystem));
+    oi.whileManipulatorTriggerPressedFullRange(RT,
+      Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(RT) * -0.067)), elevatorSubsystem));
+
     oi.onManipulatorButtonPressed(START,
       Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem));
     oi.onManipulatorButtonPressed(BACK,
@@ -292,10 +295,17 @@ public class RobotContainer {
     oi.onManipulatorButtonPressed(Y,
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
 
-    oi.onManipulatorButtonPressed(A,
+    oi.whileManipulatorButtonPressed(POV_RIGHT,
       Commands.run(() -> {
+        descorerSubsystem.setLowerLevel(true);
         descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_ON_POSITION);
-        descorerSubsystem.runRoller(0);
+        descorerSubsystem.runRoller(0.5);
+      }, descorerSubsystem));
+    oi.whileManipulatorButtonPressed(POV_LEFT,
+      Commands.run(() -> {
+        descorerSubsystem.setLowerLevel(false);
+        descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_ON_POSITION);
+        descorerSubsystem.runRoller(0.5);
       }, descorerSubsystem));
   }
 

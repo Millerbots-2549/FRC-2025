@@ -385,7 +385,7 @@ public final class Constants {
     public static final double ROLLER_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
     public static final int ANGLE_MOTOR_ID = 16;
-    public static final int ANGLE_CURRENT_LIMIT = 30;
+    public static final int ANGLE_CURRENT_LIMIT = 50;
     public static final double ANGLE_ENCODER_POSITION_FACTOR = MathConstants.TAU * ANGLE_GEAR_RATIO;
     public static final double ANGLE_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
@@ -400,10 +400,10 @@ public final class Constants {
     public static final double ROLLER_SIM_KS = 0.0;
     public static final double ROLLER_SIM_KV = 0.0;
 
-    public static final double ANGLE_KP = 0.07;
+    public static final double ANGLE_KP = 0.15;
     public static final double ANGLE_KD = 0.00;
     public static final double ANGLE_KS = 0.23;
-    public static final double ANGLE_KG = 0.05;
+    public static final double ANGLE_KG = 0.1;
     public static final double ANGLE_KV = 1.15;
     public static final double ANGLE_KA = 0.081;
     public static final double ANGLE_SIM_KP = 2.0;
@@ -474,7 +474,7 @@ public final class Constants {
       new AngleConfig(ANGLE_MOTOR_ID, false);
 
     public static final double ROLLER_MAX_SPEED = 1;
-    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(4.4);
+    public static final Rotation2d INTAKE_ANGLE_DOWN = new Rotation2d(-2.0);
     public static final Rotation2d INTAKE_ANGLE_UP = new Rotation2d(0.0);
 
     public static final double INTAKE_ANGLE_TOLERANCE = 10;
@@ -537,7 +537,7 @@ public final class Constants {
     public static final TalonFXConfiguration RIGHT_CONFIG = LEFT_CONFIG;
     public static final SparkBaseConfig INTAKE_BASE_CONFIG = new SparkMaxConfig()
         .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(30)
+        .smartCurrentLimit(50)
         .voltageCompensation(12.0)
         .apply(
             new EncoderConfig()
@@ -561,13 +561,13 @@ public final class Constants {
   }
 
   public static class DescorerConstants {
-    public static final int WRIST_MOTOR_ID = 50;
-    public static final int ROLLER_MOTOR_ID = 50;
+    public static final int WRIST_MOTOR_ID = 7;
+    public static final int ROLLER_MOTOR_ID = 8;
 
     public static final Rotation2d DESCORER_OFF_POSITION = Rotation2d.fromRadians(0);
-    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(0);
+    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-2.4);
 
-    public static final double WRIST_KP = 0.0;
+    public static final double WRIST_KP = 0.25;
     public static final double WRIST_KI = 0.0;
     public static final double WRIST_KD = 0.0;
     public static final double WRIST_KS = 0.0;
@@ -582,17 +582,17 @@ public final class Constants {
     public static final double ROLLER_KV = 0.0;
     public static final double ROLLER_KA = 0.0;
 
-    public static final double WRIST_MAX_VELOCITY = 10.0;
-    public static final double WRIST_MAX_ACCEL = 10.0;
+    public static final double WRIST_MAX_VELOCITY = 30.0;
+    public static final double WRIST_MAX_ACCEL = 30.0;
 
     public static final double ROLLER_MAX_VELOCITY = 10.0;
     public static final double ROLLER_MAX_ACCEL = 10.0;
 
-    public static final int WRIST_CURRENT_LIMIT = 30;
-    public static final int ROLLER_CURRENT_LIMIT = 15;
+    public static final int WRIST_CURRENT_LIMIT = 35;
+    public static final int ROLLER_CURRENT_LIMIT = 30;
 
-    public static final double WRIST_GEAR_RATIO = 12.0;
-    public static final double ROLLER_GEAR_RATIO = 1.0;
+    public static final double WRIST_GEAR_RATIO = 0.04;
+    public static final double ROLLER_GEAR_RATIO = 0.08333333333;
 
     public static final double WRIST_POSITION_FACTOR = MathConstants.TAU * WRIST_GEAR_RATIO;
     public static final double WRIST_VELOCITY_FACTOR = MathConstants.TAU / 60.0;

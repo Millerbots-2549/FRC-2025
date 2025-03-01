@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.MultiTargetPNPResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -52,7 +54,7 @@ public class VisionIOPhotonVision implements VisionIO {
 
             // Add pose observation
             if (result.multitagResult.isPresent()) {
-                var multitagResult = result.multitagResult.get();
+                MultiTargetPNPResult multitagResult = result.multitagResult.get();
 
                 // Calculate robot pose
                 Transform3d fieldToCamera = multitagResult.estimatedPose.best;
@@ -61,7 +63,7 @@ public class VisionIOPhotonVision implements VisionIO {
 
                 // Calculate average tag distance
                 double totalTagDistance = 0.0;
-                for (var target : result.targets) {
+                for (PhotonTrackedTarget target : result.targets) {
                     totalTagDistance +=
                             target.bestCameraToTarget.getTranslation().getNorm();
                 }

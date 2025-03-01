@@ -46,6 +46,8 @@ public interface OI {
 
     public void whileDriveTriggerPressed(Trigger trigger, Command command);
 
+    public void whileDriveTriggerPressedFullRange(Trigger trigger, Command command);
+
     public boolean getDriveButtonDown(Button button);
 
     public boolean getDriveBumperDown(Bumper bumper);
@@ -75,6 +77,8 @@ public interface OI {
     public void whileManipulatorBumperPressed(Bumper bumper, Command command);
 
     public void whileManipulatorTriggerPressed(Trigger trigger, Command command);
+
+    public void whileManipulatorTriggerPressedFullRange(Trigger trigger, Command command);
 
     public boolean getManipulatorButtonDown(Button button);
 

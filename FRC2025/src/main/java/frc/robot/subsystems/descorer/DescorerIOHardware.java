@@ -17,14 +17,15 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import frc.robot.util.motor.ArmFeedForward;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Add your docs here. */
 public class DescorerIOHardware implements DescorerIO {
@@ -38,8 +39,6 @@ public class DescorerIOHardware implements DescorerIO {
 
     private final Constraints wristConstraints = 
         new Constraints(WRIST_MAX_VELOCITY, WRIST_MAX_ACCEL);
-    private final ArmFeedForward wristFeedForward =
-        new ArmFeedForward(WRIST_KS, WRIST_KG, WRIST_KV, WRIST_KA);
     private final ProfiledPIDController wristPositionController = 
         new ProfiledPIDController(WRIST_KP, WRIST_KI, WRIST_KD, wristConstraints);
     
@@ -48,10 +47,13 @@ public class DescorerIOHardware implements DescorerIO {
     private final ProfiledPIDController rollerVelocityController =
         new ProfiledPIDController(ROLLER_KP, ROLLER_KI, WRIST_KD, rollerConstraints);
 
-    private Rotation2d setpoint;
-    private double velocitySetpoint;
+    private Rotation2d setpoint = DESCORER_OFF_POSITION;
+    private double velocitySetpoint = 0.0;
+    private Timer velocityTimer = new Timer();
 
     private final Debouncer wristConnectedDebounce = new Debouncer(0.5);
+
+    private boolean lowLevel = false;
 
     public DescorerIOHardware(SparkBaseConfig wristConfig, SparkBaseConfig rollerConfig) {
         this.wristMotor = new SparkMax(WRIST_MOTOR_ID, MotorType.kBrushless);
@@ -61,6 +63,7 @@ public class DescorerIOHardware implements DescorerIO {
         this.rollerEncoder = rollerMotor.getEncoder();
 
         this.wristConfig = wristConfig;
+        wristConfig.idleMode(IdleMode.kCoast);
         tryUntilOk(wristMotor, 5, () ->
             wristMotor.configure(this.wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(wristMotor, 5, () -> wristEncoder.setPosition(0));
@@ -70,7 +73,7 @@ public class DescorerIOHardware implements DescorerIO {
             rollerMotor.configure(this.rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(rollerMotor, 5, () -> rollerEncoder.setPosition(0));
 
-        wristPositionController.enableContinuousInput(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT);
+        //wristPositionController.enableContinuousInput(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT);
         wristPositionController.setTolerance(0.1, 0.1);
 
         rollerVelocityController.setTolerance(0.1);
@@ -91,6 +94,7 @@ public class DescorerIOHardware implements DescorerIO {
     }
 
     public void periodic() {
+        /* 
         double absolutePosition =
             MathUtil.inputModulus(
                 wristEncoder.getPosition(),
@@ -103,15 +107,25 @@ public class DescorerIOHardware implements DescorerIO {
                 WRIST_PID_MIN_INPUT,
                 WRIST_PID_MAX_INPUT
             );
+            */
+        double absolutePosition = wristEncoder.getPosition();
+        double setpointPosition = setpoint.getRadians();
+        if(!lowLevel) setpointPosition += 0.4 + (MathUtil.clamp((velocityTimer.get() - 1.0) / 3, 0, 1.5));
+        wristPositionController.setTolerance(0.1, 0.1);
         double output = wristPositionController.calculate(absolutePosition, setpointPosition);
-        output += wristFeedForward.calculate(setpointPosition, 0.0);
-        wristMotor.set(MathUtil.clamp(output, -0.25, 0.25));
+        output += WRIST_KG * Math.cos(absolutePosition);
+        output = output > 0 ? output * 0.5 : output;
+        wristMotor.set(MathUtil.clamp(output, -0.75, 0.75));
 
-        double rollerVel = rollerEncoder.getVelocity();
-        output = rollerVelocityController.calculate(rollerVel, velocitySetpoint);
-        output += ROLLER_KS * Math.signum(rollerVel)
-               +  ROLLER_KV * rollerVel;
-        rollerMotor.set(MathUtil.clamp(output, -0.25, 0.25));
+        SmartDashboard.putNumber("Descorer Wrist Output", output);
+        SmartDashboard.putNumber("Descorer Setpoint Position", setpointPosition);
+        SmartDashboard.putNumber("Descorer Absolute Poistion", absolutePosition);
+        SmartDashboard.putNumber("Descorer Velocity", wristEncoder.getVelocity());
+
+        SmartDashboard.putNumber("Velocity Timer", velocityTimer.get());
+
+        output = velocitySetpoint * (MathUtil.clamp(velocityTimer.get() * 2, 0.0, 1.0));
+        rollerMotor.set(lowLevel? -output : output);
     }
 
     @Override
@@ -126,7 +140,14 @@ public class DescorerIOHardware implements DescorerIO {
 
     @Override
     public void applyRollerDutyCycle(double output) {
-        wristMotor.set(output);
+        if(velocitySetpoint < 0.01 && output > 0.01) {
+            velocityTimer.start();
+            velocityTimer.reset();
+        } else if(velocitySetpoint > 0.01 && output < 0.01) {
+            velocityTimer.stop();
+            velocityTimer.reset();
+        }
+        velocitySetpoint = output;
     }
 
     @Override
@@ -141,5 +162,10 @@ public class DescorerIOHardware implements DescorerIO {
 
     public Rotation2d getCurrentAbsolutePosition() {
         return Rotation2d.fromRotations(wristEncoder.getPosition());
+    }
+
+    @Override
+    public void setLowerLevel(boolean isLowerLevel) {
+        lowLevel = isLowerLevel;
     }
 }

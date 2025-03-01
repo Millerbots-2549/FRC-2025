@@ -74,6 +74,11 @@ public class OperatorControllerOI implements OI {
     }
 
     @Override
+    public void whileDriveTriggerPressedFullRange(Trigger trigger, Command command) {
+        operatorController.axisGreaterThan(trigger == Trigger.LT ? 2 : 3, 0.01).whileTrue(command);
+    }
+
+    @Override
     public boolean getDriveButtonDown(Button button) {
         return getButton(button).getAsBoolean();
     }
@@ -188,6 +193,12 @@ public class OperatorControllerOI implements OI {
     @Override
     public void setManipulatorRumble(RumbleType rumbleType, double rumble) {
         setDriveRumble(rumbleType, rumble);
+    }
+
+    @Override
+    public void whileManipulatorTriggerPressedFullRange(Trigger trigger, Command command) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'whileManipulatorTriggerPressedFullRange'");
     }
 
 }

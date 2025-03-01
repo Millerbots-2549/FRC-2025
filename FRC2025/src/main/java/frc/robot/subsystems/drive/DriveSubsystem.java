@@ -39,6 +39,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -318,8 +319,12 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         return currentPath;
     }
 
+    public Timer timeSinceGyroZeroed = new Timer();
+
     public void zeroGyro(Rotation2d rotation) {
         gyroIO.zeroGyro(rotation);
         desiredHeading = Rotation2d.kZero;
+        timeSinceGyroZeroed.reset();
+        timeSinceGyroZeroed.start();
     }
 }

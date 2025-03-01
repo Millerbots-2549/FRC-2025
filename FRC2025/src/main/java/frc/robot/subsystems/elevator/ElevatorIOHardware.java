@@ -134,7 +134,7 @@ public class ElevatorIOHardware implements ElevatorIO {
 
     @Override
     public void applyIntakeDutyCycle(double output) {
-        if (Math.abs(output) < 0.1) {
+        if (Math.abs(output) < 0.001) {
             output = 0;
         }
         intakeMotor.set(output);

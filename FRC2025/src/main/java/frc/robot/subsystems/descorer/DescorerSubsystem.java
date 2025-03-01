@@ -20,15 +20,20 @@ public class DescorerSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
+    io.periodic();
 
     SmartDashboard.putNumber("Descorer Wrist Angle", inputs.wristPosition.getRadians());
   }
 
   public void runRoller(double velocity) {
-    io.applyRollerVelocity(velocity);
+    io.applyRollerDutyCycle(velocity);
   }
 
   public void applyWristSetpoint(Rotation2d setpoint) {
     io.applyWristSetpoint(setpoint);
+  }
+
+  public void setLowerLevel(boolean isLowLevel) {
+    io.setLowerLevel(isLowLevel);
   }
 }

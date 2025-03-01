@@ -76,6 +76,11 @@ public class SeperateControllerOI implements OI {
     }
 
     @Override
+    public void whileDriveTriggerPressedFullRange(Trigger trigger, Command command) {
+        driverController.axisGreaterThan(trigger == Trigger.LT ? 2 : 3, 0.01).whileTrue(command);
+    }
+
+    @Override
     public boolean getDriveButtonDown(Button button) {
         return getButton(driverController, button).getAsBoolean();
     }
@@ -148,6 +153,11 @@ public class SeperateControllerOI implements OI {
     }
 
     @Override
+    public void whileManipulatorTriggerPressedFullRange(Trigger trigger, Command command) {
+        manipulatorController.axisGreaterThan(trigger == Trigger.LT ? 2 : 3, 0.01).whileTrue(command);
+    }
+
+    @Override
     public boolean getManipulatorButtonDown(Button button) {
         return getButton(manipulatorController, button).getAsBoolean();
     }
@@ -193,5 +203,4 @@ public class SeperateControllerOI implements OI {
     public void setManipulatorRumble(RumbleType rumbleType, double rumble) {
         manipulatorController.setRumble(rumbleType, rumble);
     }
-
 }
