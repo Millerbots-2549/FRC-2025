@@ -17,7 +17,7 @@ public class AlignToTag extends Command {
   private VisionSubsystem visionSubsystem;
 
   private final double wantedXOffset;
-  private final double wantedYOffset;
+  private final double wantedTagArea;
   
   private final PIDController offsetController = new PIDController(5.0, 0.0, 0.0);
   private final PIDController distanceController = new PIDController(5.0, 0.0, 0.0);
@@ -25,11 +25,11 @@ public class AlignToTag extends Command {
   private boolean finish = false;
 
   /** Creates a new AlignToTag. */
-  public AlignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, double wantedXOffset, double wantedYOffset) {
+  public AlignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, double wantedXOffset, double wantedTagArea) {
     this.driveSubsystem = driveSubsystem;
     this.visionSubsystem = visionSubsystem;
     this.wantedXOffset = wantedXOffset;
-    this.wantedYOffset = wantedYOffset;
+    this.wantedTagArea = wantedTagArea;
 
     this.finish = false;
   }
@@ -42,7 +42,6 @@ public class AlignToTag extends Command {
   @Override
   public void execute() {
     double currentXOffset = visionSubsystem.getTargetX(0).getDegrees();
-    double currentYOffset = wantedYOffset;
 
     double xOutput = offsetController.calculate(currentXOffset, wantedXOffset);
     xOutput = MathUtil.clamp(xOutput, -0.05, 0.05);

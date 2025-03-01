@@ -70,7 +70,7 @@ public class JoystickDrive extends Command {
 
     rot = Math.copySign(rot * rot, rot);
 
-    if (rot != 0) previousRotationalInputTimer.reset();
+    if (rot != 0 || driveSubsystem.timeSinceGyroZeroed.get() < 0.5) previousRotationalInputTimer.reset();
 
     /* no rotation input for 0.5 seconds, maintain current rotation */
     if (previousRotationalInputTimer.hasElapsed(0.15)) {
