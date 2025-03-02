@@ -663,6 +663,12 @@ public final class Constants {
   public static class MathConstants {
     public static final double PI = Math.PI;
     public static final double TAU = 2 * Math.PI;
+    
+    public static final double EPSILON = 1e-6;
+
+    public static final double GRAVITY = 9.81;
+
+    public static final double STATE_SPACE_DT = 0.01;
   }
 
   public static final String FAILED_CRC_BYTES = "32 32 32 3f fe 64 64 64 7f fc c8 c8 c8 ff f9 91 91 91 ff f3 23 23 23 ff e6 46 46 47 ff cc 8c 8c 8f ff 99 19 19 1f ff 32 32 32 3f fe 64 64 64 7f fc c8 c8 c8 ff f9 91 91 91 ff f3 23 23 23 ff e6 46 46 47 ff cc 8c 8c 8f ff 99 19 19 1f ff 32 32 32 3f fe 64 64 64 7f fc c8 c8 c8 ff f9 91 91 91 ff f3 23 23 23 ff e6 46 46 47 ff cc 8c";
