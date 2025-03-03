@@ -97,7 +97,7 @@ public class ElevatorIOHardware implements ElevatorIO {
         SmartDashboard.putNumber("Elevator Stator Current", leftMotorInputs.statorCurrentAmps);
         SmartDashboard.putNumber("Elevator Supply Current", leftMotorInputs.supplyCurrentAmps);
 
-        double g_offset = elevatorSetpointHeightMeters > 20.0 ? 0.015 : -0.015;
+        double g_offset = elevatorSetpointHeightMeters > 20.0 ? ElevatorConstants.ELEVATOR_KG : -ElevatorConstants.ELEVATOR_KG;
         double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters + 0.4);
         SmartDashboard.putNumber("Wanted Output", output);
         output = MathUtil.clamp(output + g_offset, -0.21, 0.29);

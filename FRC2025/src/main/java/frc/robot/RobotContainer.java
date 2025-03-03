@@ -45,6 +45,8 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.drive.JoystickDrive;
+import frc.robot.commands.manipulator.DescoreHigh;
+import frc.robot.commands.manipulator.DescoreLow;
 import frc.robot.oi.OI;
 import frc.robot.oi.OperatorControllerOI;
 import frc.robot.oi.SeperateControllerOI;
@@ -67,7 +69,6 @@ import frc.robot.subsystems.elevator.ElevatorIOHardware;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
@@ -99,7 +100,7 @@ public class RobotContainer {
 
   private final LoggedDashboardChooser<Command> autoChooser;
 
-  private final DriverDash driverDashboard = new DriverDash();
+  private final DriverDash driverDashboard;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -124,9 +125,10 @@ public class RobotContainer {
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
-          new VisionIOPhotonVision("front_cam", new Transform3d()));
-          //new VisionIOPhotonVision("left_cam", new Transform3d()),
-          //new VisionIOPhotonVision("right_cam", new Transform3d()));
+          new VisionIOQuestNav(questNav, new Transform3d()));
+          // new VisionIOPhotonVision("front_cam", new Transform3d()));
+          // new VisionIOPhotonVision("left_cam", new Transform3d()),
+          // new VisionIOPhotonVision("right_cam", new Transform3d()));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
@@ -211,6 +213,8 @@ public class RobotContainer {
     // Configure the trigger bindings
     configureBindings();
 
+    driverDashboard = new DriverDash(driveSubsystem, questNav);
+
     elevatorSubsystem.initTab();
     algaeIntakeSubsystem.initTab();
 
@@ -269,6 +273,7 @@ public class RobotContainer {
 
     oi.onDriveButtonPressed(Y, Commands.runOnce(resetGyro, driveSubsystem)
       .ignoringDisable(true));
+      
 
     oi.whileManipulatorBumperPressed(LB,
       Commands.run(() -> algaeIntakeSubsystem.apply(0.5, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
@@ -276,9 +281,9 @@ public class RobotContainer {
       Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-0.5), algaeIntakeSubsystem));
 
     oi.whileManipulatorTriggerPressedFullRange(LT,
-      Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(LT) * 0.067)), elevatorSubsystem));
+      Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(LT) * 0.3000)), elevatorSubsystem));
     oi.whileManipulatorTriggerPressedFullRange(RT,
-      Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(RT) * -0.067)), elevatorSubsystem));
+      Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(RT) * -0.3000)), elevatorSubsystem));
 
     oi.onManipulatorButtonPressed(START,
       Commands.run(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem));
@@ -296,17 +301,10 @@ public class RobotContainer {
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
 
     oi.whileManipulatorButtonPressed(POV_RIGHT,
-      Commands.run(() -> {
-        descorerSubsystem.setLowerLevel(true);
-        descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_ON_POSITION);
-        descorerSubsystem.runRoller(0.5);
-      }, descorerSubsystem));
+      new DescoreHigh(descorerSubsystem, elevatorSubsystem));
     oi.whileManipulatorButtonPressed(POV_LEFT,
-      Commands.run(() -> {
-        descorerSubsystem.setLowerLevel(false);
-        descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_ON_POSITION);
-        descorerSubsystem.runRoller(0.5);
-      }, descorerSubsystem));
+      new DescoreLow(descorerSubsystem));
+      
   }
 
   public void updateShuffleboard() {

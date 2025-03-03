@@ -100,10 +100,10 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
   }
 
   public static enum ElevatorLevel {
-    FLOOR(0.1),
+    FLOOR(0.3),
     L1(4),
     L2(6),
-    L3(12.88),
+    L3(14.0),
     L4(23.85);
 
     public final double height;

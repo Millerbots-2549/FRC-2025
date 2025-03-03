@@ -12,6 +12,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -31,7 +32,7 @@ public class VisionIOQuestNav implements VisionIO {
     public void updateInputs(VisionIOInputs inputs) {
         inputs.connected = questNav.connected();
 
-        inputs.latestTargetObservation = null;
+        inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
 
         List<PoseObservation> poseObservations = new LinkedList<>();
         if (questNav.getPose() != null) {
@@ -43,6 +44,7 @@ public class VisionIOQuestNav implements VisionIO {
                 0,
                 new Rotation3d(QNQuaternion));
             Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
+            fieldToRobot = fieldToRobot.plus(new Transform3d(9.5, 4.0, 0, Rotation3d.kZero));
             Pose3d robotPose = new Pose3d(
                 fieldToRobot.getTranslation(), fieldToRobot.getRotation());
             

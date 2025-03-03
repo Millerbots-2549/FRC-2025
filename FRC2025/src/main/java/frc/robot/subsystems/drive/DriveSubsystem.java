@@ -73,7 +73,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             new SwerveModulePosition()
         };
     private SwerveDrivePoseEstimator poseEstimator =
-        new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+        new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d(9.5, 4.0, new Rotation2d()));
 
     private Consumer<List<PathPoint>> pathConsumer = path -> {
         currentPath.clear();

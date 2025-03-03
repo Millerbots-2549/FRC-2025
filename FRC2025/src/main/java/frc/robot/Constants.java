@@ -87,7 +87,7 @@ public final class Constants {
 
   public static final boolean useSingleController = false;
 
-  public static final boolean enableDrive = true;
+  public static final boolean enableDrive = false;
 
   //static { currentMode = Mode.REPLAY; }
 
@@ -122,7 +122,7 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final Distance WHEEL_RADIUS = Inches.of(2.167);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 12.0;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 9.0;
     public static final double MAX_ACCELERATION = 2.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(420);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
@@ -201,7 +201,7 @@ public final class Constants {
     public static final int BACK_LEFT_CANCODER_ID = 9;
     public static final int BACK_RIGHT_CANCODER_ID = 2;
 
-    public static final double TURN_KP = 40.0;
+    public static final double TURN_KP = 45.0;
     public static final double TURN_KI = 0.0;
     public static final double TURN_KD = 0.5;
     public static final double TURN_KS = 0.1;
@@ -380,7 +380,7 @@ public final class Constants {
     public static final double ROLLER_GEAR_RATIO = 1;
 
     public static final int ROLLER_MOTOR_ID = 21;
-    public static final int ROLLER_CURRENT_LIMIT = 5;
+    public static final int ROLLER_CURRENT_LIMIT = 15;
     public static final double ROLLER_ENCODER_POSITION_FACTOR = MathConstants.TAU;
     public static final double ROLLER_ENCODER_VELOCITY_FACTOR = MathConstants.TAU / 60.0;
 
@@ -400,10 +400,10 @@ public final class Constants {
     public static final double ROLLER_SIM_KS = 0.0;
     public static final double ROLLER_SIM_KV = 0.0;
 
-    public static final double ANGLE_KP = 0.15;
+    public static final double ANGLE_KP = 0.09;
     public static final double ANGLE_KD = 0.00;
     public static final double ANGLE_KS = 0.23;
-    public static final double ANGLE_KG = 0.1;
+    public static final double ANGLE_KG = 0.05;
     public static final double ANGLE_KV = 1.15;
     public static final double ANGLE_KA = 0.081;
     public static final double ANGLE_SIM_KP = 2.0;
@@ -512,7 +512,7 @@ public final class Constants {
     public static final double ELEVATOR_KS = 0.0;
     public static final double ELEVATOR_KV = 0.0;
     public static final double ELEVATOR_KA = 0.0;
-    public static final double ELEVATOR_KG = 0.0;
+    public static final double ELEVATOR_KG = 0.015;
 
     public static final int LEFT_MOTOR_ID = 2;
     public static final int RIGHT_MOTOR_ID = 3;
@@ -565,7 +565,7 @@ public final class Constants {
     public static final int ROLLER_MOTOR_ID = 8;
 
     public static final Rotation2d DESCORER_OFF_POSITION = Rotation2d.fromRadians(0);
-    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-2.4);
+    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-3.0);
 
     public static final double WRIST_KP = 0.25;
     public static final double WRIST_KI = 0.0;
@@ -588,7 +588,7 @@ public final class Constants {
     public static final double ROLLER_MAX_VELOCITY = 10.0;
     public static final double ROLLER_MAX_ACCEL = 10.0;
 
-    public static final int WRIST_CURRENT_LIMIT = 35;
+    public static final int WRIST_CURRENT_LIMIT = 50;
     public static final int ROLLER_CURRENT_LIMIT = 30;
 
     public static final double WRIST_GEAR_RATIO = 0.04;

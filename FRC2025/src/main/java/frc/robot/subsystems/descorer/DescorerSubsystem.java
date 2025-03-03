@@ -36,4 +36,8 @@ public class DescorerSubsystem extends SubsystemBase {
   public void setLowerLevel(boolean isLowLevel) {
     io.setLowerLevel(isLowLevel);
   }
+
+  public Rotation2d getCurrentWristPosition() {
+    return inputs.wristPosition;
+  }
 }

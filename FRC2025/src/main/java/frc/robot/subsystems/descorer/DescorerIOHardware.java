@@ -77,6 +77,8 @@ public class DescorerIOHardware implements DescorerIO {
         wristPositionController.setTolerance(0.1, 0.1);
 
         rollerVelocityController.setTolerance(0.1);
+
+        velocityTimer.start();
     }
 
     @Override
@@ -108,14 +110,16 @@ public class DescorerIOHardware implements DescorerIO {
                 WRIST_PID_MAX_INPUT
             );
             */
+
         double absolutePosition = wristEncoder.getPosition();
         double setpointPosition = setpoint.getRadians();
-        if(!lowLevel) setpointPosition += 0.4 + (MathUtil.clamp((velocityTimer.get() - 1.0) / 3, 0, 1.5));
-        wristPositionController.setTolerance(0.1, 0.1);
+
+        wristPositionController.setTolerance(0.001, 0.1);
+
         double output = wristPositionController.calculate(absolutePosition, setpointPosition);
         output += WRIST_KG * Math.cos(absolutePosition);
         output = output > 0 ? output * 0.5 : output;
-        wristMotor.set(MathUtil.clamp(output, -0.75, 0.75));
+        wristMotor.set(MathUtil.clamp(output, -0.9, 0.9));
 
         SmartDashboard.putNumber("Descorer Wrist Output", output);
         SmartDashboard.putNumber("Descorer Setpoint Position", setpointPosition);
@@ -124,8 +128,8 @@ public class DescorerIOHardware implements DescorerIO {
 
         SmartDashboard.putNumber("Velocity Timer", velocityTimer.get());
 
-        output = velocitySetpoint * (MathUtil.clamp(velocityTimer.get() * 2, 0.0, 1.0));
-        rollerMotor.set(lowLevel? -output : output);
+        output = velocitySetpoint * (MathUtil.clamp(velocityTimer.get() * 3, 0.0, 1.0));
+        rollerMotor.set(output);
     }
 
     @Override
@@ -140,11 +144,7 @@ public class DescorerIOHardware implements DescorerIO {
 
     @Override
     public void applyRollerDutyCycle(double output) {
-        if(velocitySetpoint < 0.01 && output > 0.01) {
-            velocityTimer.start();
-            velocityTimer.reset();
-        } else if(velocitySetpoint > 0.01 && output < 0.01) {
-            velocityTimer.stop();
+        if(velocitySetpoint != output) {
             velocityTimer.reset();
         }
         velocitySetpoint = output;
