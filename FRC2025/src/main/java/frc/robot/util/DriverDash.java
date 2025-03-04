@@ -117,12 +117,13 @@ public class DriverDash implements DashboardPublisher {
                 ? 105.0 * ((15.0 - DriverStation.getMatchTime()) / 15.0)
                 : 105.0 - DriverStation.getMatchTime());
         
+                /* 
         field.setRobotPose(driveSubsystem.getPose());
         Pose2d[] activePath = activePathSubscriber.get(new Pose2d[0]);
         Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
             Arrays.stream(activePath).collect(Collectors.toList()),
             new TrajectoryConfig(6.0, 6.0));
-        field.getObject("traj").setTrajectory(trajectory);
+        field.getObject("traj").setTrajectory(trajectory);*/
     }
     
 }

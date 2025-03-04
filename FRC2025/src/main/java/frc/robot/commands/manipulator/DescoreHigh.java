@@ -9,6 +9,7 @@ import static frc.robot.Constants.DescorerConstants.*;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.descorer.DescorerSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
@@ -17,7 +18,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class DescoreHigh extends Command {
   private static final double RAISE_TIME = 1.0;
-  private static final double RAISE_SPEED = 0.25;
+  private static final double RAISE_SPEED = 1.0;
 
   private final DescorerSubsystem descorerSubsystem;
   private final ElevatorSubsystem elevatorSubsystem;
@@ -57,12 +58,15 @@ public class DescoreHigh extends Command {
   @Override
   public void execute() {
     descorerSubsystem.runRoller(1.0);
+    SmartDashboard.putNumber("HUIJIJAJIJJOQOJKKOQ", Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
+      - DESCORER_ON_POSITION.getRadians()));
+    SmartDashboard.putBoolean("Descoring", currentState == CommandState.DESCORING);
     switch (currentState) {
       case LOWERING:
         elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
         descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION);
         if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-            - DESCORER_ON_POSITION.getRadians()) < 0.005) {
+            - DESCORER_ON_POSITION.getRadians()) < 0.05) {
           timer.reset();
           currentState = CommandState.RAISING;
         }
@@ -71,7 +75,7 @@ public class DescoreHigh extends Command {
       case RAISING:
         descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.plus(Rotation2d.fromRadians(
           MathUtil.clamp(timer.get() * RAISE_SPEED, 0, 1.5))));
-        elevatorSubsystem.setElevatorPosition(ElevatorLevel.FLOOR.height + (timer.get() * RAISE_SPEED * 1.0));
+        elevatorSubsystem.setElevatorPosition(ElevatorLevel.FLOOR.height + (timer.get() * RAISE_SPEED * 3.0));
         if (timer.get() > RAISE_TIME) {
           timer.reset();
           currentState = CommandState.DESCORING;
@@ -81,8 +85,8 @@ public class DescoreHigh extends Command {
       default:
         descorerSubsystem.applyWristSetpoint(DESCORER_OFF_POSITION);
         if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-            - DESCORER_ON_POSITION.getRadians()) < 0.005) {
-              elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
+            - DESCORER_OFF_POSITION.getRadians()) < 0.05) {
+          elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
           shouldFinish = true;
         }
         break;
@@ -91,7 +95,9 @@ public class DescoreHigh extends Command {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
+  }
 
   // Returns true when the command should end.
   @Override

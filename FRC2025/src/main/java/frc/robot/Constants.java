@@ -87,7 +87,7 @@ public final class Constants {
 
   public static final boolean useSingleController = false;
 
-  public static final boolean enableDrive = false;
+  public static final boolean enableDrive = true;
 
   //static { currentMode = Mode.REPLAY; }
 
@@ -122,7 +122,7 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final Distance WHEEL_RADIUS = Inches.of(2.167);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 9.0;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 6.0;
     public static final double MAX_ACCELERATION = 2.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(420);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
@@ -134,7 +134,7 @@ public final class Constants {
       new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0)
     };
 
-    public static final int DRIVE_CURRENT_LIMIT = 40;
+    public static final int DRIVE_CURRENT_LIMIT = 30;
     public static final int TURN_CURRENT_LIMIT = 30;
 
     public static final double DRIVE_GEAR_RATIO = 6.75;

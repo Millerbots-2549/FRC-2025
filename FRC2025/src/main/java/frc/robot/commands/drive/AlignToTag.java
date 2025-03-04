@@ -7,11 +7,13 @@ package frc.robot.commands.drive;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.vision.VisionSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
+@SuppressWarnings("unused")
 public class AlignToTag extends Command {
   private DriveSubsystem driveSubsystem;
   private VisionSubsystem visionSubsystem;
@@ -41,6 +43,10 @@ public class AlignToTag extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    SmartDashboard.putNumber("Reef Tag X", visionSubsystem.getTargetX(0).getDegrees());
+    SmartDashboard.putNumber("Reef Tag Area", visionSubsystem.getTargetArea(0));
+    SmartDashboard.putNumber("Reef Tag Skew", visionSubsystem.getTargetSkew(0));
+
     double currentXOffset = visionSubsystem.getTargetX(0).getDegrees();
 
     double xOutput = offsetController.calculate(currentXOffset, wantedXOffset);
@@ -48,10 +54,10 @@ public class AlignToTag extends Command {
 
     ChassisSpeeds speeds = new ChassisSpeeds(xOutput, 0, 0);
 
-    driveSubsystem.runVelocity(speeds);
+    //driveSubsystem.runVelocity(speeds);
 
     if (offsetController.atSetpoint()) {
-      finish = true;
+      //finish = true;
     }
   }
 

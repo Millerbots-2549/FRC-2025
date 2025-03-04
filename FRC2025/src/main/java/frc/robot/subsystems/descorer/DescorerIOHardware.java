@@ -53,8 +53,6 @@ public class DescorerIOHardware implements DescorerIO {
 
     private final Debouncer wristConnectedDebounce = new Debouncer(0.5);
 
-    private boolean lowLevel = false;
-
     public DescorerIOHardware(SparkBaseConfig wristConfig, SparkBaseConfig rollerConfig) {
         this.wristMotor = new SparkMax(WRIST_MOTOR_ID, MotorType.kBrushless);
         this.rollerMotor = new SparkMax(ROLLER_MOTOR_ID, MotorType.kBrushless);
@@ -114,7 +112,7 @@ public class DescorerIOHardware implements DescorerIO {
         double absolutePosition = wristEncoder.getPosition();
         double setpointPosition = setpoint.getRadians();
 
-        wristPositionController.setTolerance(0.001, 0.1);
+        wristPositionController.setTolerance(0.001, 0.001);
 
         double output = wristPositionController.calculate(absolutePosition, setpointPosition);
         output += WRIST_KG * Math.cos(absolutePosition);
@@ -162,10 +160,5 @@ public class DescorerIOHardware implements DescorerIO {
 
     public Rotation2d getCurrentAbsolutePosition() {
         return Rotation2d.fromRotations(wristEncoder.getPosition());
-    }
-
-    @Override
-    public void setLowerLevel(boolean isLowerLevel) {
-        lowLevel = isLowerLevel;
     }
 }

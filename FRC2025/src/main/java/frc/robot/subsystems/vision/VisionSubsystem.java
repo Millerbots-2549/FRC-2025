@@ -70,6 +70,33 @@ public class VisionSubsystem extends SubsystemBase {
         return inputs[cameraIndex].latestTargetObservation.tx();
     }
 
+    /**
+     * Returns the Y angle to the best target, which can be used for simple servoing with vision.
+     *
+     * @param cameraIndex The index of the camera to use.
+     */
+    public Rotation2d getTargetY(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetObservation.ty();
+    }
+
+    /**
+     * Returns the area of the best target, which can be used for simple servoing with vision.
+     *
+     * @param cameraIndex The index of the camera to use.
+     */
+    public double getTargetArea(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetArea;
+    }
+
+    /**
+     * Returns the skew of the best target, which can be used for simple servoing with vision.
+     *
+     * @param cameraIndex The index of the camera to use.
+     */
+    public double getTargetSkew(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetSkew;
+    }
+
     @Override
     public void periodic() {
         for (int i = 0; i < io.length; i++) {

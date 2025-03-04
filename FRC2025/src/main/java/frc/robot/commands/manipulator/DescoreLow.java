@@ -38,7 +38,7 @@ public class DescoreLow extends Command {
   @Override
   public void execute() {
     descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION);
-    descorerSubsystem.runRoller(-0.5);
+    descorerSubsystem.runRoller(-1.0);
     if (currentState == CommandState.LOWERING) {
       // If the wrist is lowering and it is close enough to the setpoint, switch state
       if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
