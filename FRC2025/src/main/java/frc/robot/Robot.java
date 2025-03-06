@@ -97,6 +97,9 @@ public class Robot extends LoggedRobot {
     Threads.setCurrentThreadPriority(false, 10);
 
     robotContainer.updateShuffleboard();
+
+    Logger.recordOutput("RIO/MemoryUsage", Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+    Logger.recordOutput("RIO/MaxMemory", Runtime.getRuntime().maxMemory());
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
