@@ -44,7 +44,7 @@ public class VisionIOQuestNav implements VisionIO {
                 0,
                 new Rotation3d(QNQuaternion));
             Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
-            fieldToRobot = fieldToRobot.plus(new Transform3d(9.5, 4.0, 0, Rotation3d.kZero));
+            fieldToRobot = fieldToRobot.plus(new Transform3d(2.5, 1.0, 0, Rotation3d.kZero));
             Pose3d robotPose = new Pose3d(
                 fieldToRobot.getTranslation(), fieldToRobot.getRotation());
             

@@ -27,7 +27,8 @@ public class AlignToTag extends Command {
   private boolean finish = false;
 
   /** Creates a new AlignToTag. */
-  public AlignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, double wantedXOffset, double wantedTagArea) {
+  public AlignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem,
+                    double wantedXOffset, double wantedTagArea) {
     this.driveSubsystem = driveSubsystem;
     this.visionSubsystem = visionSubsystem;
     this.wantedXOffset = wantedXOffset;

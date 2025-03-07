@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.3855532786885245,
-        "y": 6.770184426229508
+        "x": 1.9779713114754096,
+        "y": 4.804200819672131
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.2309316202155243,
-        "y": 6.573735596426277
+        "x": 2.977971311475409,
+        "y": 4.804200819672131
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.3855532786885245,
-        "y": 2.99405737704918
+        "x": 6.449385245901639,
+        "y": 6.81813524590164
       },
       "prevControl": {
-        "x": 2.4165619623358268,
-        "y": 2.745987907870763
+        "x": 7.444928278688525,
+        "y": 6.588883196721312
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,21 +30,10 @@
   ],
   "rotationTargets": [],
   "constraintZones": [],
-  "pointTowardsZones": [
-    {
-      "fieldPosition": {
-        "x": 4.5,
-        "y": 4.0
-      },
-      "rotationOffset": 0.0,
-      "minWaypointRelativePos": 0.05,
-      "maxWaypointRelativePos": 0.1,
-      "name": "Point Towards Zone"
-    }
-  ],
+  "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.8,
+    "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -53,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 112.61986494804046
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "TestPaths AND PONTS ",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -91.30195267257888
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

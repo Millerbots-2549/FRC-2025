@@ -103,7 +103,7 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
     FLOOR(0.3),
     L1(4),
     L2(6),
-    L3(14.0),
+    L3(13.5),
     L4(23.85);
 
     public final double height;
