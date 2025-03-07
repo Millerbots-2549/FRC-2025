@@ -1,0 +1,25 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Start Position 1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "TOP 1"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "TestAutos",
+  "choreoAuto": false
+}
