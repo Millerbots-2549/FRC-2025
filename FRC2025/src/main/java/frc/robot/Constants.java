@@ -108,6 +108,10 @@ public final class Constants {
     public static final double DEADBAND = 0.1;
   }
 
+  public static class AutoConstants {
+    public static final double CORAL_INTAKE_SPEED = 0.5;
+  }
+
   public static class DriveConstants {
     public static final SwerveDrivetrainConstants DRIVETRAIN_CONSTANTS = new SwerveDrivetrainConstants();
 

@@ -18,6 +18,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -35,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AlgaeIntakeConstants;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DescorerConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ElevatorConstants;
@@ -194,6 +196,19 @@ public class RobotContainer {
         descorerSubsystem = new DescorerSubsystem(new DescorerIO() { });
         break;
     }
+
+    NamedCommands.registerCommand("ElevatorFLOOR", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR), elevatorSubsystem));
+    NamedCommands.registerCommand("ElevatorL1", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem));
+    NamedCommands.registerCommand("ElevatorL2", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L2), elevatorSubsystem));
+    NamedCommands.registerCommand("ElevatorL3", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L3), elevatorSubsystem));
+    NamedCommands.registerCommand("ElevatorL4", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L4), elevatorSubsystem));
+    NamedCommands.registerCommand("ElevatorSTATION", Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
+
+    NamedCommands.registerCommand("StartCoralOut", Commands.runOnce(() -> elevatorSubsystem.runIntake(AutoConstants.CORAL_INTAKE_SPEED), elevatorSubsystem));
+    NamedCommands.registerCommand("StopCoral", Commands.runOnce(() -> elevatorSubsystem.runIntake(0.0), elevatorSubsystem));
+
+    NamedCommands.registerCommand("DescoreLow", new DescoreLow(descorerSubsystem));
+    NamedCommands.registerCommand("DescoreHigh", new DescoreHigh(descorerSubsystem, elevatorSubsystem));
 
     autoChooser = new LoggedDashboardChooser<>("Auto", AutoBuilder.buildAutoChooser());
 
