@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.drive.DriveSubsystem;
+import frc.robot.subsystems.vision.VisionSubsystem;
 
 /** Add your docs here. */
 public class AlignmentCommands {
@@ -29,5 +30,9 @@ public class AlignmentCommands {
 
             new AlignToPose(driveSubsystem, () -> targetPose, new Translation2d(0, 0.3)).schedule();;
         }, driveSubsystem);
+    }
+
+    public static Command alignToReefTagLeft(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
+        return new AlignToTag(driveSubsystem, visionSubsystem, 0, 0);
     }
 }

@@ -46,6 +46,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.drive.AlignToTag;
 import frc.robot.commands.drive.JoystickDrive;
 import frc.robot.commands.manipulator.DescoreHigh;
 import frc.robot.commands.manipulator.DescoreLow;
@@ -71,6 +72,7 @@ import frc.robot.subsystems.elevator.ElevatorIOHardware;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
@@ -127,9 +129,9 @@ public class RobotContainer {
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
-          new VisionIOQuestNav(questNav, new Transform3d()));
+          new VisionIOQuestNav(questNav, new Transform3d(Units.inchesToMeters(9.5), 0.0, Units.inchesToMeters(-3.0), Rotation3d.kZero)));
           // new VisionIOPhotonVision("front_cam", new Transform3d()));
-          // new VisionIOPhotonVision("left_cam", new Transform3d()),
+          //new VisionIOPhotonVision("left_cam", new Transform3d()));
           // new VisionIOPhotonVision("right_cam", new Transform3d()));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
@@ -288,6 +290,8 @@ public class RobotContainer {
 
     oi.onDriveButtonPressed(Y, Commands.runOnce(resetGyro, driveSubsystem)
       .ignoringDisable(true));
+
+    oi.whileDriveTriggerPressed(RT, new AlignToTag(driveSubsystem, visionSubsystem, 0, 0));
       
 
     oi.whileManipulatorBumperPressed(LB,
