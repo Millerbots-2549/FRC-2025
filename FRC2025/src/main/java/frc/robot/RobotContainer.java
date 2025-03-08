@@ -129,7 +129,7 @@ public class RobotContainer {
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
-          new VisionIOQuestNav(questNav, new Transform3d(Units.inchesToMeters(9.5), 0.0, Units.inchesToMeters(-3.0), Rotation3d.kZero)));
+          new VisionIOQuestNav(questNav));
           // new VisionIOPhotonVision("front_cam", new Transform3d()));
           //new VisionIOPhotonVision("left_cam", new Transform3d()));
           // new VisionIOPhotonVision("right_cam", new Transform3d()));

@@ -23,7 +23,7 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.drive.DriveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignToPose extends SequentialCommandGroup {
+public class PathfindAndAlignToPose extends SequentialCommandGroup {
   DriveSubsystem driveSubsystem;
   Supplier<Pose2d> targetPose;
   Supplier<Pose2d> currentPose;
@@ -35,7 +35,7 @@ public class AlignToPose extends SequentialCommandGroup {
   PIDController thetaController;
 
   /** Creates a new AlignToPose. */
-  public AlignToPose(DriveSubsystem driveSubsystem, Supplier<Pose2d> targetPose, Translation2d pathfindOffset) {
+  public PathfindAndAlignToPose(DriveSubsystem driveSubsystem, Supplier<Pose2d> targetPose, Translation2d pathfindOffset) {
     this.driveSubsystem = driveSubsystem;
     this.targetPose = targetPose;
 

@@ -89,6 +89,8 @@ public final class Constants {
 
   public static final boolean enableDrive = true;
 
+  public static final Pose2d INITIAL_POSITION = new Pose2d(9.5, 4.0, new Rotation2d(0));
+
   //static { currentMode = Mode.REPLAY; }
 
   public static enum Mode {
