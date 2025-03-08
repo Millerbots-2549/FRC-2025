@@ -15,9 +15,14 @@ import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.Constants;
+import frc.robot.util.LoggedTunableNumber;
 
 /** Add your docs here. */
 public class QuestNav {
+  private LoggedTunableNumber questXOffset = new LoggedTunableNumber("/Tuning/questXOffset", 0.0);
+  private LoggedTunableNumber questYOffset = new LoggedTunableNumber("/Tuning/questYOffset", 0.0);
+
     // Configure Network Tables topics (questnav/...) to communicate with the Quest HMD
   NetworkTableInstance nt4Instance = NetworkTableInstance.getDefault();
   NetworkTable nt4Table = nt4Instance.getTable("questnav");
@@ -33,7 +38,7 @@ public class QuestNav {
 
   // Local heading helper variables
   private float yaw_offset = 0.0f;
-  private Pose2d resetPosition = new Pose2d();
+  private Pose2d resetPosition = Constants.INITIAL_POSITION;
 
   // Gets the Quest's measured position.
   public Pose2d getPose() {
@@ -69,7 +74,7 @@ public class QuestNav {
 
   // Zero the absolute 3D position of the robot (similar to long-pressing the quest logo)
   public void zeroPosition() {
-    resetPosition = getPose();
+    resetPosition = new Pose2d(getPose().getTranslation().plus(Constants.INITIAL_POSITION.getTranslation()), getPose().getRotation());
     if (questMiso.get() != 99) {
       questMosi.set(1);
     }
@@ -99,7 +104,7 @@ public class QuestNav {
   }
 
   private Pose2d getQuestNavPose() {
-    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(0, 0.1651)); // 6.5
+    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(questXOffset.get(), questYOffset.get())); // 6.5
     return new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw()));
   }
 }
