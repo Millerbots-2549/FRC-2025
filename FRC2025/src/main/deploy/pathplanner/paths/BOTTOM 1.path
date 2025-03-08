@@ -12,7 +12,7 @@
         "y": 2.094784902597403
       },
       "isLocked": false,
-      "linkedName": "RED BOTTOM START END"
+      "linkedName": "BOTTOM END"
     },
     {
       "anchor": {
@@ -25,7 +25,7 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BOTTOM 1"
+      "linkedName": "BOTTOM 1 C"
     }
   ],
   "rotationTargets": [],
@@ -45,7 +45,7 @@
     "rotation": 150.0
   },
   "reversed": false,
-  "folder": "RED SCORE 1",
+  "folder": "RED SCORE CORAL 1",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

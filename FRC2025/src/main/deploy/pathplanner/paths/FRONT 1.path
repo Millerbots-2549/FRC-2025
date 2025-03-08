@@ -12,20 +12,20 @@
         "y": 4.0
       },
       "isLocked": false,
-      "linkedName": "RED CENTER END"
+      "linkedName": "CENTER END"
     },
     {
       "anchor": {
         "x": 11.745109577922078,
-        "y": 4.0
+        "y": 3.8825487012987008
       },
       "prevControl": {
         "x": 10.242248376623376,
-        "y": 3.9893871753246746
+        "y": 3.8719358766233753
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "FRONT 1"
+      "linkedName": "FRONT 1 C"
     }
   ],
   "rotationTargets": [],
@@ -45,7 +45,7 @@
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": "RED SCORE 1",
+  "folder": "RED SCORE CORAL 1",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

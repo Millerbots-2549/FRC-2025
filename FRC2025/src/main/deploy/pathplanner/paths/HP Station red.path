@@ -12,7 +12,7 @@
         "y": 7.0592126623376625
       },
       "isLocked": false,
-      "linkedName": "RED HP 1"
+      "linkedName": "HP 1"
     },
     {
       "anchor": {
@@ -21,11 +21,11 @@
       },
       "prevControl": {
         "x": 15.43887987012987,
-        "y": 1.069135551948052
+        "y": 1.0691355519480523
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "RED HP 2"
+      "linkedName": "HP 2"
     }
   ],
   "rotationTargets": [],

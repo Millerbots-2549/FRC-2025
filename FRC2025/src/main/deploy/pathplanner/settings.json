@@ -3,9 +3,8 @@
   "robotLength": 0.9144,
   "holonomicMode": true,
   "pathFolders": [
-    "BLUE SCORE 1",
-    "BLUE START",
-    "RED SCORE 1",
+    "Coral to descore",
+    "RED SCORE CORAL 1",
     "RED START",
     "TestPaths AND PONTS "
   ],
@@ -39,6 +38,6 @@
   "bumperOffsetX": 0.0,
   "bumperOffsetY": 0.0,
   "robotFeatures": [
-    "{\"name\":\"Rectangle\",\"type\":\"rounded_rect\",\"data\":{\"center\":{\"x\":0.0,\"y\":0.0},\"size\":{\"width\":0.7112,\"length\":0.7112},\"borderRadius\":0.05,\"strokeWidth\":0.02,\"filled\":false}}"
+    "{\"name\":\"Line\",\"type\":\"line\",\"data\":{\"start\":{\"x\":0.0,\"y\":0.45},\"end\":{\"x\":0.0,\"y\":-0.45},\"strokeWidth\":0.02}}"
   ]
 }

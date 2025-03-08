@@ -12,7 +12,7 @@
         "y": 5.9409699675324665
       },
       "isLocked": false,
-      "linkedName": "RED TOP START END"
+      "linkedName": "TOP END"
     },
     {
       "anchor": {
@@ -45,7 +45,7 @@
     "rotation": -30.896000000000004
   },
   "reversed": false,
-  "folder": "RED SCORE 1",
+  "folder": "RED SCORE CORAL 1",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
