@@ -14,14 +14,12 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.util.LoggedTunableNumber;
-import frc.robot.subsystems.vision.VisionSubsystem;
 
 /** Add your docs here. */
 public final class AlignmentCommands {
@@ -35,16 +33,39 @@ public final class AlignmentCommands {
     private static LoggedTunableNumber thetaPIDkI = new LoggedTunableNumber("/Tuning/thetaPIDkI", 0.0);
     private static LoggedTunableNumber thetaPIDkD = new LoggedTunableNumber("/Tuning/thetaPIDkD", 0.0);
 
-    public static Command pathfindAndAlignToReef(DriveSubsystem driveSubsystem) {
-        return Commands.runOnce(() -> {
-            List<Pose2d> reefPoses = new ArrayList<>();
-            for(Pose2d[] pose : FieldConstants.REEF_POSITIONS) {
-                reefPoses.add(new Pose2d(pose[0].getTranslation(), pose[0].getRotation()));
-                reefPoses.add(new Pose2d(pose[1].getTranslation(), pose[1].getRotation()));
-            }
-            Pose2d targetPose = driveSubsystem.getPose().nearest(reefPoses);
+    /**
+     * Reef Positions:
+     * <p> ======BR=BL=====
+     * <p>=LBL/+++++++\RBR=
+     * <p>LBR/+++++++++\RBL
+     * <p>LFL\+++++++++/RFR
+     * <p>=LFR\+++++++/RFL=
+     * <p> ======FL=FR=====
+     */
+    public static enum ReefPosition {
+        CLOSEST,
+        CLOSEST_LEFT,
+        CLOSEST_RIGHT,
+        FL,
+        FR,
+        LFL,
+        LFR,
+        LBL,
+        LBR,
+        BL,
+        BR,
+        RBL,
+        RBR,
+        RFL,
+        RFR
+    }
 
-            new PathfindAndAlignToPose(driveSubsystem, () -> targetPose, new Translation2d(0, 0.3)).schedule();
+    public static Command pathfindAndAlignToReef(DriveSubsystem driveSubsystem, ReefPosition position) {
+        return Commands.runOnce(() -> {
+            Pose2d targetPose = getReefPositionPose(position, driveSubsystem.getPose());
+
+            new PathfindToPose(driveSubsystem, () -> targetPose, 0.0)
+                .andThen(alignToPose(driveSubsystem, () -> targetPose, 0.05));
         }, driveSubsystem);
     }
 
@@ -52,12 +73,19 @@ public final class AlignmentCommands {
         return Commands.runOnce(() -> {
             List<Pose2d> reefPoses = new ArrayList<>();
             for(Pose2d[] pose : FieldConstants.REEF_POSITIONS) {
-                reefPoses.add(new Pose2d(pose[0].getTranslation(), pose[0].getRotation()));
-                reefPoses.add(new Pose2d(pose[1].getTranslation(), pose[1].getRotation()));
+                reefPoses.add(pose[0]);
+                reefPoses.add(pose[1]);
             }
             Pose2d targetPose = driveSubsystem.getPose().nearest(reefPoses);
 
-            alignToPose(driveSubsystem, () -> targetPose, 0.1).schedule();
+            alignToPose(driveSubsystem, () -> targetPose, 0.05).schedule();
+        }, driveSubsystem);
+    }
+
+    public static Command alignToReefPosition(DriveSubsystem driveSubsystem, ReefPosition position) {
+        return Commands.runOnce(() -> {
+            Pose2d targetPose = getReefPositionPose(position, driveSubsystem.getPose());
+            alignToPose(driveSubsystem, () -> targetPose, 0.05).schedule();
         }, driveSubsystem);
     }
 
@@ -105,7 +133,40 @@ public final class AlignmentCommands {
         }).andThen(() -> {xPID.close(); yPID.close(); thetaPID.close();});
     }
 
-    public static Command alignToReefTagLeft(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
-        return new AlignToTag(driveSubsystem, visionSubsystem, 0, 0);
+    public static Pose2d getReefPositionPose(ReefPosition position, Pose2d drivePose) {
+        Pose2d targetPose;
+        String positionString = position.toString();
+        if(positionString.startsWith("CLOSEST")) {
+            List<Pose2d> reefPoses = new ArrayList<>();
+            for(Pose2d[] pose : FieldConstants.REEF_POSITIONS) {
+                if(position == ReefPosition.CLOSEST_LEFT) {
+                    reefPoses.add(pose[0]);
+                } else {
+                    reefPoses.add(pose[1]);
+                }
+            }
+            targetPose = drivePose.nearest(reefPoses);
+        } else {
+            Pose2d[] poses = new Pose2d[2];
+            if(positionString.startsWith("F")) {
+                poses = FieldConstants.REEF_POSITIONS[0];
+            } else if(positionString.startsWith("LF")) {
+                poses = FieldConstants.REEF_POSITIONS[1];
+            } else if(positionString.startsWith("LB")) {
+                poses = FieldConstants.REEF_POSITIONS[2];
+            } else if(positionString.startsWith("B")) {
+                poses = FieldConstants.REEF_POSITIONS[3];
+            } else if(positionString.startsWith("RB")) {
+                poses = FieldConstants.REEF_POSITIONS[4];
+            } else if(positionString.startsWith("RF")) {
+                poses = FieldConstants.REEF_POSITIONS[5];
+            }
+            if (positionString.endsWith("L")) {
+                targetPose = poses[0];
+            } else {
+                targetPose = poses[1];
+            }
+        }
+        return targetPose;
     }
 }

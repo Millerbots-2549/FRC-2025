@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.FloatArraySubscriber;
 import edu.wpi.first.networktables.IntegerPublisher;
@@ -16,13 +17,9 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants;
-import frc.robot.util.LoggedTunableNumber;
 
 /** Add your docs here. */
 public class QuestNav {
-  private LoggedTunableNumber questXOffset = new LoggedTunableNumber("/Tuning/questXOffset", 0.0);
-  private LoggedTunableNumber questYOffset = new LoggedTunableNumber("/Tuning/questYOffset", 0.0);
-
     // Configure Network Tables topics (questnav/...) to communicate with the Quest HMD
   NetworkTableInstance nt4Instance = NetworkTableInstance.getDefault();
   NetworkTable nt4Table = nt4Instance.getTable("questnav");
@@ -74,7 +71,16 @@ public class QuestNav {
 
   // Zero the absolute 3D position of the robot (similar to long-pressing the quest logo)
   public void zeroPosition() {
-    resetPosition = new Pose2d(getPose().getTranslation().plus(Constants.INITIAL_POSITION.getTranslation()), getPose().getRotation());
+    resetPosition = new Pose2d(getPose().getTranslation(), getPose().getRotation());
+    if (questMiso.get() != 99) {
+      questMosi.set(1);
+    }
+  }
+
+  public void setPosition(Pose2d other) {
+    resetPosition = new Pose2d(
+      getPose().getTranslation().plus(other.getTranslation()),
+      getPose().getRotation().plus(other.getRotation()));
     if (questMiso.get() != 99) {
       questMosi.set(1);
     }
@@ -95,7 +101,7 @@ public class QuestNav {
     if (ret < 0) {
       ret += 360;
     }
-    return ret;
+    return -ret;
   }
 
   private Translation2d getQuestNavTranslation() {
@@ -104,7 +110,9 @@ public class QuestNav {
   }
 
   private Pose2d getQuestNavPose() {
-    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(questXOffset.get(), questYOffset.get())); // 6.5
+    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(
+      Units.inchesToMeters(11.5),
+      Units.inchesToMeters(4.0))); // 6.5
     return new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw()));
   }
 }

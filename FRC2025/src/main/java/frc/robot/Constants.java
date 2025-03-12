@@ -89,7 +89,9 @@ public final class Constants {
 
   public static final boolean enableDrive = true;
 
-  public static final Pose2d INITIAL_POSITION = new Pose2d(9.5, 4.0, new Rotation2d(0));
+  public static final boolean enableQuestPoseInitialization = false;
+
+  public static final Pose2d INITIAL_POSITION = new Pose2d(8.0, 4.0, new Rotation2d(0));
 
   //static { currentMode = Mode.REPLAY; }
 
@@ -118,7 +120,7 @@ public final class Constants {
     public static final SwerveDrivetrainConstants DRIVETRAIN_CONSTANTS = new SwerveDrivetrainConstants();
 
     public static final boolean INVERT_LEFT = false;
-    public static final boolean INVERT_RIGHT = true;
+    public static final boolean INVERT_RIGHT = false;
 
     public static final double ODOMETRY_FREQUENCY = 0.02;
 
@@ -128,8 +130,8 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
     public static final Distance WHEEL_RADIUS = Inches.of(2.167);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
-    public static final double MAX_SPEED_METERS_PER_SECOND = 8.0;
-    public static final double MAX_ACCELERATION = 2.0;
+    public static final double MAX_SPEED_METERS_PER_SECOND = 12.0;
+    public static final double MAX_ACCELERATION = 4.0;
     public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(420);
     public static final double MAX_ANGULAR_ACCELERATION = Units.degreesToRadians(1070);
 
@@ -140,7 +142,7 @@ public final class Constants {
       new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0)
     };
 
-    public static final int DRIVE_CURRENT_LIMIT = 30;
+    public static final int DRIVE_CURRENT_LIMIT = 40;
     public static final int TURN_CURRENT_LIMIT = 30;
 
     public static final double DRIVE_GEAR_RATIO = 6.75;
@@ -214,7 +216,7 @@ public final class Constants {
     public static final double TURN_KV = 1.91;
     public static final double TURN_KA = 0.0;
 
-    public static final double DRIVE_KP = 0.2;
+    public static final double DRIVE_KP = 0.25;
     public static final double DRIVE_KI = 0.0;
     public static final double DRIVE_KD = 0.0;
     public static final double DRIVE_KS = 0.0;
@@ -295,19 +297,19 @@ public final class Constants {
 
     private static final boolean FRONT_RIGHT_STEER_MOTOR_INVERTED = true;
     private static final boolean FRONT_RIGHT_ENCODER_INVERTED = false;
-    private static final Angle FRONT_RIGHT_ENCODER_OFFSET = Rotations.of(0.309);
+    private static final Angle FRONT_RIGHT_ENCODER_OFFSET = Rotations.of(-0.190);
     private static final Distance FRONT_RIGHT_X_POS = Inches.of(WHEEL_BASE / 2);
     private static final Distance FRONT_RIGHT_Y_POS = Inches.of(-TRACK_WIDTH / 2);
 
     private static final boolean BACK_LEFT_STEER_MOTOR_INVERTED = true;
     private static final boolean BACK_LEFT_ENCODER_INVERTED = false;
-    private static final Angle BACK_LEFT_ENCODER_OFFSET = Rotations.of(-0.0842);
+    private static final Angle BACK_LEFT_ENCODER_OFFSET = Rotations.of(-0.051);
     private static final Distance BACK_LEFT_X_POS = Inches.of(-WHEEL_BASE / 2);
     private static final Distance BACK_LEFT_Y_POS = Inches.of(TRACK_WIDTH / 2);
 
     private static final boolean BACK_RIGHT_STEER_MOTOR_INVERTED = true;
     private static final boolean BACK_RIGHT_ENCODER_INVERTED = false;
-    private static final Angle BACK_RIGHT_ENCODER_OFFSET = Rotations.of(-0.112);
+    private static final Angle BACK_RIGHT_ENCODER_OFFSET = Rotations.of(0.382);
     private static final Distance BACK_RIGHT_X_POS = Inches.of(-WHEEL_BASE / 2);
     private static final Distance BACK_RIGHT_Y_POS = Inches.of(-TRACK_WIDTH / 2);
 
@@ -379,6 +381,8 @@ public final class Constants {
 
     public static double LINEAR_STD_DEV_MEGATAG2_FACTOR = 0.5;
     public static double ANGULAR_STD_DEV_MEGATAG2_FACTOR = Double.POSITIVE_INFINITY;
+
+    public static int INITIALIZATION_MINIMUM_OBSERVATIONS = 50;
   }
 
   public static class AlgaeIntakeConstants {

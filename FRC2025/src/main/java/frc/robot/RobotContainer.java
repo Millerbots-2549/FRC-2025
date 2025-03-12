@@ -88,7 +88,7 @@ import frc.robot.util.vision.QuestNav;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  private final QuestNav questNav;
+  public static final QuestNav questNav = new QuestNav();
 
   private final DriveSubsystem driveSubsystem;
   @SuppressWarnings("unused")
@@ -108,8 +108,6 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    questNav = new QuestNav();
-
     if (Constants.useSingleController) {
       oi = new OperatorControllerOI(OperatorConstants.kOperatorControllerPort);
     } else {
@@ -129,6 +127,7 @@ public class RobotContainer {
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
+          new VisionIOPhotonVision("HD_Web_Camera", new Transform3d()),
           new VisionIOQuestNav(questNav));
           // new VisionIOPhotonVision("front_cam", new Transform3d()));
           //new VisionIOPhotonVision("left_cam", new Transform3d()));
@@ -240,8 +239,8 @@ public class RobotContainer {
 
   private double getDriveSpeedMultiplier(double leftTriggerAxis) {
     double axis = 1 - leftTriggerAxis;
-    axis *= 0.7;
-    axis += 0.3;
+    axis *= 0.5;
+    axis += 0.5;
     return axis;
   }
 
@@ -291,7 +290,13 @@ public class RobotContainer {
     oi.onDriveButtonPressed(Y, Commands.runOnce(resetGyro, driveSubsystem)
       .ignoringDisable(true));
 
-    oi.whileDriveTriggerPressed(RT, new AlignToTag(driveSubsystem, visionSubsystem, 0, 0));
+    //oi.whileDriveTriggerPressed(RT,
+    //  AlignmentCommands.alignToPose(driveSubsystem, () -> new Pose2d(6.0, 6.0, Rotation2d.kZero), 0.1));
+
+    oi.whileDriveBumperPressed(RB,
+      new AlignToTag(driveSubsystem, visionSubsystem, 0.25, 0.33));
+    oi.whileDriveBumperPressed(LB,
+      new AlignToTag(driveSubsystem, visionSubsystem, -0.15, 0.33));
       
 
     oi.whileManipulatorBumperPressed(LB,

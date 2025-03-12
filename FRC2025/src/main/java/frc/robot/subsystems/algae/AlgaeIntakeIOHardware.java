@@ -161,7 +161,7 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         double output = angleController.calculate(absolutePosition, setPoint);
         output -= output < 0 ?  Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG
                 : Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
-        //angleMotor.set(MathUtil.clamp(output, -1.0, 1.0));
+        angleMotor.set(MathUtil.clamp(output, -1.0, 1.0));
 
         SmartDashboard.putNumber("Angle Absolute Position", absolutePosition);
         SmartDashboard.putNumber("Angle Setpoint", setPoint);
@@ -195,6 +195,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
 
     @Override
     public void setAngleOpenLoop(double volts) {
-        //angleMotor.setVoltage(volts);
+        angleMotor.setVoltage(volts);
     }
 }

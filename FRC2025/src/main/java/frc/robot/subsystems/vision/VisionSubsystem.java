@@ -4,14 +4,7 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
-import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_MEGATAG2_FACTOR;
-import static frc.robot.Constants.VisionConstants.APRIL_TAG_LAYOUT;
-import static frc.robot.Constants.VisionConstants.CAMERA_STD_DEV_FACTORS;
-import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_BASELINE;
-import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_MEGATAG2_FACTOR;
-import static frc.robot.Constants.VisionConstants.MAX_AMBIGUITY;
-import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
+import static frc.robot.Constants.VisionConstants.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -29,7 +22,11 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
+import frc.robot.util.Triad;
+import frc.robot.util.vision.QuestNav;
 
 /** Add your docs here. */
 public class VisionSubsystem extends SubsystemBase {
@@ -42,6 +39,21 @@ public class VisionSubsystem extends SubsystemBase {
     private final VisionIO[] io;
     private final VisionIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
+
+    private final QuestNav questNav;
+
+    /**
+     * A list of poses used to initialize the position of the quest nav
+     * <table>
+     *  <tr><th>First</th><th>Second</th><th>Third</th></tr>
+     *  <tr>
+     *   <th>The measured pose of the questnav  -</th>
+     *   <th>The pose calculated from the target observation  -</th>
+     *   <th>The confidence of the estimate (lower = better)</th>
+     *  </tr>
+     * </table>
+    */
+    private List<Triad<Pose2d, Pose2d, Double>> initializationPoses = new LinkedList<>();
 
     public VisionSubsystem(VisionConsumer consumer, VisionIO... io) {
         this.consumer = consumer;
@@ -59,6 +71,8 @@ public class VisionSubsystem extends SubsystemBase {
             disconnectedAlerts[i] =
                     new Alert("Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.kWarning);
         }
+
+        questNav = RobotContainer.questNav;
     }
 
     /**
@@ -97,6 +111,14 @@ public class VisionSubsystem extends SubsystemBase {
         return inputs[cameraIndex].latestTargetSkew;
     }
 
+    public Pose3d getTargetPose(int cameraIndex) {
+        return inputs[cameraIndex].latestTarget3dPose;
+    }
+
+    public int getTargetID(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetID;
+    }
+
     @Override
     public void periodic() {
         for (int i = 0; i < io.length; i++) {
@@ -133,6 +155,8 @@ public class VisionSubsystem extends SubsystemBase {
                         tagPoses.add(tagPose.get());
                     }
                 }
+
+                Pose2d questPose = questNav.getPose();
 
                 // Loop over pose observations
                 for (var observation : inputs[cameraIndex].poseObservations) {
@@ -175,14 +199,18 @@ public class VisionSubsystem extends SubsystemBase {
                     }
 
                     // Send vision observation
-                    
                     consumer.addVisionMeasurement(
                             observation.pose().toPose2d(),
                             observation.timestamp(),
                             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
                             
+                    // Only add a pose to the initialization poses if the observation was calculated with april tags
+                    initializationPoses.add(Triad.of(
+                        questPose, // The pose of the questnav at this time
+                        observation.pose().toPose2d(), // The pose of the current observation
+                        (linearStdDev + angularStdDev) / 2)); // The confidence
                 }
-            } else { // Subsystem doesn't use april tags
+            } else { // Subsystem doesn't use april tags (Only questnav)
                 for (var observation : inputs[cameraIndex].poseObservations) {
                     robotPoses.add(observation.pose());
 
@@ -226,5 +254,65 @@ public class VisionSubsystem extends SubsystemBase {
         Logger.recordOutput(
                 "Vision/Summary/RobotPosesRejected",
                 allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+        
+        initializeQuestnav();
+    }
+
+    @SuppressWarnings("unused")
+    public boolean initializeQuestnav() {
+        if (initializationPoses.size() < INITIALIZATION_MINIMUM_OBSERVATIONS
+                && Constants.enableQuestPoseInitialization) {
+            Pose2d bestPose = new Pose2d();
+            double bestConfidence = Double.POSITIVE_INFINITY;
+
+            double totalConfidence = 0.0;
+
+            double avgPoseX = 0.0;
+            double avgPoseY = 0.0;
+            double avgPoseRot = 0.0;
+
+            double totalTranslationError = 0.0;
+            double totalRotationError = 0.0;
+
+            for(Triad<Pose2d, Pose2d, Double> initPose : initializationPoses) {
+                // The best observation will have the lowest linear and angular std devs.
+                if (initPose.getThird() < bestConfidence) {
+                    bestConfidence = initPose.getThird();
+                    bestPose = initPose.getSecond();
+                    // Add a bit of confidence to the best estimation
+                    totalConfidence += initPose.getThird() * 1.5;
+                    avgPoseX += bestPose.getX() * initPose.getThird() * 1.5;
+                    avgPoseY += bestPose.getY() * initPose.getThird() * 1.5;
+                    avgPoseRot += bestPose.getRotation().getRadians() * initPose.getThird() * 1.5;
+                }
+                totalConfidence += initPose.getThird();
+                avgPoseX += bestPose.getX() * initPose.getThird();
+                avgPoseY += bestPose.getY() * initPose.getThird();
+                avgPoseRot += bestPose.getRotation().getRadians() * initPose.getThird();
+
+                totalTranslationError += initPose.getFirst().getTranslation()
+                    .getDistance(initPose.getSecond().getTranslation());
+                totalRotationError += Math.abs(initPose.getFirst().getRotation().getRadians()
+                    - initPose.getSecond().getRotation().getRadians());
+            }
+
+            avgPoseX /= totalConfidence;
+            avgPoseY /= totalConfidence;
+            avgPoseRot /= totalConfidence;
+
+            // Set new questnav position
+            questNav.setPosition(new Pose2d(avgPoseX, avgPoseY, Rotation2d.fromRadians(avgPoseRot)));
+
+            totalTranslationError /= initializationPoses.size();
+            totalRotationError /= initializationPoses.size();
+
+            // Log error values
+            Logger.recordOutput("Vision/Initialization/TranslationError", totalTranslationError);
+            Logger.recordOutput("Vision/Initialization/RotationError", totalRotationError);
+            
+            return true;
+        } else {
+            return false;
+        }
     }
 }

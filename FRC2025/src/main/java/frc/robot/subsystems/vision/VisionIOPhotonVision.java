@@ -16,6 +16,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 
 /** Add your docs here. */
 public class VisionIOPhotonVision implements VisionIO {
@@ -43,15 +44,29 @@ public class VisionIOPhotonVision implements VisionIO {
         for (var result : camera.getAllUnreadResults()) {
             // Update latest target observation
             if (result.hasTargets()) {
+                PhotonTrackedTarget best = result.getBestTarget();
+                double bestDist = Double.POSITIVE_INFINITY;
+                for(PhotonTrackedTarget t : result.getTargets()) {
+                    double dist = t.bestCameraToTarget.getTranslation().getDistance(Translation3d.kZero);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = t;
+                    }
+                }
                 inputs.latestTargetObservation = new TargetObservation(
-                        Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                        Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
-                inputs.latestTargetArea = result.getBestTarget().getArea();
-                inputs.latestTargetSkew = result.getBestTarget().getSkew();
+                        Rotation2d.fromDegrees(best.getYaw()),
+                        Rotation2d.fromDegrees(best.getPitch()));
+                inputs.latestTargetArea = best.getArea();
+                inputs.latestTargetSkew = best.getSkew();
+                inputs.latestTarget3dPose = new Pose3d(
+                    best.bestCameraToTarget.getTranslation(),
+                    best.bestCameraToTarget.getRotation());
+                inputs.latestTargetID = best.getFiducialId();
             } else {
                 inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
                 inputs.latestTargetArea = 0.0;
                 inputs.latestTargetSkew = 0.0;
+                inputs.latestTargetID = -1;
             }
 
             // Add pose observation
@@ -72,6 +87,13 @@ public class VisionIOPhotonVision implements VisionIO {
 
                 // Add tag IDs
                 tagIds.addAll(multitagResult.fiducialIDsUsed);
+
+                robotPose = new Pose3d(
+                    ((robotPose.getX() - 9.0) * -1) + 9.0,
+                    ((robotPose.getY() - 4.0) * -1) + 4.0,
+                    robotPose.getZ(),
+                    robotPose.getRotation()
+                );
 
                 // Add observation
                 poseObservations.add(new PoseObservation(
