@@ -7,19 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start Position 1"
+            "pathName": "part 1"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "TOP 1"
+            "pathName": "Part 2"
           }
         }
       ]
     }
   },
-  "resetOdom": false,
-  "folder": "TestAutos",
+  "resetOdom": true,
+  "folder": "1 coral",
   "choreoAuto": false
 }

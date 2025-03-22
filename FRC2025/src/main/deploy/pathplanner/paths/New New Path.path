@@ -3,35 +3,48 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 11.695251623376624,
-        "y": 6.0
+        "x": 2.0,
+        "y": 7.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 12.792126623376623,
-        "y": 7.700243506493506
+        "x": 3.0,
+        "y": 7.0
       },
       "isLocked": false,
-      "linkedName": "TOP END"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 14.387581168831169,
-        "y": 4.0891030844155845
+        "x": 4.0,
+        "y": 6.0
       },
       "prevControl": {
-        "x": 15.498701298701299,
-        "y": 4.081980519480519
+        "x": 3.0,
+        "y": 6.0
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "BACK 2 C"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "ElevatorL1",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "ElevatorFLOOR",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 4.8,
     "maxAcceleration": 3.0,
@@ -42,10 +55,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "RED SCORE CORAL 1",
+  "folder": "Center autos paths",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

@@ -1,16 +1,12 @@
 {
-  "robotWidth": 0.9144,
+  "robotWidth": 0.914,
   "robotLength": 0.9144,
   "holonomicMode": true,
   "pathFolders": [
-    "Coral to descore",
-    "RED SCORE CORAL 1",
-    "RED START",
-    "TestPaths AND PONTS "
+    "Center autos paths"
   ],
   "autoFolders": [
-    "RED 1 coral",
-    "BLUE 1 coral",
+    "1 coral",
     "TestAutos"
   ],
   "defaultMaxVel": 4.8,
@@ -38,6 +34,9 @@
   "bumperOffsetX": 0.0,
   "bumperOffsetY": 0.0,
   "robotFeatures": [
-    "{\"name\":\"Line\",\"type\":\"line\",\"data\":{\"start\":{\"x\":0.0,\"y\":0.45},\"end\":{\"x\":0.0,\"y\":-0.45},\"strokeWidth\":0.02}}"
+    "{\"name\":\"descore\",\"type\":\"line\",\"data\":{\"start\":{\"x\":0.0,\"y\":0.45},\"end\":{\"x\":0.0,\"y\":-0.45},\"strokeWidth\":0.02}}",
+    "{\"name\":\"coral\",\"type\":\"line\",\"data\":{\"start\":{\"x\":0.2695,\"y\":0.46},\"end\":{\"x\":0.2695,\"y\":-0.45},\"strokeWidth\":0.02}}",
+    "{\"name\":\"Circle\",\"type\":\"circle\",\"data\":{\"center\":{\"x\":0.27,\"y\":-0.37},\"radius\":0.06,\"strokeWidth\":0.02,\"filled\":true}}",
+    "{\"name\":\"Circle\",\"type\":\"circle\",\"data\":{\"center\":{\"x\":0.0,\"y\":0.35},\"radius\":0.06,\"strokeWidth\":0.02,\"filled\":true}}"
   ]
 }
