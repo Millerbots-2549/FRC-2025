@@ -80,16 +80,7 @@ public class DriverDash implements DashboardPublisher {
             .withSize(5, 4);
 
         try {
-            leftCamera = tab.addCamera("Left Camera", "left_cam", "mjpg:http://10.25.49.2:1181/?action=stream")
-                .withProperties(Map.of("showControls", false))
-                .withPosition(7, 0)
-                .withSize(3, 2);
-        } catch (Exception e) {
-            System.out.println("Couldn't add left camera to driver dashboard");
-            e.printStackTrace();
-        }
-        try {
-            rightCamera = tab.addCamera("Right Camera", "right_cam", "mjpg:http://photonvision.local:1183/?action=stream")
+            rightCamera = tab.addCamera("Reef Camera", "reef_camera", "mjpg:http://photonvision.local:1183/stream")
                 .withProperties(Map.of("showControls", false))
                 .withPosition(10, 0)
                 .withSize(3, 2);
@@ -98,7 +89,7 @@ public class DriverDash implements DashboardPublisher {
             e.printStackTrace();
         }
         try {
-            driverCamera = tab.addCamera("Front Camera", "front_cam", "mjpg:http://photonvision.local:1186/stream.mjpg")
+            driverCamera = tab.addCamera("Front Camera", "front_camera", "mjpg:http://photonvision.local:1186/stream.mjpg")
                 .withProperties(Map.of("showControls", false))
                 .withPosition(7, 2)
                 .withSize(6, 4);
@@ -117,13 +108,7 @@ public class DriverDash implements DashboardPublisher {
                 ? 105.0 * ((15.0 - DriverStation.getMatchTime()) / 15.0)
                 : 105.0 - DriverStation.getMatchTime());
         
-                /* 
         field.setRobotPose(driveSubsystem.getPose());
-        Pose2d[] activePath = activePathSubscriber.get(new Pose2d[0]);
-        Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-            Arrays.stream(activePath).collect(Collectors.toList()),
-            new TrajectoryConfig(6.0, 6.0));
-        field.getObject("traj").setTrajectory(trajectory);*/
     }
     
 }

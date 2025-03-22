@@ -365,8 +365,20 @@ public final class Constants {
     public static String CAMERA_0_NAME = "camera_0";
     public static String CAMERA_1_NAME = "camera_1";
 
-    public static Transform3d ROBOT_TO_CAMERA_0 = new Transform3d(0.0, 0.2, 0.2, new Rotation3d(0.0, -0.4, Math.PI / 2));
-    public static Transform3d ROBOT_TO_CAMERA_1 = new Transform3d(0.0, -0.2, 0.2, new Rotation3d(0.0, -0.4, Math.PI * 1.5));
+    // Reminder: rotation z is yaw I think
+
+    /** Reef camera */
+    public static Transform3d ROBOT_TO_CAMERA_0 = new Transform3d(Units.inchesToMeters(9.5), Units.inchesToMeters(3.0), 0.2,
+      new Rotation3d(0.0, -0.4, Math.PI / 2));
+    /** Left camera */
+    public static Transform3d ROBOT_TO_CAMERA_1 = new Transform3d(Units.inchesToMeters(9.5), Units.inchesToMeters(3.0), 0.2,
+      new Rotation3d(0.0, -0.4, Math.PI * 1.5));
+    /** Front camera */
+    public static Transform3d ROBOT_TO_CAMERA_2 = new Transform3d(0.0, 0.2, 0.2,
+      new Rotation3d(0.0, -0.4, Math.PI / 2));
+    /** Back camera */
+    public static Transform3d ROBOT_TO_CAMERA_3 = new Transform3d(0.0, 0.2, 0.2,
+      new Rotation3d(0.0, -0.4, Math.PI / 2));
 
     public static double MAX_AMBIGUITY = 0.3;
     public static double MAX_Z_ERROR = 0.75;
@@ -375,8 +387,11 @@ public final class Constants {
     public static double ANGULAR_STD_DEV_BASELINE = 0.06;
 
     public static double[] CAMERA_STD_DEV_FACTORS = new double[] {
-        1.0,
-        1.0
+        0.25, // Reef camera
+        0.25, // Left camera
+        0.25, // Front camera
+        0.25, // Back camera
+        1.0 // Quest
     };
 
     public static double LINEAR_STD_DEV_MEGATAG2_FACTOR = 0.5;
@@ -575,9 +590,9 @@ public final class Constants {
     public static final int ROLLER_MOTOR_ID = 8;
 
     public static final Rotation2d DESCORER_OFF_POSITION = Rotation2d.fromRadians(0);
-    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-3.0);
+    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-3.3);
 
-    public static final double WRIST_KP = 0.25;
+    public static final double WRIST_KP = 0.2;
     public static final double WRIST_KI = 0.0;
     public static final double WRIST_KD = 0.0;
     public static final double WRIST_KS = 0.0;

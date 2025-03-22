@@ -14,17 +14,25 @@ public interface VisionIO {
     @AutoLog
     public static class VisionIOInputs {
         public boolean connected = false;
-        public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
-        public double latestTargetArea = 0.0;
-        public double latestTargetSkew = 0.0;
-        public Pose3d latestTarget3dPose = new Pose3d();
-        public int latestTargetID;
+        public TargetObservation latestTargetObservation = new TargetObservation(
+            new Rotation2d(),
+            new Rotation2d(),
+            0.0,
+            0.0,
+            new Pose3d(),
+            -1);
         public PoseObservation[] poseObservations = new PoseObservation[0];
         public int[] tagIds = new int[0];
     }
 
     /** Represents the angle to a simple target, not used for pose estimation. */
-    public static record TargetObservation(Rotation2d tx, Rotation2d ty) {}
+    public static record TargetObservation(
+        Rotation2d tx,
+        Rotation2d ty,
+        double area,
+        double skew,
+        Pose3d pose,
+        int ID) {}
 
     /** Represents a robot pose sample used for pose estimation. */
     public static record PoseObservation(

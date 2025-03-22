@@ -28,7 +28,6 @@ public class JoystickDrive extends Command {
 
   private final Timer previousRotationalInputTimer;
   private final PIDController chassisRotationController;
-  @SuppressWarnings("unused")
   private Rotation2d rotationMaintenanceSetpoint;
 
   /** Creates a new JoystickDrive. */
@@ -45,7 +44,7 @@ public class JoystickDrive extends Command {
     
     this.previousRotationalInputTimer = new Timer();
     this.driveSubsystem = driveSubsystem;
-    chassisRotationController = new PIDController(0.6, 0, 0.02); // fill your pid
+    chassisRotationController = new PIDController(0.4, 0, 0.0); // fill your pid
     chassisRotationController.enableContinuousInput(0, Math.toRadians(360));
     super.addRequirements(driveSubsystem);
   }

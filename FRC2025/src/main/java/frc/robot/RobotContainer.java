@@ -25,7 +25,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -46,7 +45,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
-import frc.robot.commands.drive.AlignToTag;
+import frc.robot.commands.drive.AlignmentCommands;
 import frc.robot.commands.drive.JoystickDrive;
 import frc.robot.commands.manipulator.DescoreHigh;
 import frc.robot.commands.manipulator.DescoreLow;
@@ -96,6 +95,7 @@ public class RobotContainer {
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
   private final ElevatorSubsystem elevatorSubsystem;
   private final DescorerSubsystem descorerSubsystem;
+  //private final LEDSubsystem ledSubsystem;
 
   private SwerveDriveSimulation driveSimulation = null;
   private IntakeSimulation intakeSimulation = null;
@@ -116,6 +116,8 @@ public class RobotContainer {
         OperatorConstants.kManipulatorControllerPort);
     }
 
+    //ledSubsystem = new LEDSubsystem();
+
     switch (Constants.currentMode) {
       case REAL:
         driveSubsystem = new DriveSubsystem(
@@ -127,11 +129,9 @@ public class RobotContainer {
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
-          new VisionIOPhotonVision("HD_Web_Camera", new Transform3d()),
+          new VisionIOPhotonVision("reef_cam_1", VisionConstants.ROBOT_TO_CAMERA_0),
+          new VisionIOPhotonVision("reef_cam_2", VisionConstants.ROBOT_TO_CAMERA_1),
           new VisionIOQuestNav(questNav));
-          // new VisionIOPhotonVision("front_cam", new Transform3d()));
-          //new VisionIOPhotonVision("left_cam", new Transform3d()));
-          // new VisionIOPhotonVision("right_cam", new Transform3d()));
 
         algaeIntakeSubsystem = new AlgaeIntakeSubsystem(
           new AlgaeIntakeIOHardware(AlgaeIntakeConstants.ROLLER_CONFIG, AlgaeIntakeConstants.ANGLE_CONFIG));
@@ -280,6 +280,17 @@ public class RobotContainer {
         descorerSubsystem.applyWristSetpoint(DescorerConstants.DESCORER_OFF_POSITION);
         descorerSubsystem.runRoller(0);
       }, descorerSubsystem));
+
+    /* 
+    ledSubsystem.setDefaultCommand(
+      Commands.run(() -> {
+        if(DriverStation.getAlliance().get() == DriverStation.Alliance.Blue) {
+          ledSubsystem.foreach((index) -> ledSubsystem.setSegment(index, Color.kBlue));
+        } else {
+          ledSubsystem.foreach((index) -> ledSubsystem.setSegment(index, Color.kRed));
+        }
+      }, ledSubsystem));
+      */
     
     final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
         ? () -> {}
@@ -294,15 +305,15 @@ public class RobotContainer {
     //  AlignmentCommands.alignToPose(driveSubsystem, () -> new Pose2d(6.0, 6.0, Rotation2d.kZero), 0.1));
 
     oi.whileDriveBumperPressed(RB,
-      new AlignToTag(driveSubsystem, visionSubsystem, 0.25, 0.33));
+      AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.36, 0.158), 1));
     oi.whileDriveBumperPressed(LB,
-      new AlignToTag(driveSubsystem, visionSubsystem, -0.15, 0.33));
+    AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.36, -0.02), 0));
       
 
     oi.whileManipulatorBumperPressed(LB,
-      Commands.run(() -> algaeIntakeSubsystem.apply(0.5, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
+      Commands.run(() -> algaeIntakeSubsystem.apply(0.8, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
     oi.whileManipulatorBumperPressed(RB,
-      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-0.5), algaeIntakeSubsystem));
+      Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-0.8), algaeIntakeSubsystem));
 
     oi.whileManipulatorTriggerPressedFullRange(LT,
       Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(LT) * 0.3000)), elevatorSubsystem));
@@ -324,11 +335,15 @@ public class RobotContainer {
     oi.onManipulatorButtonPressed(Y,
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
 
+    oi.onManipulatorButtonPressed(LEFT_STICK_BUTTON,
+      Commands.runOnce(() -> elevatorSubsystem.setCurrentLevelOffset(), elevatorSubsystem));
+
     oi.whileManipulatorButtonPressed(POV_RIGHT,
       new DescoreHigh(descorerSubsystem, elevatorSubsystem));
     oi.whileManipulatorButtonPressed(POV_LEFT,
       new DescoreLow(descorerSubsystem));
-      
+    
+    oi.onDriveButtonPressed(X, Commands.runOnce(() -> visionSubsystem.initializeQuestnav(), visionSubsystem));
   }
 
   public void updateShuffleboard() {

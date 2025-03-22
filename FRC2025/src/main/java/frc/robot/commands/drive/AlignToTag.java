@@ -31,6 +31,7 @@ public class AlignToTag extends Command {
   private final double wantedOffset;
   private final double wantedDistance;
   private double wantedRotation;
+  private final int cameraIndex;
   
   private final PIDController offsetController = new PIDController(3.4, 0.0, 0.02);
   private final PIDController distanceController = new PIDController(4.4, 0.0, 0.02);
@@ -61,11 +62,12 @@ public class AlignToTag extends Command {
 
   /** Creates a new AlignToTag. */
   public AlignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem,
-                    double wantedOffset, double wantedDistance) {
+                    double wantedOffset, double wantedDistance, int cameraIndex) {
     this.driveSubsystem = driveSubsystem;
     this.visionSubsystem = visionSubsystem;
     this.wantedOffset = wantedOffset;
     this.wantedDistance = wantedDistance;
+    this.cameraIndex = cameraIndex;
 
     this.finish = false;
 
@@ -85,22 +87,15 @@ public class AlignToTag extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(tagRotMap.containsKey(visionSubsystem.getTargetID(0))) {
+    if(tagRotMap.containsKey(visionSubsystem.getTargetID(cameraIndex))) {
       wantedRotation = MathUtil.inputModulus(tagRotMap.get(
-        visionSubsystem.getTargetID(0)), 0, MathConstants.TAU);
+        visionSubsystem.getTargetID(cameraIndex)), 0, MathConstants.TAU);
     }
 
-    Logger.recordOutput("CurDeg", driveSubsystem.getRotation().getDegrees());
-
-    Logger.recordOutput("Alignment/TagPose", visionSubsystem.getTargetPose(0));
-    Logger.recordOutput("Alignment/TagID", visionSubsystem.getTargetID(0));
-
-    Pose3d currentPose = visionSubsystem.getTargetPose(0);
+    Pose3d currentPose = visionSubsystem.getTargetPose(cameraIndex);
     double currentOffset = currentPose.getY();
     double currentDistance = currentPose.getX();
     double currentRotation = MathUtil.inputModulus(driveSubsystem.getRotation().getRadians(), 0, MathConstants.TAU);
-
-    Logger.recordOutput("Alignment/TagRot", currentRotation);
 
     double offsetOutput = 0.0;
     if (currentDistance < 0.5) {
@@ -111,7 +106,7 @@ public class AlignToTag extends Command {
     double distanceOutput = MathUtil.clamp(distanceController.calculate(currentDistance, wantedDistance), -maxSpeed, maxSpeed);
     double rotationOutput = rotationController.calculate(currentRotation, wantedRotation);
 
-    if (visionSubsystem.getTargetID(0) <= 0 || !tagRotMap.containsKey(visionSubsystem.getTargetID(0))) {
+    if (visionSubsystem.getTargetID(cameraIndex) <= 0 || !tagRotMap.containsKey(visionSubsystem.getTargetID(cameraIndex))) {
       driveSubsystem.runVelocity(new ChassisSpeeds(0, 0, 0));
     } else {
       if (Math.abs(distanceOutput) < 0.5) {

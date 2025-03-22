@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
+import frc.robot.subsystems.vision.VisionIO.TargetObservation;
 import frc.robot.util.Triad;
 import frc.robot.util.vision.QuestNav;
 
@@ -42,13 +43,15 @@ public class VisionSubsystem extends SubsystemBase {
 
     private final QuestNav questNav;
 
+    private int questReorientingCount = 0;
+
     /**
      * A list of poses used to initialize the position of the quest nav
      * <table>
      *  <tr><th>First</th><th>Second</th><th>Third</th></tr>
      *  <tr>
-     *   <th>The measured pose of the questnav  -</th>
-     *   <th>The pose calculated from the target observation  -</th>
+     *   <th>The measured pose of the questnav</th>
+     *   <th>The pose calculated from the target observation</th>
      *   <th>The confidence of the estimate (lower = better)</th>
      *  </tr>
      * </table>
@@ -76,6 +79,16 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     /**
+     * Returns the best target of the camera selected
+     * 
+     * @param cameraIndex The index of the camera to use.
+     * @return The {@link TargetObservation target}
+     */
+    public TargetObservation getTarget(int cameraIndex) {
+        return inputs[cameraIndex].latestTargetObservation;
+    }
+
+    /**
      * Returns the X angle to the best target, which can be used for simple servoing with vision.
      *
      * @param cameraIndex The index of the camera to use.
@@ -99,7 +112,7 @@ public class VisionSubsystem extends SubsystemBase {
      * @param cameraIndex The index of the camera to use.
      */
     public double getTargetArea(int cameraIndex) {
-        return inputs[cameraIndex].latestTargetArea;
+        return inputs[cameraIndex].latestTargetObservation.area();
     }
 
     /**
@@ -108,15 +121,26 @@ public class VisionSubsystem extends SubsystemBase {
      * @param cameraIndex The index of the camera to use.
      */
     public double getTargetSkew(int cameraIndex) {
-        return inputs[cameraIndex].latestTargetSkew;
+        return inputs[cameraIndex].latestTargetObservation.skew();
     }
 
+    /**
+     * Returns the 3d pose of the best target, which can be used for simple servoing with vision.
+     * <p><strong>The output may be null if a 3d pose was not detected.</strong>
+     *
+     * @param cameraIndex The index of the camera to use.
+     */
     public Pose3d getTargetPose(int cameraIndex) {
-        return inputs[cameraIndex].latestTarget3dPose;
+        return inputs[cameraIndex].latestTargetObservation.pose();
     }
 
+    /**
+     * Returns the ID of the best target
+     *
+     * @param cameraIndex The index of the camera to use.
+     */
     public int getTargetID(int cameraIndex) {
-        return inputs[cameraIndex].latestTargetID;
+        return inputs[cameraIndex].latestTargetObservation.ID();
     }
 
     @Override
@@ -127,7 +151,7 @@ public class VisionSubsystem extends SubsystemBase {
 
             SmartDashboard.putNumber("Camera" + i + " Target X Rot", inputs[i].latestTargetObservation.tx().getDegrees());
             SmartDashboard.putNumber("Camera" + i + " Target Y Rot", inputs[i].latestTargetObservation.ty().getDegrees());
-            SmartDashboard.putNumber("Camera" + i + " Target Area", inputs[i].latestTargetArea);
+            SmartDashboard.putNumber("Camera" + i + " Target Area", inputs[i].latestTargetObservation.area());
         }
 
         // Initialize logging values
@@ -255,7 +279,7 @@ public class VisionSubsystem extends SubsystemBase {
                 "Vision/Summary/RobotPosesRejected",
                 allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
         
-        initializeQuestnav();
+        if(questReorientingCount == 0) initializeQuestnav();
     }
 
     @SuppressWarnings("unused")
@@ -267,28 +291,24 @@ public class VisionSubsystem extends SubsystemBase {
 
             double totalConfidence = 0.0;
 
-            double avgPoseX = 0.0;
-            double avgPoseY = 0.0;
-            double avgPoseRot = 0.0;
+            double avgPoseDeltaX = 0.0;
+            double avgPoseDeltaY = 0.0;
+            double avgPoseDeltaRot = 0.0;
 
             double totalTranslationError = 0.0;
             double totalRotationError = 0.0;
 
             for(Triad<Pose2d, Pose2d, Double> initPose : initializationPoses) {
-                // The best observation will have the lowest linear and angular std devs.
-                if (initPose.getThird() < bestConfidence) {
-                    bestConfidence = initPose.getThird();
-                    bestPose = initPose.getSecond();
-                    // Add a bit of confidence to the best estimation
-                    totalConfidence += initPose.getThird() * 1.5;
-                    avgPoseX += bestPose.getX() * initPose.getThird() * 1.5;
-                    avgPoseY += bestPose.getY() * initPose.getThird() * 1.5;
-                    avgPoseRot += bestPose.getRotation().getRadians() * initPose.getThird() * 1.5;
-                }
-                totalConfidence += initPose.getThird();
-                avgPoseX += bestPose.getX() * initPose.getThird();
-                avgPoseY += bestPose.getY() * initPose.getThird();
-                avgPoseRot += bestPose.getRotation().getRadians() * initPose.getThird();
+                Pose2d poseDelta = new Pose2d(
+                    initPose.getSecond().getX() - initPose.getFirst().getX(),
+                    initPose.getSecond().getY() - initPose.getFirst().getY(),
+                    initPose.getSecond().getRotation().minus(initPose.getFirst().getRotation())
+                );
+
+                totalConfidence += (1 - initPose.getThird());
+                avgPoseDeltaX += bestPose.getX() * (1 - initPose.getThird());
+                avgPoseDeltaY += bestPose.getY() * (1 - initPose.getThird());
+                avgPoseDeltaRot += bestPose.getRotation().getRadians() * (1 - initPose.getThird());
 
                 totalTranslationError += initPose.getFirst().getTranslation()
                     .getDistance(initPose.getSecond().getTranslation());
@@ -296,12 +316,17 @@ public class VisionSubsystem extends SubsystemBase {
                     - initPose.getSecond().getRotation().getRadians());
             }
 
-            avgPoseX /= totalConfidence;
-            avgPoseY /= totalConfidence;
-            avgPoseRot /= totalConfidence;
+            avgPoseDeltaX /= totalConfidence;
+            avgPoseDeltaY /= totalConfidence;
+            avgPoseDeltaRot /= totalConfidence;
+
+            Pose2d currentPose = questNav.getPose();
 
             // Set new questnav position
-            questNav.setPosition(new Pose2d(avgPoseX, avgPoseY, Rotation2d.fromRadians(avgPoseRot)));
+            questNav.setPosition(new Pose2d(
+                currentPose.getX() + avgPoseDeltaX,
+                currentPose.getY() + avgPoseDeltaY,
+                Rotation2d.fromRadians(currentPose.getRotation().getRadians() + avgPoseDeltaRot)));
 
             totalTranslationError /= initializationPoses.size();
             totalRotationError /= initializationPoses.size();
@@ -309,7 +334,11 @@ public class VisionSubsystem extends SubsystemBase {
             // Log error values
             Logger.recordOutput("Vision/Initialization/TranslationError", totalTranslationError);
             Logger.recordOutput("Vision/Initialization/RotationError", totalRotationError);
+
+            initializationPoses.clear();
             
+            questReorientingCount++;
+
             return true;
         } else {
             return false;

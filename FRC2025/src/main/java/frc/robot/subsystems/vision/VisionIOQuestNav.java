@@ -32,7 +32,9 @@ public class VisionIOQuestNav implements VisionIO {
     public void updateInputs(VisionIOInputs inputs) {
         inputs.connected = questNav.connected();
 
-        inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+        inputs.latestTargetObservation = new TargetObservation(
+            new Rotation2d(), new Rotation2d(),
+            0.0, 0.0, new Pose3d(), -1);
 
         List<PoseObservation> poseObservations = new LinkedList<>();
         if (questNav.getPose() != null) {

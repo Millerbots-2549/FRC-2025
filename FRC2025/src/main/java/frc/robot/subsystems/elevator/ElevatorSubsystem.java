@@ -44,6 +44,11 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
     SmartDashboard.putBoolean("Elevator Connected", inputs.elevatorConnected);
     SmartDashboard.putBoolean("Elevator Out of Bounds", inputs.outOfBounds);
 
+    SmartDashboard.putNumber("L1 Setpoint", ElevatorLevel.L1.height + heightOffsets[0]);
+    SmartDashboard.putNumber("L2 Setpoint", ElevatorLevel.L2.height + heightOffsets[1]);
+    SmartDashboard.putNumber("L3 Setpoint", ElevatorLevel.L3.height + heightOffsets[2]);
+    SmartDashboard.putNumber("L4 Setpoint", ElevatorLevel.L4.height + heightOffsets[3]);
+
     if (currentLevel == 0) {
       if (isDownTimer.get() < 0.5) {
         oi.setDriveRumble(RumbleType.kBothRumble, 0.5);
@@ -66,11 +71,12 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
   }
 
   public void moveToStation() {
-    setElevatorPosition(6.94);
+    setElevatorPosition(7.4);
     currentLevel = 2;
   }
 
   public void moveToLevel(ElevatorLevel level) {
+    //setElevatorPosition(level.height + (currentLevel >= 1 ? heightOffsets[currentLevel - 1] : 0.0));
     setElevatorPosition(level.height);
     currentLevel = level.ordinal();
   }
@@ -85,6 +91,12 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
     if (currentLevel < 1) return;
 
     moveToLevel(ElevatorLevel.values()[currentLevel - 1]);
+  }
+
+  public void setCurrentLevelOffset() {
+    if (currentLevel < 1) return;
+
+    heightOffsets[currentLevel] = inputs.heightMeters - ElevatorLevel.values()[currentLevel].height;
   }
 
   public void runIntake(double speed) {
@@ -103,14 +115,19 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
     FLOOR(0.3),
     L1(4),
     L2(6),
-    L3(13.5),
+    L3(13.8),
     L4(23.85);
 
-    public final double height;
+    public double height;
+
     ElevatorLevel(double height) {
       this.height = height;
     }
   }
+
+  public static double[] heightOffsets = {
+    0.0, 0.0, 0.0, 0.0
+  };
 
   private ShuffleboardTab tab;
 

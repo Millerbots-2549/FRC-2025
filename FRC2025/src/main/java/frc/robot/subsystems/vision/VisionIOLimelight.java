@@ -54,7 +54,8 @@ public class VisionIOLimelight implements VisionIO {
         inputs.connected = (RobotController.getFPGATime() - latencySubscriber.getLastChange()) < 250;
 
         inputs.latestTargetObservation = new TargetObservation(
-                Rotation2d.fromDegrees(txSubscriber.get()), Rotation2d.fromDegrees(tySubscriber.get()));
+                Rotation2d.fromDegrees(txSubscriber.get()), Rotation2d.fromDegrees(tySubscriber.get()),
+                0.0, 0.0, new Pose3d(), -1);
 
         orientationPublisher.accept(new double[] {rotationSupplier.get().getDegrees(), 0.0, 0.0, 0.0, 0.0, 0.0});
         NetworkTableInstance.getDefault().flush();

@@ -111,8 +111,8 @@ public class QuestNav {
 
   private Pose2d getQuestNavPose() {
     var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(
-      Units.inchesToMeters(11.5),
-      Units.inchesToMeters(4.0))); // 6.5
+      Units.inchesToMeters(9.8),
+      Units.inchesToMeters(3.5))); // 6.5
     return new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw()));
   }
 }

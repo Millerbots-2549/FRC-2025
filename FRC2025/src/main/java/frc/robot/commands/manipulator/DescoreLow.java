@@ -42,7 +42,7 @@ public class DescoreLow extends Command {
     if (currentState == CommandState.LOWERING) {
       // If the wrist is lowering and it is close enough to the setpoint, switch state
       if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-          - DESCORER_ON_POSITION.getRadians()) < 0.005) {
+          - DESCORER_ON_POSITION.getRadians()) < 0.1) {
         currentState = CommandState.PUSHING;
       }
     } else {
@@ -50,7 +50,7 @@ public class DescoreLow extends Command {
       // If the wrist gets far enough from the setpoint, apply force downwards
       if (descorerSubsystem.getCurrentWristPosition().getRadians()
           - DESCORER_ON_POSITION.getRadians() > 0.005) {
-        descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.minus(Rotation2d.fromRadians(4.0)));
+        descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.minus(Rotation2d.fromRadians(0.6)));
         SmartDashboard.putBoolean("Skib", true);
       }
     }

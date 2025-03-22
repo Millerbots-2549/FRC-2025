@@ -75,7 +75,7 @@ public class Triad<A, B, C> {
 
     @Override
     public String toString() {
-        return String.format("Triad(%s, %s)", m_first, m_second, m_third);
+        return String.format("Triad(%s, %s, %s)", m_first, m_second, m_third);
     }
 
     /**

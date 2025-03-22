@@ -66,7 +66,7 @@ public class DescoreHigh extends Command {
         elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
         descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION);
         if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-            - DESCORER_ON_POSITION.getRadians()) < 0.05) {
+            - DESCORER_ON_POSITION.getRadians()) < 0.1) {
           timer.reset();
           currentState = CommandState.RAISING;
         }
@@ -85,7 +85,7 @@ public class DescoreHigh extends Command {
       default:
         descorerSubsystem.applyWristSetpoint(DESCORER_OFF_POSITION);
         if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-            - DESCORER_OFF_POSITION.getRadians()) < 0.05) {
+            - DESCORER_OFF_POSITION.getRadians()) < 0.15) {
           elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
           shouldFinish = true;
         }

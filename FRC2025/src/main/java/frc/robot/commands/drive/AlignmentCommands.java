@@ -8,17 +8,26 @@ import static frc.robot.Constants.DriveConstants.MAX_ANGULAR_VELOCITY;
 import static frc.robot.Constants.DriveConstants.MAX_SPEED_METERS_PER_SECOND;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.MathConstants;
 import frc.robot.subsystems.drive.DriveSubsystem;
+import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.LoggedTunableNumber;
 
 /** Add your docs here. */
@@ -33,6 +42,23 @@ public final class AlignmentCommands {
     private static LoggedTunableNumber thetaPIDkI = new LoggedTunableNumber("/Tuning/thetaPIDkI", 0.0);
     private static LoggedTunableNumber thetaPIDkD = new LoggedTunableNumber("/Tuning/thetaPIDkD", 0.0);
 
+    private static final Map<Integer, Double> tagRotMap = new HashMap<>();
+    static {
+        tagRotMap.put(6, Units.degreesToRadians(210));
+        tagRotMap.put(7, Units.degreesToRadians(270));
+        tagRotMap.put(8, Units.degreesToRadians(330));
+        tagRotMap.put(9, Units.degreesToRadians(30));
+        tagRotMap.put(10, Units.degreesToRadians(90));
+        tagRotMap.put(11, Units.degreesToRadians(150));
+
+        tagRotMap.put(19, Units.degreesToRadians(210));
+        tagRotMap.put(18, Units.degreesToRadians(270));
+        tagRotMap.put(17, Units.degreesToRadians(330));
+        tagRotMap.put(22, Units.degreesToRadians(30));
+        tagRotMap.put(21, Units.degreesToRadians(90));
+        tagRotMap.put(20, Units.degreesToRadians(150));
+    }
+
     /**
      * Reef Positions:
      * <p> ======BR=BL=====
@@ -43,21 +69,13 @@ public final class AlignmentCommands {
      * <p> ======FL=FR=====
      */
     public static enum ReefPosition {
-        CLOSEST,
-        CLOSEST_LEFT,
-        CLOSEST_RIGHT,
-        FL,
-        FR,
-        LFL,
-        LFR,
-        LBL,
-        LBR,
-        BL,
-        BR,
-        RBL,
-        RBR,
-        RFL,
-        RFR
+        CLOSEST, CLOSEST_LEFT, CLOSEST_RIGHT,
+        FL,  FR,
+        LFL, LFR,
+        LBL, LBR,
+        BL,  BR,
+        RBL, RBR,
+        RFL, RFR
     }
 
     public static Command pathfindAndAlignToReef(DriveSubsystem driveSubsystem, ReefPosition position) {
@@ -131,6 +149,52 @@ public final class AlignmentCommands {
                 .getDistance(targetPoseSupplier.get().getTranslation());
             return dist < tolerance;
         }).andThen(() -> {xPID.close(); yPID.close(); thetaPID.close();});
+    }
+
+    public static Command alignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, Translation2d wantedTranslation, int camIndex) {
+        PIDController offsetPID = new PIDController(2.7, 0.0, 0.0);
+        PIDController distancePID = new PIDController(6.0, 0.0, 0.0);
+        PIDController rotationPID = new PIDController(3.5, 0.0, 0.0);
+        rotationPID.enableContinuousInput(0, Math.PI * 2);
+
+        offsetPID.setTolerance(0.01);
+        distancePID.setTolerance(0.01);
+        rotationPID.setTolerance(0.01);
+        
+        return Commands.startRun(() -> {
+
+        }, () -> {
+            if(tagRotMap.containsKey(visionSubsystem.getTargetID(camIndex))
+                    || tagRotMap.containsKey(visionSubsystem.getTargetID(1 - camIndex))) {
+
+                int correctCam = tagRotMap.containsKey(visionSubsystem.getTargetID(1 - camIndex))
+                    && !tagRotMap.containsKey(visionSubsystem.getTargetID(camIndex)) ?
+                    1 - camIndex : camIndex;
+
+                Pose3d targetPose;
+                if(correctCam != camIndex) {
+                    targetPose = visionSubsystem.getTargetPose(camIndex).times(1.5);
+                } else {
+                    targetPose = visionSubsystem.getTargetPose(camIndex);
+                }
+
+                Logger.recordOutput("Alignment/tagPos", targetPose);
+
+                double offsetOutput = offsetPID.calculate(targetPose.getY(), wantedTranslation.getY());
+                double distanceOutput = distancePID.calculate(targetPose.getX(), wantedTranslation.getX());
+                double rotationOutput = rotationPID.calculate(MathUtil.inputModulus(driveSubsystem.getRotation().getRadians(), 0, MathConstants.TAU),
+                    tagRotMap.get(visionSubsystem.getTargetID(correctCam)));
+
+                driveSubsystem.runVelocity(new ChassisSpeeds(
+                    MathUtil.clamp(-offsetOutput, -2.1, 2.1),
+                    MathUtil.clamp(distanceOutput, -2.1, 2.1),
+                    MathUtil.clamp(rotationOutput, -2.1, 2.1)));
+            } else {
+                driveSubsystem.runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0));
+            }
+        }, driveSubsystem).until(() -> {
+            return offsetPID.atSetpoint() && distancePID.atSetpoint() && rotationPID.atSetpoint();
+        }).andThen(() -> { offsetPID.close(); distancePID.close(); rotationPID.close(); });
     }
 
     public static Pose2d getReefPositionPose(ReefPosition position, Pose2d drivePose) {

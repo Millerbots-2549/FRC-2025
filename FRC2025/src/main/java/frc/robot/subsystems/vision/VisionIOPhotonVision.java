@@ -13,10 +13,16 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.MultiTargetPNPResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import com.pathplanner.lib.util.FlippingUtil;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 /** Add your docs here. */
 public class VisionIOPhotonVision implements VisionIO {
@@ -55,18 +61,21 @@ public class VisionIOPhotonVision implements VisionIO {
                 }
                 inputs.latestTargetObservation = new TargetObservation(
                         Rotation2d.fromDegrees(best.getYaw()),
-                        Rotation2d.fromDegrees(best.getPitch()));
-                inputs.latestTargetArea = best.getArea();
-                inputs.latestTargetSkew = best.getSkew();
-                inputs.latestTarget3dPose = new Pose3d(
-                    best.bestCameraToTarget.getTranslation(),
-                    best.bestCameraToTarget.getRotation());
-                inputs.latestTargetID = best.getFiducialId();
+                        Rotation2d.fromDegrees(best.getPitch()),
+                        best.getArea(),
+                        best.getSkew(),
+                        new Pose3d(
+                            best.bestCameraToTarget.getTranslation(),
+                            best.bestCameraToTarget.getRotation()),
+                        best.fiducialId);
             } else {
-                inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
-                inputs.latestTargetArea = 0.0;
-                inputs.latestTargetSkew = 0.0;
-                inputs.latestTargetID = -1;
+                inputs.latestTargetObservation = new TargetObservation(
+                    new Rotation2d(),
+                    new Rotation2d(),
+                    0.0,
+                    0.0,
+                    new Pose3d(),
+                    -1);
             }
 
             // Add pose observation
@@ -94,6 +103,15 @@ public class VisionIOPhotonVision implements VisionIO {
                     robotPose.getZ(),
                     robotPose.getRotation()
                 );
+                if(DriverStation.getAlliance().get() == Alliance.Red) {
+                    Pose2d flipped = FlippingUtil.flipFieldPose(robotPose.toPose2d());
+                    robotPose = new Pose3d(
+                        flipped.getX(),
+                        flipped.getY(),
+                        robotPose.getZ(),
+                        new Rotation3d(flipped.getRotation())
+                    );
+                }
 
                 // Add observation
                 poseObservations.add(new PoseObservation(
