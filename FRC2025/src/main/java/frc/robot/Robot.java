@@ -18,10 +18,22 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.FieldConstants;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
+import java.util.Map;
+
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color;
+
+
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -65,7 +77,7 @@ public class Robot extends LoggedRobot {
     m_led.start();
   
     
-
+    XboxController exampleXbox = new XboxController(0); // 0 is the USB Port to be used as indicated on the Driver Station
     
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
     Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
@@ -121,14 +133,22 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     Threads.setCurrentThreadPriority(true, 99);
 
-    LEDPattern red = LEDPattern.solid(Color.kRed);
+    LEDPattern base = LEDPattern.steps(Map.of(0, Color.kOrangeRed, 0.25, Color.kBlue, 0.5, Color.kOrangeRed, 0.75, Color.kBlue)); // miller bot stripes
+    
+    //LEDPattern base = LEDPattern.solid(Color.kBlue); // milerbot blue
+    
+    //LEDPattern base = LEDPattern.solid(Color.kOrangeRed); // milerbot blue
+    
+    
 
+    
+    LEDPattern pattern = base.atBrightness(Units.Percent.of(100));
     // Apply the LED pattern to the data buffer
-    red.applyTo(m_ledBuffer);
+    pattern.applyTo(m_ledBuffer);
 
     // Write the data to the LED strip
     m_led.setData(m_ledBuffer);
-
+    
     // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
