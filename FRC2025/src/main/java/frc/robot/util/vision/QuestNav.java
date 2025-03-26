@@ -78,8 +78,9 @@ public class QuestNav {
 
   public void setPosition(Pose2d other) {
     resetPosition = new Pose2d(
-      other.getTranslation().plus(getPoseNoOffset().getTranslation()),
-      other.getRotation().plus(getPoseNoOffset().getRotation()));
+      getQuestNavPose().getTranslation().minus(other.getTranslation()),
+      getQuestNavPose().getRotation().minus(other.getRotation())
+    );
     if (questMiso.get() != 99) {
       questMosi.set(1);
     }

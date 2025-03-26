@@ -40,6 +40,12 @@ public class Autos {
     public static DescorerSubsystem descorerSubsystem;
     public static VisionSubsystem visionSubsystem;
 
+    public static boolean rightSide = false;
+
+    public static void setRightSide(boolean rightSide) {
+        Autos.rightSide = rightSide;
+    }
+
     public static final Map<String, Pose2d> DESCORE_POSES = new HashMap<>();
     static {
         DESCORE_POSES.put("Back Left", new Pose2d(5.09, 5.09, Rotation2d.fromDegrees(150)));
@@ -190,6 +196,11 @@ public class Autos {
             part1 = PathPlannerPath.fromPathFile("1D3C Part 1");
             part2 = PathPlannerPath.fromPathFile("1D3C Part 2");
             part3 = PathPlannerPath.fromPathFile("1D3C Part 3");
+            if(rightSide) {
+                part1.mirrorPath();
+                part2.mirrorPath();
+                part3.mirrorPath();
+            }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollow(part1),
                 descoreLow(descorerSubsystem),
@@ -214,6 +225,10 @@ public class Autos {
         try {
             part2 = PathPlannerPath.fromPathFile("0D3C Part 2");
             part3 = PathPlannerPath.fromPathFile("0D3C Part 3");
+            if(rightSide) {
+                part2.mirrorPath();
+                part3.mirrorPath();
+            }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindToPoint(new Pose2d(5.0, 5.45, Rotation2d.fromDegrees(330))),
                 alignReefRight(ElevatorLevel.L2, 1.0, driveSubsystem, elevatorSubsystem, visionSubsystem),
@@ -237,6 +252,10 @@ public class Autos {
         try {
             part1 = PathPlannerPath.fromPathFile("0D2C Part 1");
             part2 = PathPlannerPath.fromPathFile("0D2C Part 2");
+            if(rightSide) {
+                part1.mirrorPath();
+                part2.mirrorPath();
+            }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollowSlow(part1),
                 alignReefRight(ElevatorLevel.L2, 2.2, driveSubsystem, elevatorSubsystem, visionSubsystem),
@@ -245,6 +264,93 @@ public class Autos {
                 lowerElevator(elevatorSubsystem),
                 runCycle(followStationPath(part2, 0.9, 4.0, elevatorSubsystem),
                     ElevatorLevel.L2, true, driveSubsystem, elevatorSubsystem, visionSubsystem)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Commands.none();
+        }
+    }
+
+    public static final Command twoDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem) {
+        PathPlannerPath part1, part2, part3;
+        try {
+            part1 = PathPlannerPath.fromPathFile("2D0C Part 1");
+            part2 = PathPlannerPath.fromPathFile("2D0C Part 2");
+            part3 = PathPlannerPath.fromPathFile("2D0C Part 3");
+            if(rightSide) {
+                part1.mirrorPath();
+                part2.mirrorPath();
+                part3.mirrorPath();
+            }
+            return new SequentialCommandGroup(
+                PathfindingCommands.pathfindThenFollow(part1),
+                descoreHigh(descorerSubsystem, elevatorSubsystem),
+                AutoBuilder.followPath(part2),
+                descoreLow(descorerSubsystem),
+                followStationPath(part3, 1.3, 3.1, elevatorSubsystem),
+                stopIntake(elevatorSubsystem)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Commands.none();
+        }
+    }
+
+    public static final Command threeDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem) {
+        PathPlannerPath part1, part2, part3, part4;
+        try {
+            part1 = PathPlannerPath.fromPathFile("3D0C Part 1");
+            part2 = PathPlannerPath.fromPathFile("3D0C Part 2");
+            part3 = PathPlannerPath.fromPathFile("3D0C Part 3");
+            part4 = PathPlannerPath.fromPathFile("3D0C Part 4");
+            if(rightSide) {
+                part1.mirrorPath();
+                part2.mirrorPath();
+                part3.mirrorPath();
+                part4.mirrorPath();
+            }
+            return new SequentialCommandGroup(
+                PathfindingCommands.pathfindThenFollow(part1),
+                descoreLow(descorerSubsystem),
+                AutoBuilder.followPath(part2),
+                descoreHigh(descorerSubsystem, elevatorSubsystem),
+                AutoBuilder.followPath(part3),
+                descoreLow(descorerSubsystem),
+                followStationPath(part4, 0.4, 2.1, elevatorSubsystem),
+                stopIntake(elevatorSubsystem)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Commands.none();
+        }
+    }
+
+    public static final Command fourDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem) {
+        PathPlannerPath part1, part2, part3, part4, part5;
+        try {
+            part1 = PathPlannerPath.fromPathFile("4D0C Part 1");
+            part2 = PathPlannerPath.fromPathFile("4D0C Part 2");
+            part3 = PathPlannerPath.fromPathFile("4D0C Part 3");
+            part4 = PathPlannerPath.fromPathFile("4D0C Part 4");
+            part5 = PathPlannerPath.fromPathFile("4D0C Part 5");
+            if(rightSide) {
+                part1.mirrorPath();
+                part2.mirrorPath();
+                part3.mirrorPath();
+                part4.mirrorPath();
+                part5.mirrorPath();
+            }
+            return new SequentialCommandGroup(
+                PathfindingCommands.pathfindThenFollow(part1),
+                descoreLow(descorerSubsystem),
+                AutoBuilder.followPath(part2),
+                descoreHigh(descorerSubsystem, elevatorSubsystem),
+                AutoBuilder.followPath(part3),
+                descoreLow(descorerSubsystem),
+                AutoBuilder.followPath(part4),
+                descoreHigh(descorerSubsystem, elevatorSubsystem),
+                followStationPath(part5, 0.9, 3.0, elevatorSubsystem),
+                stopIntake(elevatorSubsystem)
             );
         } catch (Exception e) {
             e.printStackTrace();

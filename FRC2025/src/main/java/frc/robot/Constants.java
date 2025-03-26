@@ -91,7 +91,7 @@ public final class Constants {
 
   public static final boolean enableQuestPoseInitialization = false;
 
-  public static final Pose2d INITIAL_POSITION = new Pose2d(7.75, 6.16, new Rotation2d());
+  public static Pose2d INITIAL_POSITION = new Pose2d(7.75, 6.16, new Rotation2d());
 
   //static { currentMode = Mode.REPLAY; }
 

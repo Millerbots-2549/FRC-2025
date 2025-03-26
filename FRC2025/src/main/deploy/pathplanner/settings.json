@@ -3,10 +3,14 @@
   "robotLength": 0.9144,
   "holonomicMode": true,
   "pathFolders": [
+    "0D2C",
     "0D3C",
+    "0D4C",
     "1D2C",
     "1D3C",
-    "0D2C"
+    "2D0C",
+    "3D0C",
+    "4D0C"
   ],
   "autoFolders": [
     "1 coral",

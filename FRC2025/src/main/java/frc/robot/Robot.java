@@ -172,6 +172,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledPeriodic() {
     robotContainer.resetElevator();
+    robotContainer.updateChoosers();
   }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */

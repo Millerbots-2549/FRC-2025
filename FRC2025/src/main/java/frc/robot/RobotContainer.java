@@ -105,6 +105,8 @@ public class RobotContainer {
   private final OI oi;
 
   private final SendableChooser<Command> autoChooser;
+  private final SendableChooser<Pose2d> startingPoseChooser;
+  private final SendableChooser<Boolean> sideChooser;
 
   private final DriverDash driverDashboard;
   private final SystemsCheckDash systemsCheckDash;
@@ -219,6 +221,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("DescoreHigh", new DescoreHigh(descorerSubsystem, elevatorSubsystem));
 
     autoChooser = AutoBuilder.buildAutoChooser();
+    startingPoseChooser = new SendableChooser<>();
+    sideChooser = new SendableChooser<>();
 
     autoChooser.setDefaultOption("None", Commands.none());
 
@@ -228,6 +232,12 @@ public class RobotContainer {
       Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
     autoChooser.addOption("2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
       Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
+    autoChooser.addOption("2 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
+      Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
+    autoChooser.addOption("3 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
+      Autos.threeDescore(driveSubsystem, descorerSubsystem)));
+    autoChooser.addOption("4 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
+      Autos.fourDescore(driveSubsystem, descorerSubsystem)));
 
     autoChooser.addOption(
       "Drive Wheel Radius Characterization", CharacterizationCommands.wheelRadiusCharacterization(driveSubsystem));
@@ -241,6 +251,16 @@ public class RobotContainer {
       "Forward Drive SysId (Dynamic)", driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
       "Reverse Drive SysId (Dynamic)", driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    
+    startingPoseChooser.setDefaultOption("Right, facing away", new Pose2d(3, 3, new Rotation2d()));
+    startingPoseChooser.addOption("Right, facing towards", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(180))));
+    startingPoseChooser.addOption("Left, facing away", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(180))));
+    startingPoseChooser.addOption("Left, facing towards", new Pose2d(3, 3, new Rotation2d()));
+    startingPoseChooser.addOption("Center, facing away", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(90))));
+    startingPoseChooser.addOption("Center, facing towards", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(-90))));
+
+    sideChooser.setDefaultOption("Right", true);
+    sideChooser.addOption("Left", false);
 
     // Configure the trigger bindings
     configureBindings();
@@ -255,6 +275,8 @@ public class RobotContainer {
     systemsCheckDash.initTab();
 
     SmartDashboard.putData("Auto", autoChooser);
+    SmartDashboard.putData("Starting Pose", startingPoseChooser);
+    SmartDashboard.putData("Side", sideChooser);
   }
 
   public void resetElevator() {
@@ -413,6 +435,25 @@ public class RobotContainer {
 
     driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, new Rotation2d()));
     SimulatedArena.getInstance().resetFieldForAuto();
+  }
+
+  private Pose2d lastPose;
+  private boolean lastRightSide;
+
+  public void updateChoosers() {
+    Pose2d startingPose = startingPoseChooser.getSelected();
+    boolean isRight = sideChooser.getSelected();
+
+    if (lastPose != startingPose) {
+      Constants.INITIAL_POSITION = startingPose;
+      driveSubsystem.resetOdometry();
+    }
+    if(lastRightSide != isRight) {
+      Autos.setRightSide(isRight);
+    }
+
+    lastPose = startingPose;
+    lastRightSide = isRight;
   }
 
   public void sendSimulatedFieldToAdvantageScope() {
