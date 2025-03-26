@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Constants;
 import frc.robot.util.vision.QuestNav;
 
 /** Add your docs here. */
@@ -26,6 +27,7 @@ public class VisionIOQuestNav implements VisionIO {
 
         questNav.zeroPosition();
         questNav.zeroHeading();
+        questNav.setPosition(Constants.INITIAL_POSITION);
     }
 
     @Override
@@ -64,6 +66,7 @@ public class VisionIOQuestNav implements VisionIO {
 
         Logger.recordOutput("QuestNavOutputs/Connected", questNav.connected());
         Logger.recordOutput("QuestNavOutputs/Pose", questNav.getPose());
+        Logger.recordOutput("QuestNavOutputs/PoseNoOffset", questNav.getPoseNoOffset());
         Logger.recordOutput("QuestNavOutputs/BatteryPercent", questNav.getBatteryPercent());
         Logger.recordOutput("QuestNavOutputs/TImestamp", questNav.timestamp());
 

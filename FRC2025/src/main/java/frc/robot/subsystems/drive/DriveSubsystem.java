@@ -40,7 +40,6 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -50,10 +49,13 @@ import frc.robot.Constants.Mode;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
 import frc.robot.util.pathplanner.LocalADStarAK;
+import frc.robot.util.vision.QuestNav;
 
 /** Add your docs here. */
 public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
     public static final SwerveModuleState[] kSwerveModuleStateNone = new SwerveModuleState[] {};
+
+    private final QuestNav questNav;
 
     static final Lock odometryLock = new ReentrantLock();
     private final GyroIO gyroIO;
@@ -89,12 +91,14 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
     private Rotation2d desiredHeading = new Rotation2d();
         
-    public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO) {
+    public DriveSubsystem(GyroIO gyroIO, ModuleIO flIO, ModuleIO frIO, ModuleIO blIO, ModuleIO brIO, QuestNav questNav) {
         this.gyroIO = gyroIO;
         this.modules[0] = new SwerveModule(flIO, 0, ModuleConstants.FRONT_LEFT_CONSTANTS);
         this.modules[1] = new SwerveModule(frIO, 1, ModuleConstants.FRONT_RIGHT_CONSTANTS);
         this.modules[2] = new SwerveModule(blIO, 2, ModuleConstants.BACK_LEFT_CONSTANTS);
         this.modules[3] = new SwerveModule(brIO, 3, ModuleConstants.BACK_RIGHT_CONSTANTS);
+
+        this.questNav = questNav;
 
         HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
@@ -106,10 +110,11 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             this::getChassisSpeeds,
             this::runVelocity,
             new PPHolonomicDriveController(
-                new PIDConstants(5.0, 0.0, 0.0),
-                new PIDConstants(5.0, 0.0, 0.0)),
+                new PIDConstants(6.5, 0.0, 0.0),
+                new PIDConstants(6.5, 0.0, 0.0)),
             DriveConstants.PATH_PLANNER_CONFIG,
-            () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+            //() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+            () -> false,
             this);
         LocalADStarAK pathfinder = new LocalADStarAK();
         pathfinder.setPathConsumer(pathConsumer);
@@ -131,6 +136,7 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
                     (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                     (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+        resetOdometry();
     }
 
     @Override
@@ -292,12 +298,22 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
     }
 
+    public void resetOdometry() {
+        zeroGyro((DriverStation.getAlliance().isPresent()
+            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? Rotation2d.kPi : Rotation2d.kZero)
+            : Rotation2d.kZero).plus(Constants.INITIAL_POSITION.getRotation()));
+        setPose(Constants.INITIAL_POSITION);
+        questNav.zeroHeading();
+        questNav.setPosition(Constants.INITIAL_POSITION);
+        //questNav.setPosition(Constants.INITIAL_POSITION);
+    }
+
     public void addVisionMeasurement(
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs) {
-        poseEstimator.addVisionMeasurement(
-            visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+        //poseEstimator.addVisionMeasurement(
+        //    visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
     }
 
     public double getMaxLinearSpeedMetersPerSec() {
@@ -326,5 +342,9 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
         desiredHeading = Rotation2d.kZero;
         timeSinceGyroZeroed.reset();
         timeSinceGyroZeroed.start();
+    }
+
+    public ModuleIOInputsAutoLogged getModuleInputs(int index) {
+        return modules[index].getInputs();
     }
 }

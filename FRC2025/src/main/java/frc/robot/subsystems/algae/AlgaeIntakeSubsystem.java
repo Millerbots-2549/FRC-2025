@@ -108,6 +108,10 @@ public class AlgaeIntakeSubsystem extends SubsystemBase implements DashboardPubl
     return inputs.rollerCurrent;
   }
 
+  public AlgaeIntakeIOInputsAutoLogged getInputs() {
+    return inputs;
+  }
+
   private ShuffleboardTab tab;
 
   private GenericEntry armAngleEntry, armSetpointEntry;

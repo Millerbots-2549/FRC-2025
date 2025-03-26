@@ -125,4 +125,8 @@ public class SwerveModule {
     public double getFFCharacterizationVelocity() {
         return Units.radiansToRotations(inputs.driveVelocityRadPerSec);
     }
+
+    public ModuleIOInputsAutoLogged getInputs() {
+        return inputs;
+    }
 }

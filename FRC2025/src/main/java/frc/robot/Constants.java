@@ -91,7 +91,7 @@ public final class Constants {
 
   public static final boolean enableQuestPoseInitialization = false;
 
-  public static final Pose2d INITIAL_POSITION = new Pose2d(8.0, 4.0, new Rotation2d(0));
+  public static final Pose2d INITIAL_POSITION = new Pose2d(7.75, 6.16, new Rotation2d());
 
   //static { currentMode = Mode.REPLAY; }
 
@@ -128,7 +128,7 @@ public final class Constants {
     public static final double TRACK_WIDTH = Units.inchesToMeters(28.0);
     public static final double WHEEL_BASE = Units.inchesToMeters(28.0);
     public static final double DRIVE_BASE_RADIUS = Math.hypot(WHEEL_BASE / 2.0, WHEEL_BASE / 2.0);
-    public static final Distance WHEEL_RADIUS = Inches.of(2.167);
+    public static final Distance WHEEL_RADIUS = Inches.of(2.0);
     public static final double WHEEL_RAIDUS_METERS = WHEEL_RADIUS.in(Meters);
     public static final double MAX_SPEED_METERS_PER_SECOND = 12.0;
     public static final double MAX_ACCELERATION = 4.0;
@@ -369,10 +369,10 @@ public final class Constants {
 
     /** Reef camera */
     public static Transform3d ROBOT_TO_CAMERA_0 = new Transform3d(Units.inchesToMeters(9.5), Units.inchesToMeters(3.0), 0.2,
-      new Rotation3d(0.0, -0.4, Math.PI / 2));
+      new Rotation3d(0.0, -0.4, Math.PI));
     /** Left camera */
     public static Transform3d ROBOT_TO_CAMERA_1 = new Transform3d(Units.inchesToMeters(9.5), Units.inchesToMeters(3.0), 0.2,
-      new Rotation3d(0.0, -0.4, Math.PI * 1.5));
+      new Rotation3d(0.0, -0.4, Math.PI));
     /** Front camera */
     public static Transform3d ROBOT_TO_CAMERA_2 = new Transform3d(0.0, 0.2, 0.2,
       new Rotation3d(0.0, -0.4, Math.PI / 2));
@@ -590,7 +590,7 @@ public final class Constants {
     public static final int ROLLER_MOTOR_ID = 8;
 
     public static final Rotation2d DESCORER_OFF_POSITION = Rotation2d.fromRadians(0);
-    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-3.3);
+    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(3.3);
 
     public static final double WRIST_KP = 0.2;
     public static final double WRIST_KI = 0.0;

@@ -19,6 +19,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -26,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.MathConstants;
+import frc.robot.commands.auto.PathfindingCommands;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.LoggedTunableNumber;
@@ -51,12 +54,12 @@ public final class AlignmentCommands {
         tagRotMap.put(10, Units.degreesToRadians(90));
         tagRotMap.put(11, Units.degreesToRadians(150));
 
-        tagRotMap.put(19, Units.degreesToRadians(210));
-        tagRotMap.put(18, Units.degreesToRadians(270));
-        tagRotMap.put(17, Units.degreesToRadians(330));
-        tagRotMap.put(22, Units.degreesToRadians(30));
-        tagRotMap.put(21, Units.degreesToRadians(90));
-        tagRotMap.put(20, Units.degreesToRadians(150));
+        tagRotMap.put(19, Units.degreesToRadians(210 + 180));
+        tagRotMap.put(18, Units.degreesToRadians(270 + 180));
+        tagRotMap.put(17, Units.degreesToRadians(330 + 180));
+        tagRotMap.put(22, Units.degreesToRadians(30 + 180));
+        tagRotMap.put(21, Units.degreesToRadians(90 + 180));
+        tagRotMap.put(20, Units.degreesToRadians(150 + 180));
     }
 
     /**
@@ -78,15 +81,22 @@ public final class AlignmentCommands {
         RFL, RFR
     }
 
+    /**
+     * Pathfinds to a reef position, and then precisely aligns using the pose estimator
+     * @param driveSubsystem The drive subsystem
+     * @param position The reef position to align to
+     * @return A command to pathfind and align to a reef position
+     */
     public static Command pathfindAndAlignToReef(DriveSubsystem driveSubsystem, ReefPosition position) {
-        return Commands.runOnce(() -> {
-            Pose2d targetPose = getReefPositionPose(position, driveSubsystem.getPose());
-
-            new PathfindToPose(driveSubsystem, () -> targetPose, 0.0)
-                .andThen(alignToPose(driveSubsystem, () -> targetPose, 0.05));
-        }, driveSubsystem);
+        return PathfindingCommands.pathfindToPoint(getReefPositionPose(position, driveSubsystem.getPose()))
+            .andThen(alignToPose(driveSubsystem, () -> getReefPositionPose(position, driveSubsystem.getPose()), 0.05));
     }
 
+    /**
+     * Precisely aligns to the reef position that the robot is currently closest to
+     * @param driveSubsystem The drive subsystem
+     * @return A command to align to the closest reef position
+     */
     public static Command alignToClosestReefPosition(DriveSubsystem driveSubsystem) {
         return Commands.runOnce(() -> {
             List<Pose2d> reefPoses = new ArrayList<>();
@@ -100,6 +110,12 @@ public final class AlignmentCommands {
         }, driveSubsystem);
     }
 
+    /**
+     * Precisely aligns to a specific reef position
+     * @param driveSubsystem The drive subsystem
+     * @param position The reef position
+     * @return A command to align to the reef position
+     */
     public static Command alignToReefPosition(DriveSubsystem driveSubsystem, ReefPosition position) {
         return Commands.runOnce(() -> {
             Pose2d targetPose = getReefPositionPose(position, driveSubsystem.getPose());
@@ -107,6 +123,14 @@ public final class AlignmentCommands {
         }, driveSubsystem);
     }
 
+    /**
+     * Aligns to a specific pose using three PID controllers and the drive pose estimator
+     * <p> You should use pathfinding to get roughly to the right position, and then use this to align precisely to the right position.
+     * @param driveSubsystem The drive subsystem
+     * @param targetPoseSupplier The target pose
+     * @param tolerance The tolerance for the pose
+     * @return A command to align to the pose
+     */
     public static Command alignToPose(DriveSubsystem driveSubsystem, Supplier<Pose2d> targetPoseSupplier, double tolerance) {
         PIDController xPID = new PIDController(0, 0, 0);
         PIDController yPID = new PIDController(0, 0, 0);
@@ -151,52 +175,110 @@ public final class AlignmentCommands {
         }).andThen(() -> {xPID.close(); yPID.close(); thetaPID.close();});
     }
 
+    /**
+     * ALigns to an april tag using one of the cameras on the right side of the robot.
+     * @param driveSubsystem The drive subsystem
+     * @param visionSubsystem The vision subsystem
+     * @param wantedTranslation The optimal position of the april tag relative to the camera
+     * @param camIndex The index of the camera to use (0 or 1)
+     * @return A command to align to a tag
+     */
     public static Command alignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, Translation2d wantedTranslation, int camIndex) {
-        PIDController offsetPID = new PIDController(2.7, 0.0, 0.0);
-        PIDController distancePID = new PIDController(6.0, 0.0, 0.0);
+        PIDController offsetPID = new PIDController(6.3, 0.0, 0.05);
+        PIDController distancePID = new PIDController(5.3, 0.0, 0.05);
         PIDController rotationPID = new PIDController(3.5, 0.0, 0.0);
         rotationPID.enableContinuousInput(0, Math.PI * 2);
 
-        offsetPID.setTolerance(0.01);
-        distancePID.setTolerance(0.01);
-        rotationPID.setTolerance(0.01);
+        double CAM_0_ANGLE = Units.degreesToRadians(0);
+        double CAM_1_ANGLE = Units.degreesToRadians(30);
         
         return Commands.startRun(() -> {
-
+            offsetPID.setTolerance(0.005);
+            distancePID.setTolerance(0.005);
+            rotationPID.setTolerance(0.01);
         }, () -> {
-            if(tagRotMap.containsKey(visionSubsystem.getTargetID(camIndex))
-                    || tagRotMap.containsKey(visionSubsystem.getTargetID(1 - camIndex))) {
+            // Checks if either camera contains a reef tag
+            int targetID = visionSubsystem.getTargetID(camIndex);
+            int alternateTargetID = visionSubsystem.getTargetID(1 - camIndex);
+            if(tagRotMap.containsKey(targetID)
+                    || tagRotMap.containsKey(alternateTargetID)) {
 
-                int correctCam = tagRotMap.containsKey(visionSubsystem.getTargetID(1 - camIndex))
-                    && !tagRotMap.containsKey(visionSubsystem.getTargetID(camIndex)) ?
+                // Finds which camera contains the target
+                int correctCam = tagRotMap.containsKey(alternateTargetID)
+                    && !tagRotMap.containsKey(targetID) ?
                     1 - camIndex : camIndex;
 
+                // Finds the target pose
                 Pose3d targetPose;
                 if(correctCam != camIndex) {
-                    targetPose = visionSubsystem.getTargetPose(camIndex).times(1.5);
+                    // If the wrong camera has the tag, then move the robot sideways until the correct camera can see it.
+                    if(camIndex == 0) {
+                        targetPose = new Pose3d(wantedTranslation.getX(), 0.2, 0.0, Rotation3d.kZero);
+                    } else {
+                        targetPose = new Pose3d(wantedTranslation.getX(), -0.2, 0.0, Rotation3d.kZero);
+                    }
                 } else {
                     targetPose = visionSubsystem.getTargetPose(camIndex);
                 }
 
+                // Compensate for the rotation of the cameras
+                targetPose = targetPose.rotateBy(new Rotation3d(0.0, 0.0, camIndex == 0 ? CAM_0_ANGLE : CAM_1_ANGLE));
+
+                // Log the compensated target position
                 Logger.recordOutput("Alignment/tagPos", targetPose);
 
+                // Calculates the outputs from the PID controllers.
                 double offsetOutput = offsetPID.calculate(targetPose.getY(), wantedTranslation.getY());
                 double distanceOutput = distancePID.calculate(targetPose.getX(), wantedTranslation.getX());
                 double rotationOutput = rotationPID.calculate(MathUtil.inputModulus(driveSubsystem.getRotation().getRadians(), 0, MathConstants.TAU),
                     tagRotMap.get(visionSubsystem.getTargetID(correctCam)));
 
+                // Drives the robot
                 driveSubsystem.runVelocity(new ChassisSpeeds(
-                    MathUtil.clamp(-offsetOutput, -2.1, 2.1),
-                    MathUtil.clamp(distanceOutput, -2.1, 2.1),
-                    MathUtil.clamp(rotationOutput, -2.1, 2.1)));
+                    MathUtil.clamp(-offsetOutput, -4.3, 4.3),
+                    MathUtil.clamp(distanceOutput, -4.3, 4.3),
+                    MathUtil.clamp(rotationOutput, -4.0, 4.0)));
             } else {
+                // Stops the robot if neither camera can see the apriltag
                 driveSubsystem.runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0));
             }
         }, driveSubsystem).until(() -> {
+            // Stops the command when the robot is fully aligned
             return offsetPID.atSetpoint() && distancePID.atSetpoint() && rotationPID.atSetpoint();
         }).andThen(() -> { offsetPID.close(); distancePID.close(); rotationPID.close(); });
     }
 
+    /**
+     * Aligns to the left branch of the reef based on the apriltag
+     * @param driveSubsystem The drive subsystem
+     * @param visionSubsystem The vision subsystem
+     * @return A command to align to the tag
+     */
+    public static Command alignToTagLeft(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
+        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.338, -0.075), 0);
+    };
+
+    /**
+     * Aligns to the right branch of the reef based on the apriltag
+     * @param driveSubsystem The drive subsystem
+     * @param visionSubsystem The vision subsystem
+     * @return A command to align to the tag
+     */
+    public static Command alignToTagRight(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
+        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.359, 0.281), 1);
+    };
+
+    public static Command alignToStation(DriveSubsystem driveSubsystem) {
+        return PathfindingCommands.pathfindToPoint(new Pose2d(1.522, 6.650, Rotation2d.fromDegrees(125)))
+            .andThen(alignToPose(driveSubsystem, () -> new Pose2d(1.190, 7.022, Rotation2d.fromDegrees(125)), 0.1));
+    }
+
+    /**
+     * Gets the pose that the robot should be at in order to score into the given reef position
+     * @param position The reef position to get
+     * @param drivePose The current position of the robot
+     * @return The pose that the robot should be at to score
+     */
     public static Pose2d getReefPositionPose(ReefPosition position, Pose2d drivePose) {
         Pose2d targetPose;
         String positionString = position.toString();

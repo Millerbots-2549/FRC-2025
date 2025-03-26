@@ -15,7 +15,6 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnFly;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -29,6 +28,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -45,6 +46,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.auto.Autos;
 import frc.robot.commands.drive.AlignmentCommands;
 import frc.robot.commands.drive.JoystickDrive;
 import frc.robot.commands.manipulator.DescoreHigh;
@@ -75,8 +77,9 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOQuestNav;
 import frc.robot.subsystems.vision.VisionSubsystem;
-import frc.robot.util.DriverDash;
 import frc.robot.util.SimulationUtils;
+import frc.robot.util.dashboards.DriverDash;
+import frc.robot.util.dashboards.SystemsCheckDash;
 import frc.robot.util.motor.MotorIOTalonFX;
 import frc.robot.util.vision.QuestNav;
 
@@ -90,7 +93,6 @@ public class RobotContainer {
   public static final QuestNav questNav = new QuestNav();
 
   private final DriveSubsystem driveSubsystem;
-  @SuppressWarnings("unused")
   private final VisionSubsystem visionSubsystem;
   private final AlgaeIntakeSubsystem algaeIntakeSubsystem;
   private final ElevatorSubsystem elevatorSubsystem;
@@ -102,9 +104,10 @@ public class RobotContainer {
 
   private final OI oi;
 
-  private final LoggedDashboardChooser<Command> autoChooser;
+  private final SendableChooser<Command> autoChooser;
 
   private final DriverDash driverDashboard;
+  private final SystemsCheckDash systemsCheckDash;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -125,7 +128,8 @@ public class RobotContainer {
           new ModuleIOKraken(ModuleConstants.FRONT_LEFT_CONSTANTS),
           new ModuleIOKraken(ModuleConstants.FRONT_RIGHT_CONSTANTS),
           new ModuleIOKraken(ModuleConstants.BACK_LEFT_CONSTANTS),
-          new ModuleIOKraken(ModuleConstants.BACK_RIGHT_CONSTANTS));
+          new ModuleIOKraken(ModuleConstants.BACK_RIGHT_CONSTANTS),
+          questNav);
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
@@ -163,7 +167,8 @@ public class RobotContainer {
           new ModuleIOSim(),
           new ModuleIOSim(),
           new ModuleIOSim(),
-          new ModuleIOSim());
+          new ModuleIOSim(),
+          questNav);
 
         visionSubsystem = new VisionSubsystem(
           driveSubsystem,
@@ -186,7 +191,8 @@ public class RobotContainer {
           new ModuleIO() {},
           new ModuleIO() {},
           new ModuleIO() {},
-          new ModuleIO() {});
+          new ModuleIO() {},
+          questNav);
 
         visionSubsystem = new VisionSubsystem(driveSubsystem, new VisionIO() {}, new VisionIO() {});
 
@@ -197,6 +203,7 @@ public class RobotContainer {
         descorerSubsystem = new DescorerSubsystem(new DescorerIO() { });
         break;
     }
+    //ledSubsystem = new LEDSubsystem();
 
     NamedCommands.registerCommand("ElevatorFLOOR", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR), elevatorSubsystem));
     NamedCommands.registerCommand("ElevatorL1", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem));
@@ -211,7 +218,16 @@ public class RobotContainer {
     NamedCommands.registerCommand("DescoreLow", new DescoreLow(descorerSubsystem));
     NamedCommands.registerCommand("DescoreHigh", new DescoreHigh(descorerSubsystem, elevatorSubsystem));
 
-    autoChooser = new LoggedDashboardChooser<>("Auto", AutoBuilder.buildAutoChooser());
+    autoChooser = AutoBuilder.buildAutoChooser();
+
+    autoChooser.setDefaultOption("None", Commands.none());
+
+    autoChooser.addOption("2 Coral 1 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
+      Autos.oneCoralOneDescore(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
+    autoChooser.addOption("3 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
+      Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
+    autoChooser.addOption("2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
+      Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
 
     autoChooser.addOption(
       "Drive Wheel Radius Characterization", CharacterizationCommands.wheelRadiusCharacterization(driveSubsystem));
@@ -230,11 +246,21 @@ public class RobotContainer {
     configureBindings();
 
     driverDashboard = new DriverDash(driveSubsystem, questNav);
+    systemsCheckDash = new SystemsCheckDash(driveSubsystem, elevatorSubsystem, descorerSubsystem, algaeIntakeSubsystem);
 
     elevatorSubsystem.initTab();
     algaeIntakeSubsystem.initTab();
 
     driverDashboard.initTab();
+    systemsCheckDash.initTab();
+
+    SmartDashboard.putData("Auto", autoChooser);
+  }
+
+  public void resetElevator() {
+    if(elevatorSubsystem != null) {
+      elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
+    }
   }
 
   private double getDriveSpeedMultiplier(double leftTriggerAxis) {
@@ -289,8 +315,8 @@ public class RobotContainer {
         } else {
           ledSubsystem.foreach((index) -> ledSubsystem.setSegment(index, Color.kRed));
         }
-      }, ledSubsystem));
-      */
+      }, ledSubsystem));*/
+      
     
     final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
         ? () -> {}
@@ -300,14 +326,16 @@ public class RobotContainer {
 
     oi.onDriveButtonPressed(Y, Commands.runOnce(resetGyro, driveSubsystem)
       .ignoringDisable(true));
+    oi.onDriveButtonPressed(B,
+      Commands.runOnce(() -> driveSubsystem.resetOdometry()));
 
     //oi.whileDriveTriggerPressed(RT,
     //  AlignmentCommands.alignToPose(driveSubsystem, () -> new Pose2d(6.0, 6.0, Rotation2d.kZero), 0.1));
 
     oi.whileDriveBumperPressed(RB,
-      AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.36, 0.158), 1));
+      AlignmentCommands.alignToTagRight(driveSubsystem, visionSubsystem));
     oi.whileDriveBumperPressed(LB,
-    AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.36, -0.02), 0));
+      AlignmentCommands.alignToTagLeft(driveSubsystem, visionSubsystem));
       
 
     oi.whileManipulatorBumperPressed(LB,
@@ -335,9 +363,6 @@ public class RobotContainer {
     oi.onManipulatorButtonPressed(Y,
       Commands.runOnce(() -> elevatorSubsystem.moveToStation(), elevatorSubsystem));
 
-    oi.onManipulatorButtonPressed(LEFT_STICK_BUTTON,
-      Commands.runOnce(() -> elevatorSubsystem.setCurrentLevelOffset(), elevatorSubsystem));
-
     oi.whileManipulatorButtonPressed(POV_RIGHT,
       new DescoreHigh(descorerSubsystem, elevatorSubsystem));
     oi.whileManipulatorButtonPressed(POV_LEFT,
@@ -351,6 +376,7 @@ public class RobotContainer {
     algaeIntakeSubsystem.updateTab();
 
     driverDashboard.updateTab();
+    systemsCheckDash.updateTab();
   }
 
   /**
@@ -360,7 +386,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return autoChooser.get();
+    return autoChooser.getSelected();
   }
 
   public void launchAlgae() {

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.55,
-        "y": 4.0
+        "x": 2.0,
+        "y": 7.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.091889768439449,
-        "y": 3.9994902691024206
+        "x": 3.0,
+        "y": 7.0
       },
       "isLocked": false,
-      "linkedName": "Center start"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.802049180327869,
-        "y": 4.0
+        "x": 5.102101200686106,
+        "y": 5.05368782161235
       },
       "prevControl": {
-        "x": 5.358201671744505,
-        "y": 4.003137121290315
+        "x": 4.102101200686106,
+        "y": 5.05368782161235
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "D1"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -33,22 +33,22 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.8,
-    "maxAcceleration": 3.0,
-    "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxVelocity": 5.6,
+    "maxAcceleration": 5.0,
+    "maxAngularVelocity": 760.0,
+    "maxAngularAcceleration": 900.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 150.80251395393557
   },
   "reversed": false,
-  "folder": "Center autos paths",
+  "folder": "1D2C",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

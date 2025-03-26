@@ -14,9 +14,9 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LEDSubsystem extends SubsystemBase {
-  private static final int LED_COUNT = 30;
+  private static final int LED_COUNT = 29;
   private static final int[][] STRIP_BOUNDS = {
-    {0, 30}
+    {0, 28}
   };
 
   private final AddressableLED leds = new AddressableLED(0);
@@ -110,6 +110,6 @@ public class LEDSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    
+    refresh();
   }
 }

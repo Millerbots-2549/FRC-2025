@@ -16,7 +16,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.util.motor.MotorIO.MotorIOInputs;
 import frc.robot.util.motor.MotorIOTalonFX;
@@ -41,7 +40,7 @@ public class ElevatorIOHardware implements ElevatorIO {
 
     private Orchestra orchestra = new Orchestra();
 
-    private ProfiledPIDController heightPID = new ProfiledPIDController(0.035, 0.0, 0.0, new Constraints(66, 88));
+    private ProfiledPIDController heightPID = new ProfiledPIDController(0.035, 0.0, 0.0, new Constraints(40, 55));
 
     public ElevatorIOHardware(MotorIOTalonFX leftMotor, MotorIOTalonFX rightMotor) {
         this.leftMotor = leftMotor;
@@ -91,15 +90,8 @@ public class ElevatorIOHardware implements ElevatorIO {
         boolean goingDown = inputs.velocityMetersPerSecond < 0;
         inputs.outOfBounds = (leftOverpowered || rightOverpowered) && goingDown;
 
-        SmartDashboard.putNumber("Elevator Left Motor Position", leftMotorInputs.position);
-        SmartDashboard.putNumber("Elevator Right Motor Position", rightMotorInputs.position);
-
-        SmartDashboard.putNumber("Elevator Stator Current", leftMotorInputs.statorCurrentAmps);
-        SmartDashboard.putNumber("Elevator Supply Current", leftMotorInputs.supplyCurrentAmps);
-
         double g_offset = elevatorSetpointHeightMeters > 20.0 ? ElevatorConstants.ELEVATOR_KG : -ElevatorConstants.ELEVATOR_KG;
         double output = heightPID.calculate(inputs.heightMeters, elevatorSetpointHeightMeters + 0.4);
-        SmartDashboard.putNumber("Wanted Output", output);
         output = MathUtil.clamp(output + g_offset, -0.21, 0.29);
         leftMotor.applyDutyCycle(output);
         rightMotor.applyDutyCycle(output);

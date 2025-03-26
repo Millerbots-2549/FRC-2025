@@ -11,14 +11,15 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.MathConstants;
 import frc.robot.subsystems.descorer.DescorerSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class DescoreHigh extends Command {
-  private static final double RAISE_TIME = 1.0;
-  private static final double RAISE_SPEED = 1.0;
+  private static final double RAISE_TIME = 0.7;
+  private static final double RAISE_SPEED = 1.4;
 
   private final DescorerSubsystem descorerSubsystem;
   private final ElevatorSubsystem elevatorSubsystem;
@@ -65,8 +66,8 @@ public class DescoreHigh extends Command {
       case LOWERING:
         elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
         descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION);
-        if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-            - DESCORER_ON_POSITION.getRadians()) < 0.1) {
+        if (Math.abs(MathUtil.inputModulus(descorerSubsystem.getCurrentWristPosition().getRadians(), 0, MathConstants.TAU)
+            - MathUtil.inputModulus(DESCORER_ON_POSITION.getRadians(), 0, MathConstants.TAU)) < 0.1) {
           timer.reset();
           currentState = CommandState.RAISING;
         }

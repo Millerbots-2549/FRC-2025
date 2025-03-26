@@ -40,4 +40,8 @@ public class DescorerSubsystem extends SubsystemBase {
   public Rotation2d getCurrentWristPosition() {
     return inputs.wristPosition;
   }
+
+  public DescorerIOInputsAutoLogged getInputs() {
+    return inputs;
+  }
 }

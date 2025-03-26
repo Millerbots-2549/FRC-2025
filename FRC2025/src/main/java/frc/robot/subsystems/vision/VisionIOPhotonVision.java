@@ -96,13 +96,6 @@ public class VisionIOPhotonVision implements VisionIO {
 
                 // Add tag IDs
                 tagIds.addAll(multitagResult.fiducialIDsUsed);
-
-                robotPose = new Pose3d(
-                    ((robotPose.getX() - 9.0) * -1) + 9.0,
-                    ((robotPose.getY() - 4.0) * -1) + 4.0,
-                    robotPose.getZ(),
-                    robotPose.getRotation()
-                );
                 if(DriverStation.getAlliance().get() == Alliance.Red) {
                     Pose2d flipped = FlippingUtil.flipFieldPose(robotPose.toPose2d());
                     robotPose = new Pose3d(

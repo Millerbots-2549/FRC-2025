@@ -24,7 +24,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.AlgaeIntakeConstants.AngleConfig;
 import frc.robot.Constants.AlgaeIntakeConstants.RollerConfig;
@@ -126,9 +125,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
             AlgaeIntakeConstants.ANGLE_PID_MIN_INPUT,
             AlgaeIntakeConstants.ANGLE_PID_MAX_INPUT);
         inputs.currentSetpoint = angleSetpoint;
-
-        SmartDashboard.putNumber("Angle Motor Encoder Position", inputs.anglePosition.getRadians());
-        SmartDashboard.putNumber("Roller Amps", rollerMotor.getOutputCurrent());
     }
 
     @Override
@@ -162,11 +158,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
         output -= output < 0 ?  Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG
                 : Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG;
         angleMotor.set(MathUtil.clamp(output, -1.0, 1.0));
-
-        SmartDashboard.putNumber("Angle Absolute Position", absolutePosition);
-        SmartDashboard.putNumber("Angle Setpoint", setPoint);
-        SmartDashboard.putNumber("Angle Gravity Comp", Math.sin(absolutePosition) * AlgaeIntakeConstants.ANGLE_KG);
-        SmartDashboard.putNumber("Angle Output", output);
 
         angleSetpoint = setPoint;
     }

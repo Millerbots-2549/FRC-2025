@@ -25,7 +25,6 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Add your docs here. */
 public class DescorerIOHardware implements DescorerIO {
@@ -71,7 +70,7 @@ public class DescorerIOHardware implements DescorerIO {
             rollerMotor.configure(this.rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(rollerMotor, 5, () -> rollerEncoder.setPosition(0));
 
-        //wristPositionController.enableContinuousInput(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT);
+        wristPositionController.enableContinuousInput(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT);
         wristPositionController.setTolerance(0.1, 0.1);
 
         rollerVelocityController.setTolerance(0.1);
@@ -118,13 +117,6 @@ public class DescorerIOHardware implements DescorerIO {
         output += WRIST_KG * Math.cos(absolutePosition);
         output = output > 0 ? output * 0.5 : output;
         wristMotor.set(MathUtil.clamp(output, -0.9, 0.9));
-
-        SmartDashboard.putNumber("Descorer Wrist Output", output);
-        SmartDashboard.putNumber("Descorer Setpoint Position", setpointPosition);
-        SmartDashboard.putNumber("Descorer Absolute Poistion", absolutePosition);
-        SmartDashboard.putNumber("Descorer Velocity", wristEncoder.getVelocity());
-
-        SmartDashboard.putNumber("Velocity Timer", velocityTimer.get());
 
         output = velocitySetpoint * (MathUtil.clamp(velocityTimer.get() * 3, 0.0, 1.0));
         rollerMotor.set(output);

@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start Position 1"
+            "pathName": null
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "TOP 1"
+            "pathName": null
           }
         }
       ]

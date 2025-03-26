@@ -16,7 +16,6 @@ import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.Constants;
 
 /** Add your docs here. */
 public class QuestNav {
@@ -35,7 +34,7 @@ public class QuestNav {
 
   // Local heading helper variables
   private float yaw_offset = 0.0f;
-  private Pose2d resetPosition = Constants.INITIAL_POSITION;
+  private Pose2d resetPosition = new Pose2d();
 
   // Gets the Quest's measured position.
   public Pose2d getPose() {
@@ -71,7 +70,7 @@ public class QuestNav {
 
   // Zero the absolute 3D position of the robot (similar to long-pressing the quest logo)
   public void zeroPosition() {
-    resetPosition = new Pose2d(getPose().getTranslation(), getPose().getRotation());
+    resetPosition = getQuestNavPose();
     if (questMiso.get() != 99) {
       questMosi.set(1);
     }
@@ -79,8 +78,8 @@ public class QuestNav {
 
   public void setPosition(Pose2d other) {
     resetPosition = new Pose2d(
-      getPose().getTranslation().plus(other.getTranslation()),
-      getPose().getRotation().plus(other.getRotation()));
+      other.getTranslation().plus(getPoseNoOffset().getTranslation()),
+      other.getRotation().plus(getPoseNoOffset().getRotation()));
     if (questMiso.get() != 99) {
       questMosi.set(1);
     }
@@ -110,9 +109,16 @@ public class QuestNav {
   }
 
   private Pose2d getQuestNavPose() {
-    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(
-      Units.inchesToMeters(9.8),
-      Units.inchesToMeters(3.5))); // 6.5
+    var offset = new Translation2d(
+      Units.inchesToMeters(-7.6),
+      Units.inchesToMeters(3.5))
+      .rotateBy(Rotation2d.fromDegrees(getOculusYaw()));
+    var oculousPositionCompensated = getQuestNavTranslation().plus(offset);
     return new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw()));
+  }
+
+  public Pose2d getPoseNoOffset() {
+    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(0, 0)); // 6.5
+    return new Pose2d(new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw())).minus(resetPosition).getTranslation(), Rotation2d.fromDegrees(getOculusYaw()));
   }
 }

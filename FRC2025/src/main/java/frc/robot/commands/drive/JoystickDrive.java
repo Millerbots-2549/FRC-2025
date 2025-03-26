@@ -44,7 +44,7 @@ public class JoystickDrive extends Command {
     
     this.previousRotationalInputTimer = new Timer();
     this.driveSubsystem = driveSubsystem;
-    chassisRotationController = new PIDController(0.4, 0, 0.0); // fill your pid
+    chassisRotationController = new PIDController(0.05, 0, 0.0); // fill your pid
     chassisRotationController.enableContinuousInput(0, Math.toRadians(360));
     super.addRequirements(driveSubsystem);
   }

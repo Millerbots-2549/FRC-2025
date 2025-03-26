@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.oi.OI;
 import frc.robot.util.DashboardPublisher;
@@ -38,16 +37,6 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    SmartDashboard.putNumber("Elevator Height", inputs.heightMeters);
-    SmartDashboard.putNumber("Elevator Setpoint", inputs.heightSetpointMeters);
-    SmartDashboard.putNumber("Elevator Velocity", inputs.velocityMetersPerSecond);
-    SmartDashboard.putBoolean("Elevator Connected", inputs.elevatorConnected);
-    SmartDashboard.putBoolean("Elevator Out of Bounds", inputs.outOfBounds);
-
-    SmartDashboard.putNumber("L1 Setpoint", ElevatorLevel.L1.height + heightOffsets[0]);
-    SmartDashboard.putNumber("L2 Setpoint", ElevatorLevel.L2.height + heightOffsets[1]);
-    SmartDashboard.putNumber("L3 Setpoint", ElevatorLevel.L3.height + heightOffsets[2]);
-    SmartDashboard.putNumber("L4 Setpoint", ElevatorLevel.L4.height + heightOffsets[3]);
 
     if (currentLevel == 0) {
       if (isDownTimer.get() < 0.5) {
@@ -76,7 +65,6 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
   }
 
   public void moveToLevel(ElevatorLevel level) {
-    //setElevatorPosition(level.height + (currentLevel >= 1 ? heightOffsets[currentLevel - 1] : 0.0));
     setElevatorPosition(level.height);
     currentLevel = level.ordinal();
   }
@@ -91,12 +79,6 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
     if (currentLevel < 1) return;
 
     moveToLevel(ElevatorLevel.values()[currentLevel - 1]);
-  }
-
-  public void setCurrentLevelOffset() {
-    if (currentLevel < 1) return;
-
-    heightOffsets[currentLevel] = inputs.heightMeters - ElevatorLevel.values()[currentLevel].height;
   }
 
   public void runIntake(double speed) {
@@ -114,9 +96,9 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
   public static enum ElevatorLevel {
     FLOOR(0.3),
     L1(4),
-    L2(6),
-    L3(13.8),
-    L4(23.85);
+    L2(6.37),
+    L3(13.77),
+    L4(23.0);
 
     public double height;
 
@@ -125,9 +107,9 @@ public class ElevatorSubsystem extends SubsystemBase implements DashboardPublish
     }
   }
 
-  public static double[] heightOffsets = {
-    0.0, 0.0, 0.0, 0.0
-  };
+  public ElevatorIOInputsAutoLogged getInputs() {
+    return inputs;
+  }
 
   private ShuffleboardTab tab;
 
