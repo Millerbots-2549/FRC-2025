@@ -119,7 +119,8 @@ public class QuestNav {
   }
 
   public Pose2d getPoseNoOffset() {
-    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(0, 0)); // 6.5
-    return new Pose2d(new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw())).minus(resetPosition).getTranslation(), Rotation2d.fromDegrees(getOculusYaw()));
+    var oculousPositionCompensated = getQuestNavTranslation().minus(new Translation2d(0, Units.inchesToMeters(6.5))); // 6.5
+    return new Pose2d(new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw())).minus(resetPosition).getTranslation(), Rotation2d.fromDegrees(getOculusYaw()))
+      .relativeTo(resetPosition);
   }
 }

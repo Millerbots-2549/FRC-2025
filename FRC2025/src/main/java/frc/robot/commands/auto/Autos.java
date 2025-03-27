@@ -7,6 +7,7 @@ package frc.robot.commands.auto;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -19,6 +20,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -46,6 +48,10 @@ public class Autos {
         Autos.rightSide = rightSide;
     }
 
+    public static boolean getRightSide() {
+        return Autos.rightSide;
+    }
+
     public static final Map<String, Pose2d> DESCORE_POSES = new HashMap<>();
     static {
         DESCORE_POSES.put("Back Left", new Pose2d(5.09, 5.09, Rotation2d.fromDegrees(150)));
@@ -57,6 +63,16 @@ public class Autos {
         elevatorSubsystem = elevatorSubsystemA;
         descorerSubsystem = descorerSubsystemA;
         visionSubsystem = visionSubsystemA;
+    }
+
+    private static final Command mirrorAuto(BooleanSupplier supplier, PathPlannerPath... paths) {
+        return Commands.runOnce(() -> {
+            if(supplier.getAsBoolean()) {
+                for(PathPlannerPath path : paths) {
+                    path = path.mirrorPath();
+                }
+            }
+        });
     }
 
     /**
@@ -96,7 +112,7 @@ public class Autos {
 
     /** Descores an upper algae */
     private static final Command descoreHigh(DescorerSubsystem descorerSubsystem, ElevatorSubsystem elevatorSubsystem) {
-        return new DescoreHigh(descorerSubsystem, elevatorSubsystem).withTimeout(1.2);
+        return new DescoreHigh(descorerSubsystem, elevatorSubsystem).withTimeout(3.0);
     }
 
     /** Outtakes a coral */
@@ -153,7 +169,7 @@ public class Autos {
     private static final Command runCycle(Command stationPath, ElevatorLevel level, boolean left, DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, VisionSubsystem visionSubsystem) {
         return new SequentialCommandGroup(
             stationPath,
-            left ? alignReefLeft(level, 1.0, driveSubsystem, elevatorSubsystem, visionSubsystem)
+            left ? alignReefLeft(level, 1.2, driveSubsystem, elevatorSubsystem, visionSubsystem)
             : alignReefRight(level, 1.2, driveSubsystem, elevatorSubsystem, visionSubsystem),
             outtake(elevatorSubsystem),
             stopIntake(elevatorSubsystem),
@@ -190,29 +206,27 @@ public class Autos {
         }
     }
 
-    public static final Command oneDescoreTwoCoral(DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, DescorerSubsystem descorerSubsystem, VisionSubsystem visionSubsystem) {
+    public static final Command oneDescoreTwoCoral(DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, DescorerSubsystem descorerSubsystem, VisionSubsystem visionSubsystem, boolean rightSide) {
         PathPlannerPath part1, part2, part3;
         try {
             part1 = PathPlannerPath.fromPathFile("1D3C Part 1");
             part2 = PathPlannerPath.fromPathFile("1D3C Part 2");
             part3 = PathPlannerPath.fromPathFile("1D3C Part 3");
             if(rightSide) {
-                part1.mirrorPath();
-                part2.mirrorPath();
-                part3.mirrorPath();
+                part1 = part1.mirrorPath();
+                part2 = part2.mirrorPath();
+                part3 = part3.mirrorPath();
             }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollow(part1),
-                descoreLow(descorerSubsystem),
+                descoreHigh(descorerSubsystem, elevatorSubsystem),
                 AutoBuilder.followPath(part2),
-                alignReefLeft(ElevatorLevel.L3, 3, driveSubsystem, elevatorSubsystem, visionSubsystem),
+                alignReefLeft(ElevatorLevel.L3, 1.6, driveSubsystem, elevatorSubsystem, visionSubsystem),
                 outtake(elevatorSubsystem),
                 stopIntake(elevatorSubsystem),
                 lowerElevator(elevatorSubsystem),
-                runCycle(followStationPath(part3, 2.0, 4.3, elevatorSubsystem),
-                    ElevatorLevel.L3, false, driveSubsystem, elevatorSubsystem, visionSubsystem),
-                runCycle(followStationPath(part3, 2.0, 4.3, elevatorSubsystem),
-                    ElevatorLevel.L2, true, driveSubsystem, elevatorSubsystem, visionSubsystem)
+                runCycle(followStationPath(part3, 2.0, 5.8, elevatorSubsystem),
+                    ElevatorLevel.L3, false, driveSubsystem, elevatorSubsystem, visionSubsystem)
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -220,17 +234,19 @@ public class Autos {
         }
     }
 
-    public static final Command threeCoral(DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, DescorerSubsystem descorerSubsystem, VisionSubsystem visionSubsystem) {
-        PathPlannerPath part2, part3;
+    public static final Command threeCoral(DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, DescorerSubsystem descorerSubsystem, VisionSubsystem visionSubsystem, boolean rightSide) {
+        PathPlannerPath part1, part2, part3;
         try {
+            part1 = PathPlannerPath.fromPathFile("0D3C Part 1");
             part2 = PathPlannerPath.fromPathFile("0D3C Part 2");
             part3 = PathPlannerPath.fromPathFile("0D3C Part 3");
             if(rightSide) {
-                part2.mirrorPath();
-                part3.mirrorPath();
+                part1 = part1.mirrorPath();
+                part2 = part2.mirrorPath();
+                part3 = part3.mirrorPath();
             }
             return new SequentialCommandGroup(
-                PathfindingCommands.pathfindToPoint(new Pose2d(5.0, 5.45, Rotation2d.fromDegrees(330))),
+                PathfindingCommands.pathfindThenFollow(part1),
                 alignReefRight(ElevatorLevel.L2, 1.0, driveSubsystem, elevatorSubsystem, visionSubsystem),
                 outtake(elevatorSubsystem).withDeadline(new WaitCommand(0.4)),
                 slowIntake(elevatorSubsystem),
@@ -247,14 +263,14 @@ public class Autos {
         }
     }
 
-    public static final Command twoCoral(DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, DescorerSubsystem descorerSubsystem, VisionSubsystem visionSubsystem) {
+    public static final Command twoCoral(DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, DescorerSubsystem descorerSubsystem, VisionSubsystem visionSubsystem, boolean rightSide) {
         PathPlannerPath part1, part2;
         try {
             part1 = PathPlannerPath.fromPathFile("0D2C Part 1");
             part2 = PathPlannerPath.fromPathFile("0D2C Part 2");
             if(rightSide) {
-                part1.mirrorPath();
-                part2.mirrorPath();
+                part1 = part1.mirrorPath();
+                part2 = part2.mirrorPath();
             }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollowSlow(part1),
@@ -271,16 +287,16 @@ public class Autos {
         }
     }
 
-    public static final Command twoDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem) {
+    public static final Command twoDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem, ElevatorSubsystem elevatorSubsystem, boolean rightSide) {
         PathPlannerPath part1, part2, part3;
         try {
             part1 = PathPlannerPath.fromPathFile("2D0C Part 1");
             part2 = PathPlannerPath.fromPathFile("2D0C Part 2");
             part3 = PathPlannerPath.fromPathFile("2D0C Part 3");
             if(rightSide) {
-                part1.mirrorPath();
-                part2.mirrorPath();
-                part3.mirrorPath();
+                part1 = part1.mirrorPath();
+                part2 = part2.mirrorPath();
+                part3 = part3.mirrorPath();
             }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollow(part1),
@@ -291,12 +307,13 @@ public class Autos {
                 stopIntake(elevatorSubsystem)
             );
         } catch (Exception e) {
+            System.out.println("Failed to create 2D0C auto");
             e.printStackTrace();
             return Commands.none();
         }
     }
 
-    public static final Command threeDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem) {
+    public static final Command threeDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem, ElevatorSubsystem elevatorSubsystem, boolean rightSide) {
         PathPlannerPath part1, part2, part3, part4;
         try {
             part1 = PathPlannerPath.fromPathFile("3D0C Part 1");
@@ -304,10 +321,10 @@ public class Autos {
             part3 = PathPlannerPath.fromPathFile("3D0C Part 3");
             part4 = PathPlannerPath.fromPathFile("3D0C Part 4");
             if(rightSide) {
-                part1.mirrorPath();
-                part2.mirrorPath();
-                part3.mirrorPath();
-                part4.mirrorPath();
+                part1 = part1.mirrorPath();
+                part2 = part2.mirrorPath();
+                part3 = part3.mirrorPath();
+                part4 = part4.mirrorPath();
             }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollow(part1),
@@ -320,12 +337,13 @@ public class Autos {
                 stopIntake(elevatorSubsystem)
             );
         } catch (Exception e) {
+            System.out.println("Failed to create 3D0C auto");
             e.printStackTrace();
             return Commands.none();
         }
     }
 
-    public static final Command fourDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem) {
+    public static final Command fourDescore(DriveSubsystem driveSubsystem, DescorerSubsystem descorerSubsystem, ElevatorSubsystem elevatorSubsystem, boolean rightSide) {
         PathPlannerPath part1, part2, part3, part4, part5;
         try {
             part1 = PathPlannerPath.fromPathFile("4D0C Part 1");
@@ -334,11 +352,11 @@ public class Autos {
             part4 = PathPlannerPath.fromPathFile("4D0C Part 4");
             part5 = PathPlannerPath.fromPathFile("4D0C Part 5");
             if(rightSide) {
-                part1.mirrorPath();
-                part2.mirrorPath();
-                part3.mirrorPath();
-                part4.mirrorPath();
-                part5.mirrorPath();
+                part1 = part1.mirrorPath();
+                part2 = part2.mirrorPath();
+                part3 = part3.mirrorPath();
+                part4 = part4.mirrorPath();
+                part5 = part5.mirrorPath();
             }
             return new SequentialCommandGroup(
                 PathfindingCommands.pathfindThenFollow(part1),
@@ -353,6 +371,7 @@ public class Autos {
                 stopIntake(elevatorSubsystem)
             );
         } catch (Exception e) {
+            System.out.println("Failed to create 4D0C auto");
             e.printStackTrace();
             return Commands.none();
         }

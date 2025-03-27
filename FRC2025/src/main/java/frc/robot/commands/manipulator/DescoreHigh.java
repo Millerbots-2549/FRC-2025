@@ -19,7 +19,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorLevel;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class DescoreHigh extends Command {
   private static final double RAISE_TIME = 0.7;
-  private static final double RAISE_SPEED = 1.4;
+  private static final double RAISE_SPEED = 1.8;
 
   private final DescorerSubsystem descorerSubsystem;
   private final ElevatorSubsystem elevatorSubsystem;
@@ -98,6 +98,8 @@ public class DescoreHigh extends Command {
   @Override
   public void end(boolean interrupted) {
     elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR);
+    descorerSubsystem.applyWristSetpoint(DESCORER_OFF_POSITION);
+    descorerSubsystem.runRoller(0.0);
   }
 
   // Returns true when the command should end.

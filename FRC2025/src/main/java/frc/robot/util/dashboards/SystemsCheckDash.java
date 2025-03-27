@@ -139,7 +139,8 @@ public class SystemsCheckDash implements DashboardPublisher {
         
         rioMemoryUsage.setString(Runtime.getRuntime().totalMemory()
             - Runtime.getRuntime().freeMemory() + "b/"
-            + Runtime.getRuntime().totalMemory() + "b");
+            + Runtime.getRuntime().totalMemory() + "b "
+            + (100 * ((double)Runtime.getRuntime().freeMemory() / (double)Runtime.getRuntime().totalMemory())) + "%");
     }
     
 }

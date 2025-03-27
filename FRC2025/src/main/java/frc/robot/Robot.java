@@ -133,7 +133,11 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     Threads.setCurrentThreadPriority(true, 99);
 
-    LEDPattern base = LEDPattern.steps(Map.of(0, Color.kOrangeRed, 0.25, Color.kBlue, 0.5, Color.kOrangeRed, 0.75, Color.kBlue)); // miller bot stripes
+    LEDPattern base = LEDPattern.steps(Map.of(
+      0, Color.kOrangeRed,
+      0.25, Color.kBlue,
+      0.5, Color.kOrangeRed,
+      0.75, Color.kBlue)); // miller bot stripes
     
     //LEDPattern base = LEDPattern.solid(Color.kBlue); // milerbot blue
     

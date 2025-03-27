@@ -110,8 +110,8 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
             this::getChassisSpeeds,
             this::runVelocity,
             new PPHolonomicDriveController(
-                new PIDConstants(6.5, 0.0, 0.0),
-                new PIDConstants(6.5, 0.0, 0.0)),
+                new PIDConstants(8.3, 0.0, 0.05),
+                new PIDConstants(8.3, 0.0, 0.05)),
             DriveConstants.PATH_PLANNER_CONFIG,
             //() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
             () -> false,
@@ -185,25 +185,27 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
     public void runVelocity(ChassisSpeeds chassisSpeeds) {
 
-        ChassisSpeeds speeds = new ChassisSpeeds(
-            chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
-            chassisSpeeds.omegaRadiansPerSecond);
+        if(Constants.enableDrive) {
+            ChassisSpeeds speeds = new ChassisSpeeds(
+                chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond,
+                chassisSpeeds.omegaRadiansPerSecond);
 
-        speeds = ChassisSpeeds.discretize(speeds, 0.02);
+            speeds = ChassisSpeeds.discretize(speeds, 0.02);
 
-        SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
+            SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
+            SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
 
-        if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-        if(!Constants.minimalLogging) Logger.recordOutput("SwerveChassisSpeeds/Setpoints", speeds);
+            if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
+            if(!Constants.minimalLogging) Logger.recordOutput("SwerveChassisSpeeds/Setpoints", speeds);
 
-        for (int i = 0; i < 4; i++) {
-            modules[i].apply(setpointStates[i]);
+            for (int i = 0; i < 4; i++) {
+                modules[i].apply(setpointStates[i]);
+            }
+
+            if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
+
+            desiredHeading = desiredHeading.plus(new Rotation2d(-chassisSpeeds.omegaRadiansPerSecond * 0.02));
         }
-
-        if(!Constants.minimalLogging) Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
-
-        desiredHeading = desiredHeading.plus(new Rotation2d(-chassisSpeeds.omegaRadiansPerSecond * 0.02));
     }
 
     public void runModule(Rotation2d angle, double velocity, int moduleNum) {
@@ -286,7 +288,11 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 
     @AutoLogOutput(key = "Odometry/Robot")
     public Pose2d getPose() {
-        return poseEstimator.getEstimatedPosition();
+        if(questNav.connected()) {
+            return new Pose2d(questNav.getPose().getTranslation(), poseEstimator.getEstimatedPosition().getRotation());
+        } else {
+            return poseEstimator.getEstimatedPosition();
+        }
     }
 
     public Rotation2d getRotation() {

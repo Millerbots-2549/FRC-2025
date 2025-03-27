@@ -4,12 +4,13 @@
 
 package frc.robot.commands.manipulator;
 
+import static frc.robot.Constants.DescorerConstants.DESCORER_OFF_POSITION;
+import static frc.robot.Constants.DescorerConstants.DESCORER_ON_POSITION;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.descorer.DescorerSubsystem;
-
-import static frc.robot.Constants.DescorerConstants.*;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class DescoreLow extends Command {
@@ -42,17 +43,11 @@ public class DescoreLow extends Command {
     if (currentState == CommandState.LOWERING) {
       // If the wrist is lowering and it is close enough to the setpoint, switch state
       if (Math.abs(descorerSubsystem.getCurrentWristPosition().getRadians()
-          - DESCORER_ON_POSITION.getRadians()) < 0.1) {
+          - DESCORER_ON_POSITION.getRadians()) < 0.2) {
         currentState = CommandState.PUSHING;
       }
     } else {
-      SmartDashboard.putBoolean("Skib", false);
-      // If the wrist gets far enough from the setpoint, apply force downwards
-      if (descorerSubsystem.getCurrentWristPosition().getRadians()
-          - DESCORER_ON_POSITION.getRadians() > 0.005) {
-        descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.minus(Rotation2d.fromRadians(0.6)));
-        SmartDashboard.putBoolean("Skib", true);
-      }
+      descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.minus(Rotation2d.fromRadians(0.6)));
     }
     SmartDashboard.putNumber("YSUSHIJ", descorerSubsystem.getCurrentWristPosition().getRadians()
       - DESCORER_ON_POSITION.getRadians());
@@ -61,7 +56,10 @@ public class DescoreLow extends Command {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    descorerSubsystem.applyWristSetpoint(DESCORER_OFF_POSITION);
+    descorerSubsystem.runRoller(0.0);
+  }
 
   // Returns true when the command should end.
   @Override

@@ -5,9 +5,19 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Meters;
-import static frc.robot.oi.OI.Button.*;
-import static frc.robot.oi.OI.Bumper.*;
-import static frc.robot.oi.OI.Trigger.*;
+import static frc.robot.oi.OI.Bumper.LB;
+import static frc.robot.oi.OI.Bumper.RB;
+import static frc.robot.oi.OI.Button.B;
+import static frc.robot.oi.OI.Button.BACK;
+import static frc.robot.oi.OI.Button.POV_DOWN;
+import static frc.robot.oi.OI.Button.POV_LEFT;
+import static frc.robot.oi.OI.Button.POV_RIGHT;
+import static frc.robot.oi.OI.Button.POV_UP;
+import static frc.robot.oi.OI.Button.START;
+import static frc.robot.oi.OI.Button.X;
+import static frc.robot.oi.OI.Button.Y;
+import static frc.robot.oi.OI.Trigger.LT;
+import static frc.robot.oi.OI.Trigger.RT;
 
 import org.ironmaple.simulation.IntakeSimulation;
 import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
@@ -34,7 +44,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AlgaeIntakeConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DescorerConstants;
@@ -106,7 +115,6 @@ public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
   private final SendableChooser<Pose2d> startingPoseChooser;
-  private final SendableChooser<Boolean> sideChooser;
 
   private final DriverDash driverDashboard;
   private final SystemsCheckDash systemsCheckDash;
@@ -205,7 +213,6 @@ public class RobotContainer {
         descorerSubsystem = new DescorerSubsystem(new DescorerIO() { });
         break;
     }
-    //ledSubsystem = new LEDSubsystem();
 
     NamedCommands.registerCommand("ElevatorFLOOR", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.FLOOR), elevatorSubsystem));
     NamedCommands.registerCommand("ElevatorL1", Commands.runOnce(() -> elevatorSubsystem.moveToLevel(ElevatorLevel.L1), elevatorSubsystem));
@@ -222,45 +229,26 @@ public class RobotContainer {
 
     autoChooser = AutoBuilder.buildAutoChooser();
     startingPoseChooser = new SendableChooser<>();
-    sideChooser = new SendableChooser<>();
 
-    autoChooser.setDefaultOption("None", Commands.none());
-
-    autoChooser.addOption("2 Coral 1 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
-      Autos.oneCoralOneDescore(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
-    autoChooser.addOption("3 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
-      Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
-    autoChooser.addOption("2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
-      Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
-    autoChooser.addOption("2 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
-      Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem)));
-    autoChooser.addOption("3 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
-      Autos.threeDescore(driveSubsystem, descorerSubsystem)));
-    autoChooser.addOption("4 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry()).andThen(
-      Autos.fourDescore(driveSubsystem, descorerSubsystem)));
-
-    autoChooser.addOption(
-      "Drive Wheel Radius Characterization", CharacterizationCommands.wheelRadiusCharacterization(driveSubsystem));
-    autoChooser.addOption(
-      "Drive Feed Forward Characterization", CharacterizationCommands.feedforwardCharacterization(driveSubsystem));
-    autoChooser.addOption(
-      "Forward Drive SysId (Quasistatic)", driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-      "Reverse Drive SysId (Quasistatic)", driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-      "Forward Drive SysId (Dynamic)", driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-      "Reverse Drive SysId (Dynamic)", driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption("LEFT: 2 Coral 1 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.oneDescoreTwoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, false)));
+    autoChooser.addOption("RIGHT: 2 Coral 1 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.oneDescoreTwoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, true)));
+    autoChooser.addOption("LEFT: 2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, false)));
+    autoChooser.addOption("RIGHT: 2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, true)));
+    autoChooser.addOption("LEFT: 3 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, false)));
+    autoChooser.addOption("RIGHT: 3 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, true)));
     
-    startingPoseChooser.setDefaultOption("Right, facing away", new Pose2d(3, 3, new Rotation2d()));
-    startingPoseChooser.addOption("Right, facing towards", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(180))));
-    startingPoseChooser.addOption("Left, facing away", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(180))));
-    startingPoseChooser.addOption("Left, facing towards", new Pose2d(3, 3, new Rotation2d()));
+    startingPoseChooser.setDefaultOption("Left, facing away", new Pose2d(7.75, 6.16, new Rotation2d()));
+    startingPoseChooser.addOption("Left, facing towards", new Pose2d(7.75, 6.16, Rotation2d.fromDegrees(180)));
+    startingPoseChooser.addOption("Right, facing away", new Pose2d(7.732, 1.897, new Rotation2d()));
+    startingPoseChooser.addOption("Right, facing towards", new Pose2d(7.732, 1.897, Rotation2d.fromDegrees(180)));
     startingPoseChooser.addOption("Center, facing away", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(90))));
     startingPoseChooser.addOption("Center, facing towards", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(-90))));
-
-    sideChooser.setDefaultOption("Right", true);
-    sideChooser.addOption("Left", false);
 
     // Configure the trigger bindings
     configureBindings();
@@ -276,7 +264,6 @@ public class RobotContainer {
 
     SmartDashboard.putData("Auto", autoChooser);
     SmartDashboard.putData("Starting Pose", startingPoseChooser);
-    SmartDashboard.putData("Side", sideChooser);
   }
 
   public void resetElevator() {
@@ -438,22 +425,16 @@ public class RobotContainer {
   }
 
   private Pose2d lastPose;
-  private boolean lastRightSide;
 
   public void updateChoosers() {
     Pose2d startingPose = startingPoseChooser.getSelected();
-    boolean isRight = sideChooser.getSelected();
 
     if (lastPose != startingPose) {
       Constants.INITIAL_POSITION = startingPose;
       driveSubsystem.resetOdometry();
     }
-    if(lastRightSide != isRight) {
-      Autos.setRightSide(isRight);
-    }
 
     lastPose = startingPose;
-    lastRightSide = isRight;
   }
 
   public void sendSimulatedFieldToAdvantageScope() {

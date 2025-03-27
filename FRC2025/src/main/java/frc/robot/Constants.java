@@ -389,9 +389,7 @@ public final class Constants {
     public static double[] CAMERA_STD_DEV_FACTORS = new double[] {
         0.25, // Reef camera
         0.25, // Left camera
-        0.25, // Front camera
-        0.25, // Back camera
-        1.0 // Quest
+        0.1 // Quest
     };
 
     public static double LINEAR_STD_DEV_MEGATAG2_FACTOR = 0.5;

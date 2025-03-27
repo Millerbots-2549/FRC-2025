@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.FieldConstants;
@@ -186,7 +187,7 @@ public final class AlignmentCommands {
     public static Command alignToTag(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, Translation2d wantedTranslation, int camIndex) {
         PIDController offsetPID = new PIDController(6.3, 0.0, 0.05);
         PIDController distancePID = new PIDController(5.3, 0.0, 0.05);
-        PIDController rotationPID = new PIDController(3.5, 0.0, 0.0);
+        PIDController rotationPID = new PIDController(5.3, 0.0, 0.0);
         rotationPID.enableContinuousInput(0, Math.PI * 2);
 
         double CAM_0_ANGLE = Units.degreesToRadians(0);
@@ -195,11 +196,15 @@ public final class AlignmentCommands {
         return Commands.startRun(() -> {
             offsetPID.setTolerance(0.005);
             distancePID.setTolerance(0.005);
-            rotationPID.setTolerance(0.01);
+            rotationPID.setTolerance(0.005);
         }, () -> {
             // Checks if either camera contains a reef tag
             int targetID = visionSubsystem.getTargetID(camIndex);
             int alternateTargetID = visionSubsystem.getTargetID(1 - camIndex);
+
+            Pose2d w = new Pose2d(wantedTranslation, Rotation2d.kZero);
+            w = w.rotateBy(new Rotation2d(camIndex == 0 ? CAM_0_ANGLE : CAM_1_ANGLE));
+            SmartDashboard.putString("Cam Offset", w.getX() + " " + w.getY());
             if(tagRotMap.containsKey(targetID)
                     || tagRotMap.containsKey(alternateTargetID)) {
 
@@ -213,9 +218,9 @@ public final class AlignmentCommands {
                 if(correctCam != camIndex) {
                     // If the wrong camera has the tag, then move the robot sideways until the correct camera can see it.
                     if(camIndex == 0) {
-                        targetPose = new Pose3d(wantedTranslation.getX(), 0.2, 0.0, Rotation3d.kZero);
+                        targetPose = new Pose3d(w.getX(), 0.2, 0.0, Rotation3d.kZero);
                     } else {
-                        targetPose = new Pose3d(wantedTranslation.getX(), -0.2, 0.0, Rotation3d.kZero);
+                        targetPose = new Pose3d(w.getX(), -0.2, 0.0, Rotation3d.kZero);
                     }
                 } else {
                     targetPose = visionSubsystem.getTargetPose(camIndex);
@@ -228,8 +233,8 @@ public final class AlignmentCommands {
                 Logger.recordOutput("Alignment/tagPos", targetPose);
 
                 // Calculates the outputs from the PID controllers.
-                double offsetOutput = offsetPID.calculate(targetPose.getY(), wantedTranslation.getY());
-                double distanceOutput = distancePID.calculate(targetPose.getX(), wantedTranslation.getX());
+                double offsetOutput = offsetPID.calculate(targetPose.getY(), w.getY());
+                double distanceOutput = distancePID.calculate(targetPose.getX(), w.getX());
                 double rotationOutput = rotationPID.calculate(MathUtil.inputModulus(driveSubsystem.getRotation().getRadians(), 0, MathConstants.TAU),
                     tagRotMap.get(visionSubsystem.getTargetID(correctCam)));
 
@@ -255,8 +260,8 @@ public final class AlignmentCommands {
      * @return A command to align to the tag
      */
     public static Command alignToTagLeft(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
-        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.338, -0.075), 0);
-    };
+        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.34, -0.12), 0);
+    }; //0.34 -0.12
 
     /**
      * Aligns to the right branch of the reef based on the apriltag
@@ -265,8 +270,8 @@ public final class AlignmentCommands {
      * @return A command to align to the tag
      */
     public static Command alignToTagRight(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
-        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.359, 0.281), 1);
-    };
+        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.4, 0.06), 1);
+    }; // 0.4 0.06
 
     public static Command alignToStation(DriveSubsystem driveSubsystem) {
         return PathfindingCommands.pathfindToPoint(new Pose2d(1.522, 6.650, Rotation2d.fromDegrees(125)))

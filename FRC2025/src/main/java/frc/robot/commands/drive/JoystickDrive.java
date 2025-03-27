@@ -83,8 +83,8 @@ public class JoystickDrive extends Command {
     }
 
     ChassisSpeeds speeds = new ChassisSpeeds(
-      linearVelocity.getX() * driveSubsystem.getMaxLinearSpeedMetersPerSec(),
-      linearVelocity.getY() * driveSubsystem.getMaxLinearSpeedMetersPerSec(),
+      linearVelocity.getX() * driveSubsystem.getMaxLinearSpeedMetersPerSec() * 1.2,
+      linearVelocity.getY() * driveSubsystem.getMaxLinearSpeedMetersPerSec() * 1.2,
       rot * driveSubsystem.getMaxAngularSpeedRadPerSec());
     boolean isFlipped = DriverStation.getAlliance().isPresent()
       && DriverStation.getAlliance().get() == Alliance.Red;
