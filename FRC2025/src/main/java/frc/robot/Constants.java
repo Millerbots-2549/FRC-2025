@@ -588,7 +588,7 @@ public final class Constants {
     public static final int ROLLER_MOTOR_ID = 8;
 
     public static final Rotation2d DESCORER_OFF_POSITION = Rotation2d.fromRadians(0);
-    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(3.3);
+    public static final Rotation2d DESCORER_ON_POSITION = Rotation2d.fromRadians(-3.3);
 
     public static final double WRIST_KP = 0.2;
     public static final double WRIST_KI = 0.0;

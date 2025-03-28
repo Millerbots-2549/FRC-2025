@@ -232,16 +232,12 @@ public class RobotContainer {
 
     autoChooser.addOption("LEFT: 2 Coral 1 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry())
       .andThen(Autos.oneDescoreTwoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, false)));
-    autoChooser.addOption("RIGHT: 2 Coral 1 Descore", Commands.runOnce(() -> driveSubsystem.resetOdometry())
-      .andThen(Autos.oneDescoreTwoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, true)));
     autoChooser.addOption("LEFT: 2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
       .andThen(Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, false)));
-    autoChooser.addOption("RIGHT: 2 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
-      .andThen(Autos.twoCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, true)));
     autoChooser.addOption("LEFT: 3 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
       .andThen(Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, false)));
-    autoChooser.addOption("RIGHT: 3 Coral", Commands.runOnce(() -> driveSubsystem.resetOdometry())
-      .andThen(Autos.threeCoral(driveSubsystem, elevatorSubsystem, descorerSubsystem, visionSubsystem, true)));
+    autoChooser.addOption("Leave", Commands.runOnce(() -> driveSubsystem.resetOdometry())
+      .andThen(Autos.leave(driveSubsystem)));
     
     startingPoseChooser.setDefaultOption("Left, facing away", new Pose2d(7.75, 6.16, new Rotation2d()));
     startingPoseChooser.addOption("Left, facing towards", new Pose2d(7.75, 6.16, Rotation2d.fromDegrees(180)));
@@ -249,6 +245,10 @@ public class RobotContainer {
     startingPoseChooser.addOption("Right, facing towards", new Pose2d(7.732, 1.897, Rotation2d.fromDegrees(180)));
     startingPoseChooser.addOption("Center, facing away", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(90))));
     startingPoseChooser.addOption("Center, facing towards", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(-90))));
+    startingPoseChooser.addOption("Far Left, facing away", new Pose2d(7.732, 7.238, new Rotation2d()));
+    startingPoseChooser.addOption("Far Left, facing towards", new Pose2d(7.732, 7.238, Rotation2d.fromDegrees(180)));
+    startingPoseChooser.addOption("Far Right, facing away", new Pose2d(7.732, 0.8, new Rotation2d()));
+    startingPoseChooser.addOption("Far Right, facing towards", new Pose2d(7.732, 0.8, Rotation2d.fromDegrees(180)));
 
     // Configure the trigger bindings
     configureBindings();

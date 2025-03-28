@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants;
 import frc.robot.Constants.DescorerConstants;
 import frc.robot.commands.drive.AlignmentCommands;
 import frc.robot.commands.manipulator.DescoreHigh;
@@ -177,6 +178,28 @@ public class Autos {
         );
     }
 
+    /**
+     * Runs a full cycle
+     * @param stationPath The path to the coral station
+     * @param level The level to score
+     * @param left If the robot should align to the left branch
+     * @param alignTime The amount of time in seconds that the robot should auto align
+     * @param driveSubsystem The drive subsystem
+     * @param elevatorSubsystem The elevator subsystem
+     * @param visionSubsystem The vision subsystem
+     * @return A command to run a full cycle
+     */
+    private static final Command runCycle(Command stationPath, ElevatorLevel level, boolean left, double alignTime, DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, VisionSubsystem visionSubsystem) {
+        return new SequentialCommandGroup(
+            stationPath,
+            left ? alignReefLeft(level, alignTime, driveSubsystem, elevatorSubsystem, visionSubsystem)
+            : alignReefRight(level, alignTime, driveSubsystem, elevatorSubsystem, visionSubsystem),
+            outtake(elevatorSubsystem),
+            stopIntake(elevatorSubsystem),
+            lowerElevator(elevatorSubsystem)
+        );
+    }
+
     // ######################################################################## //
     // ------------------------------[AUTOS]----------------------------------- //
     // ######################################################################## //
@@ -273,13 +296,13 @@ public class Autos {
                 part2 = part2.mirrorPath();
             }
             return new SequentialCommandGroup(
-                PathfindingCommands.pathfindThenFollowSlow(part1),
-                alignReefRight(ElevatorLevel.L2, 2.2, driveSubsystem, elevatorSubsystem, visionSubsystem),
+                PathfindingCommands.pathfindThenFollow(part1),
+                alignReefRight(ElevatorLevel.L2, 2.8, driveSubsystem, elevatorSubsystem, visionSubsystem),
                 outtake(elevatorSubsystem),
                 slowIntake(elevatorSubsystem),
                 lowerElevator(elevatorSubsystem),
-                runCycle(followStationPath(part2, 0.9, 4.0, elevatorSubsystem),
-                    ElevatorLevel.L2, true, driveSubsystem, elevatorSubsystem, visionSubsystem)
+                runCycle(followStationPath(part2, 0.9, 4.5, elevatorSubsystem),
+                    ElevatorLevel.L2, true, 2.8, driveSubsystem, elevatorSubsystem, visionSubsystem)
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -375,6 +398,12 @@ public class Autos {
             e.printStackTrace();
             return Commands.none();
         }
+    }
+
+    public static final Command leave(DriveSubsystem driveSubsystem) {
+        return new SequentialCommandGroup(
+            PathfindingCommands.pathfindToPointSlow(new Pose2d(Constants.INITIAL_POSITION.getX() - 1.0, Constants.INITIAL_POSITION.getY(), Constants.INITIAL_POSITION.getRotation()))
+        );
     }
 
     public static final Command branchingAuto(List<AutoAction> actions) {

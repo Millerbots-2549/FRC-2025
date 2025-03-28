@@ -28,8 +28,8 @@ import static frc.robot.Constants.DriveConstants.*;
 /** Add your docs here. */
 public class PathfindingCommands {
     public static final PathConstraints SLOW_PATH_CONSTRAINTS = new PathConstraints(
-        2.5,
-        2.5,
+        1.2,
+        1.2,
         MAX_ANGULAR_VELOCITY,
         MAX_ANGULAR_ACCELERATION);
     public static final PathConstraints FAST_PATH_CONSTRAINTS = new PathConstraints(
@@ -45,6 +45,15 @@ public class PathfindingCommands {
      */
     public static Command pathfindToPoint(Pose2d pose) {
         return AutoBuilder.pathfindToPose(pose, FAST_PATH_CONSTRAINTS, 1.0);
+    }
+
+    /**
+     * Pathfinds to a pose using the AD* algorithm
+     * @param pose The pose to pathfind to
+     * @return A command to pathfind to the pose
+     */
+    public static Command pathfindToPointSlow(Pose2d pose) {
+        return AutoBuilder.pathfindToPose(pose, SLOW_PATH_CONSTRAINTS, 1.0);
     }
 
     /**

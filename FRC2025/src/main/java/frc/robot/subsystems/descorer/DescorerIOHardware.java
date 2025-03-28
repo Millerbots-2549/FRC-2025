@@ -25,6 +25,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Add your docs here. */
 public class DescorerIOHardware implements DescorerIO {
@@ -35,6 +36,8 @@ public class DescorerIOHardware implements DescorerIO {
 
     private final SparkBaseConfig wristConfig;
     private final SparkBaseConfig rollerConfig;
+
+    private boolean openLoop = false;
 
     private final Constraints wristConstraints = 
         new Constraints(WRIST_MAX_VELOCITY, WRIST_MAX_ACCEL);
@@ -70,7 +73,7 @@ public class DescorerIOHardware implements DescorerIO {
             rollerMotor.configure(this.rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(rollerMotor, 5, () -> rollerEncoder.setPosition(0));
 
-        wristPositionController.enableContinuousInput(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT);
+        //wristPositionController.enableContinuousInput(WRIST_PID_MIN_INPUT, WRIST_PID_MAX_INPUT);
         wristPositionController.setTolerance(0.1, 0.1);
 
         rollerVelocityController.setTolerance(0.1);
@@ -111,25 +114,32 @@ public class DescorerIOHardware implements DescorerIO {
         double absolutePosition = wristEncoder.getPosition();
         double setpointPosition = setpoint.getRadians();
 
+        SmartDashboard.putNumber("Desc Absolute Position", absolutePosition);
+        SmartDashboard.putNumber("Desc Setpoint Position", setpointPosition);
+
         wristPositionController.setTolerance(0.001, 0.001);
 
         double output = wristPositionController.calculate(absolutePosition, setpointPosition);
         output += WRIST_KG * Math.cos(absolutePosition);
         output = output > 0 ? output * 0.5 : output;
-        wristMotor.set(MathUtil.clamp(output, -0.9, 0.9));
+        if(!openLoop) wristMotor.set(MathUtil.clamp(output, -0.9, 0.9));
 
         output = velocitySetpoint * (MathUtil.clamp(velocityTimer.get() * 3, 0.0, 1.0));
         rollerMotor.set(output);
+
+        SmartDashboard.putBoolean("Open Loop", openLoop);
     }
 
     @Override
     public void applyWristDutyCycle(double output) {
         wristMotor.set(output);
+        openLoop = true;
     };
 
     @Override
     public void applyWristSetpoint(Rotation2d setpoint) {
         this.setpoint = setpoint;
+        openLoop = false;
     };
 
     @Override

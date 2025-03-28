@@ -47,7 +47,7 @@ public class DescoreLow extends Command {
         currentState = CommandState.PUSHING;
       }
     } else {
-      descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.minus(Rotation2d.fromRadians(0.6)));
+      descorerSubsystem.wristOpenLoop(-0.2);
     }
     SmartDashboard.putNumber("YSUSHIJ", descorerSubsystem.getCurrentWristPosition().getRadians()
       - DESCORER_ON_POSITION.getRadians());
