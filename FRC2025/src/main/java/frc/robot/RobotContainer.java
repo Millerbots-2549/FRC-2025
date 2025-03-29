@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.oi.OI.Bumper.LB;
 import static frc.robot.oi.OI.Bumper.RB;
+import static frc.robot.oi.OI.Button.A;
 import static frc.robot.oi.OI.Button.B;
 import static frc.robot.oi.OI.Button.BACK;
 import static frc.robot.oi.OI.Button.POV_DOWN;
@@ -243,8 +244,8 @@ public class RobotContainer {
     startingPoseChooser.addOption("Left, facing towards", new Pose2d(7.75, 6.16, Rotation2d.fromDegrees(180)));
     startingPoseChooser.addOption("Right, facing away", new Pose2d(7.732, 1.897, new Rotation2d()));
     startingPoseChooser.addOption("Right, facing towards", new Pose2d(7.732, 1.897, Rotation2d.fromDegrees(180)));
-    startingPoseChooser.addOption("Center, facing away", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(90))));
-    startingPoseChooser.addOption("Center, facing towards", new Pose2d(3, 3, new Rotation2d(Units.degreesToRadians(-90))));
+    startingPoseChooser.addOption("Center, facing away", new Pose2d(7.72, 4.025, new Rotation2d()));
+    startingPoseChooser.addOption("Center, facing towards", new Pose2d(7.72, 4.025, Rotation2d.fromDegrees(180)));
     startingPoseChooser.addOption("Far Left, facing away", new Pose2d(7.732, 7.238, new Rotation2d()));
     startingPoseChooser.addOption("Far Left, facing towards", new Pose2d(7.732, 7.238, Rotation2d.fromDegrees(180)));
     startingPoseChooser.addOption("Far Right, facing away", new Pose2d(7.732, 0.8, new Rotation2d()));
@@ -351,6 +352,8 @@ public class RobotContainer {
       Commands.run(() -> algaeIntakeSubsystem.apply(0.8, AlgaeIntakeConstants.INTAKE_ANGLE_DOWN), algaeIntakeSubsystem));
     oi.whileManipulatorBumperPressed(RB,
       Commands.run(() -> algaeIntakeSubsystem.setRollerSpeed(-0.8), algaeIntakeSubsystem));
+
+    oi.whileManipulatorButtonPressed(A, Commands.run(() -> algaeIntakeSubsystem.setArmOpenLoop(0.1)));
 
     oi.whileManipulatorTriggerPressedFullRange(LT,
       Commands.run(() -> elevatorSubsystem.runIntake((oi.getManipulatorTriggerAxis(LT) * 0.3000)), elevatorSubsystem));

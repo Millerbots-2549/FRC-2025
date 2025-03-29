@@ -33,6 +33,10 @@ public class DescorerSubsystem extends SubsystemBase {
     io.applyWristSetpoint(setpoint);
   }
 
+  public void applyWristSetpointStrong(Rotation2d setpoint) {
+    io.applyWristSetpointStrong(setpoint);
+  }
+
   public void wristOpenLoop(double output) {
     io.applyWristDutyCycle(output);
   }

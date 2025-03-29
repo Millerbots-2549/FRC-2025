@@ -74,7 +74,7 @@ public class DescoreHigh extends Command {
         break;
       
       case RAISING:
-        descorerSubsystem.applyWristSetpoint(DESCORER_ON_POSITION.plus(Rotation2d.fromRadians(
+        descorerSubsystem.applyWristSetpointStrong(DESCORER_ON_POSITION.plus(Rotation2d.fromRadians(
           MathUtil.clamp(timer.get() * RAISE_SPEED, 0, 1.5))));
         elevatorSubsystem.setElevatorPosition(ElevatorLevel.FLOOR.height + (timer.get() * RAISE_SPEED * 3.0));
         if (timer.get() > RAISE_TIME) {

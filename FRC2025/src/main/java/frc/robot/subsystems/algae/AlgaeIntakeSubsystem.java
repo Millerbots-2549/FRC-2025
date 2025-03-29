@@ -71,6 +71,10 @@ public class AlgaeIntakeSubsystem extends SubsystemBase implements DashboardPubl
     io.setRollerVelocity(intakeVelocity);
   }
 
+  public void setArmOpenLoop(double output) {
+    io.setAngleOpenLoop(output);
+  }
+
   public void setRollerSpeed(double intakeVelocity) {
     io.setRollerVelocity(intakeVelocity);
   }

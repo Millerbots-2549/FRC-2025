@@ -260,7 +260,7 @@ public final class AlignmentCommands {
      * @return A command to align to the tag
      */
     public static Command alignToTagLeft(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
-        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.34, -0.12), 0);
+        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.34, -0.13), 0);
     }; //0.34 -0.12
 
     /**
@@ -270,7 +270,7 @@ public final class AlignmentCommands {
      * @return A command to align to the tag
      */
     public static Command alignToTagRight(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
-        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.4, 0.06), 1);
+        return AlignmentCommands.alignToTag(driveSubsystem, visionSubsystem, new Translation2d(0.39, 0.05), 1);
     }; // 0.4 0.06
 
     public static Command alignToStation(DriveSubsystem driveSubsystem) {

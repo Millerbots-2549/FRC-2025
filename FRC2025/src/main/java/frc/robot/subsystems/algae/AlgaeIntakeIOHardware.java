@@ -186,6 +186,6 @@ public class AlgaeIntakeIOHardware implements AlgaeIntakeIO {
 
     @Override
     public void setAngleOpenLoop(double volts) {
-        angleMotor.setVoltage(volts);
+        angleMotor.set(volts);
     }
 }

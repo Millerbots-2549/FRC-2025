@@ -200,6 +200,26 @@ public class Autos {
         );
     }
 
+    /**
+     * Runs a full cycle
+     * @param stationPath The path to the coral station
+     * @param level The level to score
+     * @param left If the robot should align to the left branch
+     * @param driveSubsystem The drive subsystem
+     * @param elevatorSubsystem The elevator subsystem
+     * @param visionSubsystem The vision subsystem
+     * @return A command to run a full cycle
+     */
+    private static final Command runCycleNoOuttake(Command stationPath, ElevatorLevel level, boolean left, double alignTime, DriveSubsystem driveSubsystem, ElevatorSubsystem elevatorSubsystem, VisionSubsystem visionSubsystem) {
+        return new SequentialCommandGroup(
+            stationPath,
+            left ? alignReefLeft(level, alignTime, driveSubsystem, elevatorSubsystem, visionSubsystem)
+            : alignReefRight(level, alignTime, driveSubsystem, elevatorSubsystem, visionSubsystem),
+            stopIntake(elevatorSubsystem),
+            lowerElevator(elevatorSubsystem)
+        );
+    }
+
     // ######################################################################## //
     // ------------------------------[AUTOS]----------------------------------- //
     // ######################################################################## //
@@ -275,10 +295,10 @@ public class Autos {
                 slowIntake(elevatorSubsystem),
                 lowerElevator(elevatorSubsystem),
                 runCycle(followStationPath(part2, 0.9, 4.0, elevatorSubsystem),
-                    ElevatorLevel.L2, true, driveSubsystem, elevatorSubsystem, visionSubsystem),
+                    ElevatorLevel.L2, true, 1.35, driveSubsystem, elevatorSubsystem, visionSubsystem),
                 slowIntake(elevatorSubsystem),
-                runCycle(followStationPath(part3, 0.8, 3.6, elevatorSubsystem),
-                    ElevatorLevel.L2, false, driveSubsystem, elevatorSubsystem, visionSubsystem)
+                runCycleNoOuttake(followStationPath(part3, 0.8, 3.6, elevatorSubsystem),
+                    ElevatorLevel.L2, false, 1.5, driveSubsystem, elevatorSubsystem, visionSubsystem)
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -402,7 +422,7 @@ public class Autos {
 
     public static final Command leave(DriveSubsystem driveSubsystem) {
         return new SequentialCommandGroup(
-            PathfindingCommands.pathfindToPointSlow(new Pose2d(Constants.INITIAL_POSITION.getX() - 1.0, Constants.INITIAL_POSITION.getY(), Constants.INITIAL_POSITION.getRotation()))
+            PathfindingCommands.pathfindToPoint(new Pose2d(Constants.INITIAL_POSITION.getX() - 1.0, Constants.INITIAL_POSITION.getY(), Constants.INITIAL_POSITION.getRotation()))
         );
     }
 

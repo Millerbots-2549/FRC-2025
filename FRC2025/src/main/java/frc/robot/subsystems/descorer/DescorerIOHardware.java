@@ -139,6 +139,14 @@ public class DescorerIOHardware implements DescorerIO {
     @Override
     public void applyWristSetpoint(Rotation2d setpoint) {
         this.setpoint = setpoint;
+        this.wristPositionController.setPID(WRIST_KP, WRIST_KI, WRIST_KD);
+        openLoop = false;
+    };
+
+    @Override
+    public void applyWristSetpointStrong(Rotation2d setpoint) {
+        this.setpoint = setpoint;
+        this.wristPositionController.setPID(0.6, WRIST_KI, WRIST_KD);
         openLoop = false;
     };
 

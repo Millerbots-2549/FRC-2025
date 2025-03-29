@@ -34,6 +34,7 @@ public interface DescorerIO {
     public default void applyWristDutyCycle(double output) {};
 
     public default void applyWristSetpoint(Rotation2d setpoint) {};
+    public default void applyWristSetpointStrong(Rotation2d setpoint) {};
 
     public default void applyRollerDutyCycle(double output) {};
 
